@@ -33,7 +33,7 @@ nano articles/index.md
 Generate static pages:
 
 ```bash
-bun run generate
+bun run generate_dev
 ```
 
 Run server:

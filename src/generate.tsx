@@ -2,7 +2,7 @@ import {readdir} from 'node:fs/promises'
 
 import {renderToString} from 'preact-render-to-string'
 import {marked} from 'marked'
-import DOMPurify from 'isomorphic-dompurify'
+import xss from 'xss'
 
 import Page from './components/page.tsx'
 import Heading from './components/heading.tsx'
@@ -34,19 +34,21 @@ function convertMarkdownToHtml(markdown: string): string {
 
 function extractTitle(markdown: string): string {
 	const lines = markdown.split('\n')
-	let title = 'Untitled'
+	const untitled = 'Untitled'
 
-	if (lines.length > 0 && lines[0].startsWith('# ')) {
-		title = lines[0].replace('# ', '').trim()
+	for (const line of lines) {
+		if (line.startsWith('# ')) {
+			return line.replace('# ', '')
+		}
 	}
 
-	return title
+	return untitled
 }
 
 async function generatePage(mdPath: string, outputPath: string) {
 	try {
 		const markdown = await Bun.file(mdPath).text()
-		const contentHtml = DOMPurify.sanitize(convertMarkdownToHtml(markdown))
+		const contentHtml = xss(convertMarkdownToHtml(markdown))
 		const title = extractTitle(markdown)
 		const fullJsx = (
 			<Page title={title} content={contentHtml} includeArrow={true} />
@@ -67,7 +69,7 @@ async function gereateIndex(
 	try {
 		const mdPath = `${articlesPath}/index.md`
 		const markdown = await Bun.file(mdPath).text()
-		const contentHtml = DOMPurify.sanitize(convertMarkdownToHtml(markdown))
+		const contentHtml = xss(convertMarkdownToHtml(markdown))
 		const title = extractTitle(markdown)
 		const linksJsx = <ArticleList links={links} />
 		const fullJsx = (

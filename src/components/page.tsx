@@ -9,9 +9,9 @@ const Page = ({
 	content,
 	includeArrow = false
 }: {
-	title: string;
-	content: string;
-	includeArrow: boolean;
+	title: string
+	content: string
+	includeArrow: boolean
 }) => {
 	return (
 		<html lang="en">
