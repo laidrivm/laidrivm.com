@@ -6,7 +6,6 @@ const Heading = ({ depth, text, id }) => {
   return (
     <Tag id={id}>
       <a href={`#${id}`}>{text}</a>
-      {/* <button className="copy-link" onClick={() => copyToClipboard(`#${id}`)}>Copy 🔗</button> */}
     </Tag>
   );
 };

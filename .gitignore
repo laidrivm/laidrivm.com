@@ -1,9 +1,10 @@
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 
 # Locals
-public/
-articles/
-out/
+public
+articles
+out
+certs
 
 # Logs
 

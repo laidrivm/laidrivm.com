@@ -14,6 +14,10 @@ helm-charts
 .idea
 coverage*
 
+# Locals
+
+certs
+
 # Logs
 
 logs
@@ -127,7 +131,7 @@ web_modules/
 # Next.js build output
 
 .next
-out
+#out
 
 # Nuxt.js build / generate output
 
