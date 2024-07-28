@@ -30,13 +30,7 @@ Add .md files with your content. For example write "Hello, World!" in:
 nano articles/index.md
 ```
 
-Generate static pages:
-
-```bash
-bun run generate_dev
-```
-
-Run server:
+Generate static pages and run server:
 
 ```bash
 bun run dev
