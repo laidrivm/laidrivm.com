@@ -51,7 +51,7 @@ docker build --pull -t blog .
 
 Finally, run the container:
 ```bash
-docker run -d \                                     
+docker run -d \
   --name blog \
   -p 3000:3000 \
   -v ./certs/cert.pem:/usr/src/app/certs/cert.pem:ro \

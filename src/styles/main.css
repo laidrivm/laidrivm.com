@@ -1,200 +1,200 @@
 @import './normalize.css';
 
 @font-face {
-	font-family: 'SourceCodePro';
-	src: url('/SourceCodePro-Regular.ttf.woff2') format('woff2');
-	font-weight: normal;
-	font-style: normal;
+  font-family: 'SourceCodePro';
+  src: url('/SourceCodePro-Regular.ttf.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
 }
 
 @font-face {
-	font-family: 'SourceSerif4';
-	src: url('/SourceSerif4-Regular.ttf.woff2') format('woff2');
-	font-weight: normal;
-	font-style: normal;
+  font-family: 'SourceSerif4';
+  src: url('/SourceSerif4-Regular.ttf.woff2') format('woff2');
+  font-weight: normal;
+  font-style: normal;
 }
 
 @font-face {
-	font-family: 'SourceSerif4-Semibold';
-	src: url('/SourceSerif4-Semibold.ttf.woff2') format('woff2');
-	font-weight: 600;
-	font-style: normal;
+  font-family: 'SourceSerif4-Semibold';
+  src: url('/SourceSerif4-Semibold.ttf.woff2') format('woff2');
+  font-weight: 600;
+  font-style: normal;
 }
 
 @font-face {
-	font-family: 'SourceSerif4-Italic';
-	src: url('/SourceSerif4-It.ttf.woff2') format('woff2');
-	font-weight: normal;
-	font-style: italic;
+  font-family: 'SourceSerif4-Italic';
+  src: url('/SourceSerif4-It.ttf.woff2') format('woff2');
+  font-weight: normal;
+  font-style: italic;
 }
 
 body {
-	font-family: 'SourceSerif4', sans-serif;
-	font-size: 22px;
-	line-height: 1.3;
-	margin-left: auto;
-	margin-right: auto;
-	width: 100%;
-	max-width: 1000px;
-	min-height: 100%;
-	-webkit-font-smoothing: subpixel-antialiased;
-	text-rendering: optimizeLegibility;
-	font-kerning: normal;
-	hyphens: auto;
+  font-family: 'SourceSerif4', sans-serif;
+  font-size: 22px;
+  line-height: 1.3;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+  max-width: 1000px;
+  min-height: 100%;
+  -webkit-font-smoothing: subpixel-antialiased;
+  text-rendering: optimizeLegibility;
+  font-kerning: normal;
+  hyphens: auto;
 }
 
 .content {
-	margin-left: 5rem;
-	margin-right: 9rem;
+  margin-left: 5rem;
+  margin-right: 9rem;
 }
 
 h1 {
-	font-size: 56px;
-	line-height: 1.15;
-	margin-block-start: 0.8em;
-	margin-block-end: 0;
-	text-decoration: none;
+  font-size: 56px;
+  line-height: 1.15;
+  margin-block-start: 0.8em;
+  margin-block-end: 0;
+  text-decoration: none;
 }
 
 h2 {
-	font-size: 40px;
-	line-height: 1.15;
-	margin-block-start: 1em;
-	margin-block-end: 0;
-	text-decoration: none;
+  font-size: 40px;
+  line-height: 1.15;
+  margin-block-start: 1em;
+  margin-block-end: 0;
+  text-decoration: none;
 }
 
 h3 {
-	font-size: 32px;
-	line-height: 1.15;
-	margin-block-start: 1.2em;
-	margin-block-end: 0;
-	text-decoration: none;
+  font-size: 32px;
+  line-height: 1.15;
+  margin-block-start: 1.2em;
+  margin-block-end: 0;
+  text-decoration: none;
 }
 
 .lead {
-	font-size: 26px;
+  font-size: 26px;
 }
 
 b,
 strong {
-	font-family: 'SourceSerif4-Semibold', sans-serif;
+  font-family: 'SourceSerif4-Semibold', sans-serif;
 }
 
 i,
 em {
-	font-family: 'SourceSerif4-Italic', sans-serif;
+  font-family: 'SourceSerif4-Italic', sans-serif;
 }
 
 a:link {
-	text-decoration: underline;
-	color: black;
+  text-decoration: underline;
+  color: black;
 }
 
 a:visited {
-	text-decoration: underline;
-	color: black;
+  text-decoration: underline;
+  color: black;
 }
 
 a:hover {
-	text-decoration: underline;
-	background: #f6f6f6;
-	transition-property: background;
-	transition-duration: 0.2s;
-	border-radius: 8px;
+  text-decoration: underline;
+  background: #f6f6f6;
+  transition-property: background;
+  transition-duration: 0.2s;
+  border-radius: 8px;
 }
 
 a:active {
-	text-decoration: none;
+  text-decoration: none;
 }
 
 h2 a:link,
 h3 a:link {
-	text-decoration: none;
+  text-decoration: none;
 }
 
 li {
-	margin-bottom: 0.8em;
+  margin-bottom: 0.8em;
 }
 
 img {
-	width: 100%;
+  width: 100%;
 }
 
 pre {
-	font-family: 'SourceCodePro', monospace;
-	padding: 32px;
-	overflow-x: auto;
-	background: #f6f6f6;
-	border-radius: 8px;
+  font-family: 'SourceCodePro', monospace;
+  padding: 32px;
+  overflow-x: auto;
+  background: #f6f6f6;
+  border-radius: 8px;
 }
 
 blockquote {
-	margin: 22px 0 22px 0;
-	padding: 0 0 0 32px;
-	border-width: 0 0 0 1px;
-	border-style: solid;
+  margin: 22px 0 22px 0;
+  padding: 0 0 0 32px;
+  border-width: 0 0 0 1px;
+  border-style: solid;
 }
 
 hr {
-	border-color: black;
-	border-style: solid;
-	border-width: 1px 0 0 0;
+  border-color: black;
+  border-style: solid;
+  border-width: 1px 0 0 0;
 }
 
 a.arrow-container {
-	position: fixed;
-	left: 0;
-	top: 0;
-	width: 100px;
-	height: 100%;
-	display: flex;
-	align-items: center;
-	justify-content: center;
-	cursor: pointer;
-	z-index: 1000;
-	text-decoration: none;
-	border-radius: 0;
+  position: fixed;
+  left: 0;
+  top: 0;
+  width: 100px;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  text-decoration: none;
+  border-radius: 0;
 }
 
 .arrow-container:hover {
-	background: #f6f6f6;
+  background: #f6f6f6;
 }
 
 @media (max-width: 480px) {
-	body {
-		font-size: 16px;
-		max-width: 100%;
-		margin: 0;
-	}
+  body {
+    font-size: 16px;
+    max-width: 100%;
+    margin: 0;
+  }
 
-	.content {
-		margin-left: 2rem;
-		margin-right: 2rem;
-	}
+  .content {
+    margin-left: 2rem;
+    margin-right: 2rem;
+  }
 
-	h1 {
-		font-size: 36px;
-	}
+  h1 {
+    font-size: 36px;
+  }
 
-	h2 {
-		font-size: 28px;
-	}
+  h2 {
+    font-size: 28px;
+  }
 
-	h3 {
-		font-size: 24px;
-	}
+  h3 {
+    font-size: 24px;
+  }
 
-	a.arrow-container {
-		width: 2rem;
-	}
+  a.arrow-container {
+    width: 2rem;
+  }
 
-	pre {
-		padding: 16px;
-	}
+  pre {
+    padding: 16px;
+  }
 
-	blockquote {
-		margin: 16px 0 16px 0;
-		padding: 0 0 0 16px;
-	}
+  blockquote {
+    margin: 16px 0 16px 0;
+    padding: 0 0 0 16px;
+  }
 }
