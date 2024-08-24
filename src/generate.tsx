@@ -5,17 +5,10 @@ import {renderToString} from 'preact-render-to-string'
 import {marked} from 'marked'
 import xss from 'xss'
 
+import type {Indexes} from './types.ts'
 import Page from './components/page.tsx'
 import Heading from './components/heading.tsx'
 import ArticleList from './components/articlelist.tsx'
-
-interface Index {
-  path: string
-  links: string[]
-  language: 'en' | 'ru'
-}
-
-type Indexes = Index[]
 
 function generateId(text: string): string {
   return text
@@ -58,7 +51,7 @@ async function generatePage(
   mdPath: string,
   outputPath: string,
   language: 'en' | 'ru' = 'en'
-) {
+): string {
   try {
     const markdown = await Bun.file(mdPath).text()
     const contentHtml = xss(convertMarkdownToHtml(markdown))
@@ -73,10 +66,14 @@ async function generatePage(
     )
     const html = '<!DOCTYPE html>\n' + renderToString(fullJsx)
     await Bun.write(outputPath, html)
-    console.log(`Static page generated successfully at ${outputPath}`)
+    console.log(
+      `Static page generated successfully at ${outputPath} with title ${title}`
+    )
+    return title
   } catch (error) {
     console.error(`Error generating HTML from Markdown: ${error}`)
   }
+  return 'untitled'
 }
 
 async function generateIndexes(publicPath: string, indexes: Indexes) {
@@ -124,12 +121,10 @@ async function processDirectory(
     language: languageFromPath(articlesPath)
   })
   const files = await readdir(articlesPath)
-  console.log(files)
 
   for (const file of files) {
     const filePath = join(articlesPath, file)
     const fileStat = await stat(filePath)
-    console.log(filePath)
 
     if (fileStat.isDirectory()) {
       await processDirectory(filePath, join(publicPath, file), indexes)
@@ -137,8 +132,15 @@ async function processDirectory(
       const outputFileName = file.replace('.md', '.html')
       const outputFilePath = join(publicPath, outputFileName)
       const thisIndex = indexes.find(idx => idx.path === articlesPath)
-      await generatePage(filePath, outputFilePath, thisIndex.language)
-      thisIndex.links.push(outputFileName)
+      const text = await generatePage(
+        filePath,
+        outputFilePath,
+        thisIndex.language
+      )
+      thisIndex.links.push({
+        text: text,
+        address: outputFileName
+      })
     }
   }
 }
@@ -150,7 +152,6 @@ async function generateSite() {
   try {
     const indexes: Indexes = []
     await processDirectory(articlesPath, publicPath, indexes)
-    console.log(indexes)
     await generateIndexes(publicPath, indexes)
   } catch (error) {
     console.error(`Error generating site: ${error}`)
