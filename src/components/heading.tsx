@@ -1,4 +1,4 @@
-const Heading = ({depth, text, id}) => {
+const Heading = ({depth, text, id}: {nubmer, string, string}): string => {
   if (depth === 1) {
     return <h1>{text}</h1>
   }

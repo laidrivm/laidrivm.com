@@ -1,4 +1,4 @@
-const ArticleList = ({ links }) => (
+const ArticleList = ({links}: string[]): string => (
   <ul>
     {links.map(link => (
       <li>
