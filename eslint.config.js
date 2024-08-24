@@ -7,6 +7,7 @@ import pluginPreact from "eslint-plugin-preact";
 import pluginImport from "eslint-plugin-import";
 import pluginJSDoc from "eslint-plugin-jsdoc";
 import pluginSonarJS from "eslint-plugin-sonarjs";
+import cssPlugin from "eslint-plugin-css"
 
 export default [
   {
@@ -68,4 +69,5 @@ export default [
   {
     ignores: ["example/*", "test/**/*"],
   },
+  cssPlugin.configs["flat/recommended"],
 ];

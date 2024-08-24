@@ -6,6 +6,7 @@
     "@eslint/js": "^9.7.0",
     "@types/bun": "latest",
     "eslint": "9.x",
+    "eslint-plugin-css": "^0.10.0",
     "eslint-plugin-import": "^2.29.1",
     "eslint-plugin-jsdoc": "^48.8.3",
     "eslint-plugin-preact": "^0.1.0",
@@ -13,8 +14,8 @@
     "eslint-plugin-sonarjs": "^1.0.4",
     "globals": "^15.8.0",
     "prettier": "^3.3.3",
-    "typescript-eslint": "^7.17.0",
-    "typescript": "^5.0.0"
+    "typescript": "^5.0.0",
+    "typescript-eslint": "^7.17.0"
   },
   "dependencies": {
     "@elysiajs/static": "^1.1.0",
