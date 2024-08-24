@@ -1,13 +1,11 @@
 const CodeSnippet = ({lang, text}: {string; string}): string => {
-  const id = 'language-'+lang;
+  const id = 'language-' + lang
   return (
-  	<div class={id}>
-  	  <pre class={`pre`}>
-  	    <code class={`code`}>
-  	      {text}
-  	    </code>
-  	  </pre>
-  	</div>
+    <div className={id}>
+      <pre className={`pre`}>
+        <code className={`code`}>{text}</code>
+      </pre>
+    </div>
   )
 }
 

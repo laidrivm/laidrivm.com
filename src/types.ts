@@ -13,7 +13,4 @@ interface Index {
 
 type Indexes = Index[]
 
-export type {
-  Links,
-  Indexes
-}
+export type {Links, Indexes}

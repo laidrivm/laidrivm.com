@@ -35,12 +35,7 @@ function convertMarkdownToHtml(markdown: string): string {
   renderer.code = code => {
     const lang = code.lang || 'plaintext'
     console.log(lang)
-    return renderToString(
-      <CodeSnippet
-        lang={lang}
-        text={code.text}
-      />
-    )
+    return renderToString(<CodeSnippet lang={lang} text={code.text} />)
   }
 
   return marked(markdown, {renderer})
