@@ -1,12 +1,21 @@
-import {readdir} from 'node:fs/promises'
+import {readdir, stat} from 'node:fs/promises'
 
 import {renderToString} from 'preact-render-to-string'
 import {marked} from 'marked'
+import {join} from 'path'
 import xss from 'xss'
 
 import Page from './components/page.tsx'
 import Heading from './components/heading.tsx'
 import ArticleList from './components/articlelist.tsx'
+
+interface Index {
+  path: string;
+  links: string[];
+  language: 'en' | 'ru';
+}
+
+type Indexes = Index[];
 
 function generateId(text: string): string {
   return text
@@ -45,13 +54,22 @@ function extractTitle(markdown: string): string {
   return untitled
 }
 
-async function generatePage(mdPath: string, outputPath: string) {
+async function generatePage(
+  mdPath: string, 
+  outputPath: string, 
+  language: 'en' | 'ru' = 'en'
+) {
   try {
     const markdown = await Bun.file(mdPath).text()
     const contentHtml = xss(convertMarkdownToHtml(markdown))
     const title = extractTitle(markdown)
     const fullJsx = (
-      <Page title={title} content={contentHtml} includeArrow={true} />
+      <Page 
+        title={title} 
+        content={contentHtml} 
+        lang={language} 
+        includeArrow={true} 
+      />
     )
     const html = '<!DOCTYPE html>\n' + renderToString(fullJsx)
     await Bun.write(outputPath, html)
@@ -61,52 +79,82 @@ async function generatePage(mdPath: string, outputPath: string) {
   }
 }
 
-async function gereateIndex(
-  articlesPath: string,
+async function generateIndexes(
   publicPath: string,
-  links: string[]
+  indexes: Indexes
 ) {
   try {
-    const mdPath = `${articlesPath}/index.md`
-    const markdown = await Bun.file(mdPath).text()
-    const contentHtml = xss(convertMarkdownToHtml(markdown))
-    const title = extractTitle(markdown)
-    const linksJsx = <ArticleList links={links} />
-    const fullJsx = (
-      <Page
-        title={title}
-        content={`${contentHtml}${renderToString(linksJsx)}`}
-      />
-    )
-    const html = '<!DOCTYPE html>\n' + renderToString(fullJsx)
-    await Bun.write(`${publicPath}/index.html`, html)
-    console.log('Index page generated successfully.')
+    for (const index of indexes) {
+      const mdPath = `${index.path}/index.md`
+      const markdown = await Bun.file(mdPath).text()
+      const contentHtml = xss(convertMarkdownToHtml(markdown))
+      const title = extractTitle(markdown)
+      const linksJsx = <ArticleList links={index.links} />
+      const fullJsx = (
+        <Page
+          title={title}
+          content={`${contentHtml}${renderToString(linksJsx)}`}
+          lang={index.language}
+        />
+      )
+      const outputPath = index.language === 'en' ? `${publicPath}/index.html` : `${publicPath}/${index.language}/index.html`
+      const html = '<!DOCTYPE html>\n' + renderToString(fullJsx)
+      await Bun.write(outputPath, html)
+      console.log(`${index.language} index page generated successfully.`)
+    }
   } catch (error) {
-    console.error(`Error generating HTML from Markdown: ${error}`)
+    console.error(`Error generating index HTML from Markdown: ${error}`)
+  }
+}
+
+function languageFromPath(path: string) {
+  const parts = path.split('/').filter(Boolean);
+  if (parts.length === 1)
+    return 'en'
+  return parts[1]
+}
+
+async function processDirectory(
+  articlesPath: string, 
+  publicPath: string, 
+  indexes: Indexes
+) {
+  indexes.push({
+    "path": articlesPath,
+    "links": [],
+    "language": languageFromPath(articlesPath)
+  })
+  const files = await readdir(articlesPath)
+  console.log(files)
+
+  for (const file of files) {
+    const filePath = join(articlesPath, file)
+    const fileStat = await stat(filePath)
+    console.log(filePath)
+
+    if (fileStat.isDirectory()) {
+      await processDirectory(filePath, join(publicPath, file), indexes)
+    } else if (file.endsWith('.md') && (file !== 'index.md')) {
+      const outputFileName = file.replace('.md', '.html')
+      const outputFilePath = join(publicPath, outputFileName)
+      const thisIndex = indexes.find(idx => idx.path === articlesPath)
+      await generatePage(filePath, outputFilePath, thisIndex.language)
+      thisIndex.links.push(outputFileName)
+    }
   }
 }
 
 async function generateSite() {
-  const articlesPath = './articles'
-  const publicPath = './public'
-  const links: string[] = []
+  const articlesPath = 'articles'
+  const publicPath = 'public'
 
   try {
-    const files = await readdir(articlesPath)
-    const mdFiles = files.filter(file => file.endsWith('.md'))
-
-    for (const mdFile of mdFiles) {
-      if (mdFile === 'index.md') continue
-      const mdFilePath = `${articlesPath}/${mdFile}`
-      const outputFileName = mdFile.replace('.md', '.html')
-      const outputFilePath = `${publicPath}/${outputFileName}`
-      await generatePage(mdFilePath, outputFilePath)
-      links.push(outputFileName)
-    }
-
-    await gereateIndex(articlesPath, publicPath, links)
+    const indexes: Indexes = []
+    await processDirectory(articlesPath, publicPath, indexes)
+    console.log(indexes)
+    await generateIndexes(publicPath, indexes)
   } catch (error) {
-    console.error(`Error reading articles directory: ${error}`)
+    console.error(`Error generating site: ${error}`)
   }
 }
 
