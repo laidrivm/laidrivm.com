@@ -133,6 +133,7 @@ pre {
   overflow-x: auto;
   background: #f6f6f6;
   border-radius: 8px;
+  font-size: 22px;
 }
 
 blockquote {
@@ -202,6 +203,7 @@ a.arrow-container {
 
   pre {
     padding: 16px;
+    font-size: 16px;
   }
 
   blockquote {
