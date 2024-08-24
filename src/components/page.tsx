@@ -29,6 +29,10 @@ const Page = ({
         <link rel="icon" type="image/png" href="/favicon.png" />
         <link rel="alternate" href="https://laidrivm.com/" hreflang="en" />
         <link rel="alternate" href="https://laidrivm.com/ru/" hreflang="ru" />
+        <link rel="preload" href="/SourceCodePro-Regular.ttf.woff2" as="font" type="font/woff2" />
+        <link rel="preload" href="/SourceSerif4-Regular.ttf.woff2" as="font" type="font/woff2" />
+        <link rel="preload" href="/SourceSerif4-Semibold.ttf.woff2" as="font" type="font/woff2" />
+        <link rel="preload" href="/SourceSerif4-It.ttf.woff2" as="font" type="font/woff2" />
       </head>
       <body>
         {includeArrow && <ArrowComponent />}
