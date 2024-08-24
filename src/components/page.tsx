@@ -27,6 +27,8 @@ const Page = ({
         <title>{title}</title>
         <link rel="stylesheet" href="/main.css" />
         <link rel="icon" type="image/png" href="/favicon.png" />
+        <link rel="alternate" href="https://laidrivm.com/" hreflang="en" />
+        <link rel="alternate" href="https://laidrivm.com/ru/" hreflang="ru" />
       </head>
       <body>
         {includeArrow && <ArrowComponent />}
