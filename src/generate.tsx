@@ -9,6 +9,7 @@ import type {Indexes} from './types.ts'
 import Page from './components/page.tsx'
 import Heading from './components/heading.tsx'
 import ArticleList from './components/articlelist.tsx'
+import CodeSnippet from './components/codesnippet.tsx'
 
 function generateId(text: string): string {
   return text
@@ -27,6 +28,17 @@ function convertMarkdownToHtml(markdown: string): string {
         depth={header.depth}
         text={header.text}
         id={generateId(header.text)}
+      />
+    )
+  }
+
+  renderer.code = code => {
+    const lang = code.lang || 'plaintext'
+    console.log(lang)
+    return renderToString(
+      <CodeSnippet
+        lang={lang}
+        text={code.text}
       />
     )
   }
