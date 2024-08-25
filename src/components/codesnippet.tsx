@@ -2,7 +2,6 @@ import Prism from 'prismjs'
 import loadLanguages from 'prismjs/components/index.js'
 import 'prismjs/components/prism-markup.js'
 
-
 loadLanguages()
 
 const CodeSnippet = ({lang, text}: {string; string}): JSX.Element => {

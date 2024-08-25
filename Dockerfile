@@ -1,19 +1,13 @@
-FROM oven/bun:latest AS base
-
-RUN addgroup --system appgroup && adduser --system --ingroup appgroup appuser
+FROM oven/bun:latest
 
 WORKDIR /usr/src/app
 
 COPY package.json bun.lockb ./
-COPY articles ./articles
-COPY public ./public
-COPY out ./out
 
-RUN mkdir -p certs && chown -R appuser:appgroup certs
-RUN chown -R appuser:appgroup /usr/src/app
+RUN bun install
 
-USER appuser
+COPY . .
 
-EXPOSE 3000
+RUN bun run build
 
-ENTRYPOINT [ "bun", "run", "prod" ]
+CMD ["bun", "run", "prod"]
