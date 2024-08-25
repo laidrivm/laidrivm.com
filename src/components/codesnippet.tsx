@@ -1,5 +1,7 @@
 import Prism from 'prismjs'
-import loadLanguages from 'prismjs/components/index'
+import loadLanguages from 'prismjs/components/index.js'
+import 'prismjs/components/prism-markup.js'
+
 
 loadLanguages()
 

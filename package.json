@@ -34,7 +34,7 @@
     "generate_dev": "bun src/generate.tsx",
     "server_dev": "bun run --watch src/index.ts",
     "dev": "bun run generate_dev && bun run server_dev",
-    "build": "bun build --target=bun --outdir ./out src/index.ts && bun build --target=bun --outdir ./out src/generate.tsx && bun lightningcss --minify --bundle --targets '>= 0.25%' src/styles/main.css -o public/main.css",
+    "build": "bun build --target=bun --outdir ./out src/index.ts && bun build --target=bun --outdir ./out src/generate.tsx --external prismjs && bun lightningcss --minify --bundle --targets '>= 0.25%' src/styles/main.css -o public/main.css",
     "generate": "NODE_ENV=production bun out/generate.js",
     "server": "NODE_ENV=production PORT=3000 bun out/index.js",
     "prod": "bun run generate && bun run server"
