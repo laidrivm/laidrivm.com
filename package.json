@@ -24,6 +24,7 @@
     "marked": "^13.0.2",
     "preact": "^10.22.1",
     "preact-render-to-string": "^6.5.6",
+    "prismjs": "^1.29.0",
     "xss": "^1.0.15"
   },
   "scripts": {

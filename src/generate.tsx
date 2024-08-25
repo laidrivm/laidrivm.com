@@ -10,6 +10,11 @@ import Page from './components/page.tsx'
 import Heading from './components/heading.tsx'
 import ArticleList from './components/articlelist.tsx'
 import CodeSnippet from './components/codesnippet.tsx'
+import customWhiteList from './xssconfig.ts'
+
+const xssOptions = {
+  whiteList: customWhiteList
+}
 
 function generateId(text: string): string {
   return text
@@ -33,9 +38,9 @@ function convertMarkdownToHtml(markdown: string): string {
   }
 
   renderer.code = code => {
-    const lang = code.lang || 'plaintext'
-    console.log(lang)
-    return renderToString(<CodeSnippet lang={lang} text={code.text} />)
+    return renderToString(
+      <CodeSnippet lang={code.lang || 'plaintext'} text={code.text} />
+    )
   }
 
   return marked(markdown, {renderer})
@@ -61,7 +66,7 @@ async function generatePage(
 ): string {
   try {
     const markdown = await Bun.file(mdPath).text()
-    const contentHtml = xss(convertMarkdownToHtml(markdown))
+    const contentHtml = xss(convertMarkdownToHtml(markdown), xssOptions)
     const title = extractTitle(markdown)
     const fullJsx = (
       <Page
@@ -88,7 +93,7 @@ async function generateIndexes(publicPath: string, indexes: Indexes) {
     for (const index of indexes) {
       const mdPath = `${index.path}/index.md`
       const markdown = await Bun.file(mdPath).text()
-      const contentHtml = xss(convertMarkdownToHtml(markdown))
+      const contentHtml = xss(convertMarkdownToHtml(markdown), xssOptions)
       const title = extractTitle(markdown)
       const linksJsx = <ArticleList links={index.links} />
       const fullJsx = (

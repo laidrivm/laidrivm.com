@@ -17,7 +17,26 @@ const Page = ({
   content: string
   lang: 'en' | 'ru'
   includeArrow: boolean
-}): string => {
+}): JSX.Element => {
+  const copyScript = `
+    document.addEventListener('DOMContentLoaded', () => {
+      const codeSnippets = document.querySelectorAll('.code-snippet')
+      codeSnippets.forEach(snippet => {
+        const button = snippet.firstChild.lastChild
+        button.addEventListener('click', () => {
+          const codeElement = snippet.lastChild.firstChild;
+          if (codeElement) {
+            navigator.clipboard.writeText(codeElement.textContent);
+            button.textContent = 'Copied!';
+            setTimeout(() => {
+              button.textContent = 'Copy code';
+            }, 2000);
+          }
+        });
+      });
+    });
+  `
+
   return (
     <html lang={lang}>
       <head>
@@ -63,6 +82,7 @@ const Page = ({
           <LanguageSwitch lang={lang} />
         </div>
         <div className="content" dangerouslySetInnerHTML={{__html: content}} />
+        <script dangerouslySetInnerHTML={{__html: copyScript}} />
       </body>
     </html>
   )
