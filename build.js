@@ -9,7 +9,6 @@ esbuild.build({
   platform: 'node',
   format: 'esm',
   target: 'esnext',
-  external: ['prismjs'],
   plugins: [
     cssModulesPlugin({
       inject: true,

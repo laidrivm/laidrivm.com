@@ -38,18 +38,12 @@ bun run dev
 
 ## Run in Docker
 
-Build prod version locally as Bun 1.1.21 image builds JSX with errors:
-
-```bash
-bun run build
-```
-
-Than build the Docker container itself:
+Build the Docker container:
 ```bash
 docker build --pull -t blog .
 ```
 
-Finally, run the container:
+Run the container:
 ```bash
 docker run -d \
   --name blog \
