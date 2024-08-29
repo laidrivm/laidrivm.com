@@ -8,11 +8,13 @@ const LanguageSwitch = ({lang}: {lang: 'en' | 'ru'}) =>
   lang === 'en' ? <a href="/ru/">ru</a> : <a href="/">en</a>
 
 const Page = ({
+  address,
   title,
   content,
   lang = 'en',
   includeArrow = false
 }: {
+  address: string
   title: string
   content: string
   lang: 'en' | 'ru'
@@ -43,6 +45,7 @@ const Page = ({
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
+        <link rel="canonical" href={address} />
         <link rel="stylesheet" href="/main.css" />
         <link rel="icon" type="image/png" href="/favicon.png" />
         <link rel="alternate" href="https://laidrivm.com/" hrefLang="en" />

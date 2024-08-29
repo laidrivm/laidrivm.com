@@ -50,6 +50,7 @@ docker run -d \
   -p 3000:3000 \
   -v ./certs/cert.pem:/usr/src/app/certs/cert.pem:ro \
   -v ./certs/key.pem:/usr/src/app/certs/key.pem:ro \
+  -e ADDRESS=laidrivm.com \
   -e PORT=3000 \
   blog
 ```

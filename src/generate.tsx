@@ -12,6 +12,8 @@ import ArticleList from './components/articlelist.tsx'
 import CodeSnippet from './components/codesnippet.tsx'
 import customWhiteList from './xssconfig.ts'
 
+const dotEnv = await Bun.file('.env')
+
 const xssOptions = {
   whiteList: customWhiteList
 }
@@ -60,6 +62,7 @@ function extractTitle(markdown: string): string {
 }
 
 async function generatePage(
+  address: string,
   mdPath: string,
   outputPath: string,
   language: 'en' | 'ru' = 'en'
@@ -70,6 +73,7 @@ async function generatePage(
     const title = extractTitle(markdown)
     const fullJsx = (
       <Page
+        address={address}
         title={title}
         content={contentHtml}
         lang={language}
@@ -96,8 +100,13 @@ async function generateIndexes(publicPath: string, indexes: Indexes) {
       const contentHtml = xss(convertMarkdownToHtml(markdown), xssOptions)
       const title = extractTitle(markdown)
       const linksJsx = <ArticleList links={index.links} />
+      const indexAddress =
+        index.language === 'en'
+          ? `https://${process.env.ADDRESS}/`
+          : `https://${process.env.ADDRESS}/${index.language}/`
       const fullJsx = (
         <Page
+          address={indexAddress}
           title={title}
           content={`${contentHtml}${renderToString(linksJsx)}`}
           lang={index.language}
@@ -127,10 +136,11 @@ async function processDirectory(
   publicPath: string,
   indexes: Indexes
 ) {
+  const articlesLanguage = languageFromPath(articlesPath)
   indexes.push({
     path: articlesPath,
     links: [],
-    language: languageFromPath(articlesPath)
+    language: articlesLanguage
   })
   const files = await readdir(articlesPath)
 
@@ -144,7 +154,12 @@ async function processDirectory(
       const outputFileName = file.replace('.md', '.html')
       const outputFilePath = join(publicPath, outputFileName)
       const thisIndex = indexes.find(idx => idx.path === articlesPath)
+      const pageAddress =
+        articlesLanguage === 'en'
+          ? `https://${process.env.ADDRESS}/${outputFileName}`
+          : `https://${process.env.ADDRESS}/${articlesLanguage}/${outputFileName}`
       const text = await generatePage(
+        pageAddress,
         filePath,
         outputFilePath,
         thisIndex.language
@@ -168,6 +183,12 @@ async function generateSite() {
   } catch (error) {
     console.error(`Error generating site: ${error}`)
   }
+}
+
+try {
+  if (!(await dotEnv.exists())) throw new Error('No .env found')
+} catch (error) {
+  console.error(error)
 }
 
 await generateSite()
