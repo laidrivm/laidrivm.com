@@ -20,6 +20,12 @@ const app = new Elysia()
       noCache: true //temporary because of https://github.com/elysiajs/elysia/issues/739
     })
   )
+  .route('HEAD', '/', '')
+  .onError(({ code }) => {
+    if (code === 'NOT_FOUND') {
+      return 'Route not found :('
+    }
+  })
   .listen({
     port: process.env.PORT,
     tls: {
