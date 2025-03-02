@@ -191,3 +191,4 @@ dist
 
 # Finder (MacOS) folder config
 .DS_Store
+**/.DS_Store
