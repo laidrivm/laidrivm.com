@@ -36,8 +36,8 @@
     "server_dev": "bun run --watch src/index.ts",
     "dev": "bun run generate_dev && bun run server_dev",
     "build": "bun run build.js",
-    "generate": "NODE_ENV=production bun out/generate.js",
-    "server": "NODE_ENV=production PORT=3000 bun out/index.js",
+    "generate": "bun out/generate.js",
+    "server": "bun out/index.js",
     "prod": "bun run generate && bun run server"
   }
 }
