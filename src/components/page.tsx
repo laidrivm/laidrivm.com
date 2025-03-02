@@ -1,8 +1,4 @@
-const ArrowComponent = () => (
-  <a href="/" className="arrow-container">
-    <div className="arrow">←</div>
-  </a>
-)
+import Arrow from './arrow.tsx'
 
 const LanguageSwitch = ({lang}: {lang: 'en' | 'ru'}) =>
   lang === 'en' ? <a href="/ru/">ru</a> : <a href="/">en</a>
@@ -100,7 +96,7 @@ const Page = ({
         />
       </head>
       <body>
-        {includeArrow && <ArrowComponent />}
+        {includeArrow && <Arrow lang={lang} />}
         <div className="language">
           <LanguageSwitch lang={lang} />
         </div>
