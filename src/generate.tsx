@@ -67,20 +67,23 @@ function convertMarkdownToPlaintext(markdown: string): string {
   renderer.text = text => text.text
   renderer.link = link => link.text
   renderer.paragraph = paragraph => {
-    let result = ""
-    for (const token of paragraph.tokens){
+    let result = ''
+    for (const token of paragraph.tokens) {
       switch (token.type) {
         case 'link': {
-          result += renderer.link(token);
-          break;
+          result += renderer.link(token)
+          break
         }
         case 'text': {
-          result += renderer.text(token);
-          break;
+          result += renderer.text(token)
+          break
         }
         default: {
-          const error = 'Token with "' + token.type + '" type was not found in convertMarkdownToPlaintext.';
-          throw new Error(error);
+          const error =
+            'Token with "' +
+            token.type +
+            '" type was not found in convertMarkdownToPlaintext.'
+          throw new Error(error)
         }
       }
     }
@@ -110,7 +113,7 @@ function extractOGImage(markdown: string): string {
   for (const line of lines) {
     const match = /!\[.*?\]\((https?:\/\/[^\s)]+)(?:\s+"[^"]*")?\)/g.exec(line)
     if (match) {
-      return match[1];
+      return match[1]
     }
   }
 
@@ -196,11 +199,15 @@ function languageFromPath(path: string) {
 }
 
 function formatDateForSitemap(date: Date): string {
-  return date.toISOString().replace(/\.\d{3}Z$/, "+00:00");
+  return date.toISOString().replace(/\.\d{3}Z$/, '+00:00')
 }
 
-async function generateSitemap(publicPath: string, pages: { path: string, lastmod: string, priority: number }[]) {
-  const urls = pages.map(page => `<url>
+async function generateSitemap(
+  publicPath: string,
+  pages: {path: string; lastmod: string; priority: number}[]
+) {
+  const urls = pages.map(
+    page => `<url>
   <loc>${page.path}</loc>
   <lastmod>${page.lastmod}</lastmod>
   <priority>${page.priority.toFixed(2)}</priority>
@@ -224,7 +231,7 @@ async function processDirectory(
   articlesPath: string,
   publicPath: string,
   indexes: Indexes,
-  pages: { path: string, lastmod: string, priority: number }[],
+  pages: {path: string; lastmod: string; priority: number}[],
   depth: number
 ) {
   const articlesLanguage = languageFromPath(articlesPath)
@@ -240,7 +247,13 @@ async function processDirectory(
     const fileStat = await stat(filePath)
 
     if (fileStat.isDirectory()) {
-      await processDirectory(filePath, join(publicPath, file), indexes, pages, depth-0.1)
+      await processDirectory(
+        filePath,
+        join(publicPath, file),
+        indexes,
+        pages,
+        depth - 0.1
+      )
     } else if (file.endsWith('.md')) {
       const outputFileName = file.replace('.md', '.html')
       const outputFilePath = join(publicPath, outputFileName)
@@ -250,7 +263,11 @@ async function processDirectory(
           articlesLanguage === 'en'
             ? `https://${process.env.ADDRESS}/${outputFileName}`
             : `https://${process.env.ADDRESS}/${articlesLanguage}/${outputFileName}`
-        pages.push({ path: pageAddress, lastmod: formatDateForSitemap(fileStat.mtime), priority: Math.max(0.5, depth-0.2) });
+        pages.push({
+          path: pageAddress,
+          lastmod: formatDateForSitemap(fileStat.mtime),
+          priority: Math.max(0.5, depth - 0.2)
+        })
         const text = await generatePage(
           pageAddress,
           filePath,
@@ -261,18 +278,18 @@ async function processDirectory(
           text: text,
           address: outputFileName
         })
-      }
-      else {
+      } else {
         const pageAddress =
           articlesLanguage === 'en'
             ? `https://${process.env.ADDRESS}/`
             : `https://${process.env.ADDRESS}/${articlesLanguage}/`
-        pages.push({ path: pageAddress, lastmod: formatDateForSitemap(fileStat.mtime), priority: Math.max(0.5, depth) });
+        pages.push({
+          path: pageAddress,
+          lastmod: formatDateForSitemap(fileStat.mtime),
+          priority: Math.max(0.5, depth)
+        })
       }
     }
-
-
-      
   }
 }
 
@@ -280,7 +297,7 @@ async function generateSite() {
   const articlesPath = 'articles'
   const publicPath = 'public'
   const indexes: Indexes = []
-  const pages: { path: string, lastmod: string, priority: number }[] = []
+  const pages: {path: string; lastmod: string; priority: number}[] = []
 
   try {
     await processDirectory(articlesPath, publicPath, indexes, pages, 1.0)

@@ -21,7 +21,7 @@ const app = new Elysia()
     })
   )
   .route('HEAD', '/', '')
-  .onError(({ code }) => {
+  .onError(({code}) => {
     if (code === 'NOT_FOUND') {
       return 'Route not found :('
     }

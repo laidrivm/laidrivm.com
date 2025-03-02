@@ -46,20 +46,12 @@ const Page = ({
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <title>{title}</title>
         <meta name="author" content="Vladimir Lazarev" />
-        <meta
-          name="description"
-          content={description} />
-        <meta
-          property="og:image"
-          content={image} />
+        <meta name="description" content={description} />
+        <meta property="og:image" content={image} />
         <meta property="og:title" content={title} />
-        <meta
-          property="og:description"
-          content={description} />
+        <meta property="og:description" content={description} />
         <meta property="og:url" content={address} />
-        <meta
-          property="og:sitename"
-          content="Vladimir Lazarev's Page" />
+        <meta property="og:sitename" content="Vladimir Lazarev's Page" />
         <meta property="og:type" content="website" />
         <link rel="canonical" href={address} />
         <link rel="stylesheet" href="/main.css" />
