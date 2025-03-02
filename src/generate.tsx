@@ -61,6 +61,62 @@ function extractTitle(markdown: string): string {
   return untitled
 }
 
+function convertMarkdownToPlaintext(markdown: string): string {
+  const renderer = new marked.Renderer()
+
+  renderer.text = text => text.text
+  renderer.link = link => link.text
+  renderer.paragraph = paragraph => {
+    let result = ""
+    for (const token of paragraph.tokens){
+      switch (token.type) {
+        case 'link': {
+          result += renderer.link(token);
+          break;
+        }
+        case 'text': {
+          result += renderer.text(token);
+          break;
+        }
+        default: {
+          const error = 'Token with "' + token.type + '" type was not found in convertMarkdownToPlaintext.';
+          throw new Error(error);
+        }
+      }
+    }
+    return result
+  }
+
+  return marked(markdown, {renderer})
+}
+
+function extractDescription(markdown: string): string {
+  const lines = markdown.split('\n')
+  const emptyDescription = ''
+
+  for (const line of lines) {
+    if (/^\p{L}/u.test(line)) {
+      return convertMarkdownToPlaintext(line)
+    }
+  }
+
+  return emptyDescription
+}
+
+function extractOGImage(markdown: string): string {
+  const lines = markdown.split('\n')
+  const defaultImage = '/og_image-min.jpg'
+
+  for (const line of lines) {
+    const match = /!\[.*?\]\((https?:\/\/[^\s)]+)(?:\s+"[^"]*")?\)/g.exec(line)
+    if (match) {
+      return match[1];
+    }
+  }
+
+  return defaultImage
+}
+
 async function generatePage(
   address: string,
   mdPath: string,
@@ -71,10 +127,14 @@ async function generatePage(
     const markdown = await Bun.file(mdPath).text()
     const contentHtml = xss(convertMarkdownToHtml(markdown), xssOptions)
     const title = extractTitle(markdown)
+    const description = extractDescription(markdown)
+    const image = extractOGImage(markdown)
     const fullJsx = (
       <Page
         address={address}
         title={title}
+        description={description}
+        image={image}
         content={contentHtml}
         lang={language}
         includeArrow={true}
@@ -99,6 +159,8 @@ async function generateIndexes(publicPath: string, indexes: Indexes) {
       const markdown = await Bun.file(mdPath).text()
       const contentHtml = xss(convertMarkdownToHtml(markdown), xssOptions)
       const title = extractTitle(markdown)
+      const description = extractDescription(markdown)
+      const image = extractOGImage(markdown)
       const linksJsx = <ArticleList links={index.links} />
       const indexAddress =
         index.language === 'en'
@@ -108,6 +170,8 @@ async function generateIndexes(publicPath: string, indexes: Indexes) {
         <Page
           address={indexAddress}
           title={title}
+          description={description}
+          image={image}
           content={`${contentHtml}${renderToString(linksJsx)}`}
           lang={index.language}
         />
