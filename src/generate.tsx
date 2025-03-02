@@ -195,10 +195,37 @@ function languageFromPath(path: string) {
   return parts[1]
 }
 
+function formatDateForSitemap(date: Date): string {
+  return date.toISOString().replace(/\.\d{3}Z$/, "+00:00");
+}
+
+async function generateSitemap(publicPath: string, pages: { path: string, lastmod: string, priority: number }[]) {
+  const urls = pages.map(page => `<url>
+  <loc>${page.path}</loc>
+  <lastmod>${page.lastmod}</lastmod>
+  <priority>${page.priority.toFixed(2)}</priority>
+</url>\n`
+  )
+  const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset
+  xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"
+  xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+  xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9
+    http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">
+
+${urls}
+
+</urlset>`
+  await Bun.write(join(publicPath, 'sitemap.xml'), sitemapContent)
+  console.log('Sitemap generated successfully.')
+}
+
 async function processDirectory(
   articlesPath: string,
   publicPath: string,
-  indexes: Indexes
+  indexes: Indexes,
+  pages: { path: string, lastmod: string, priority: number }[],
+  depth: number
 ) {
   const articlesLanguage = languageFromPath(articlesPath)
   indexes.push({
@@ -213,37 +240,52 @@ async function processDirectory(
     const fileStat = await stat(filePath)
 
     if (fileStat.isDirectory()) {
-      await processDirectory(filePath, join(publicPath, file), indexes)
-    } else if (file.endsWith('.md') && file !== 'index.md') {
+      await processDirectory(filePath, join(publicPath, file), indexes, pages, depth-0.1)
+    } else if (file.endsWith('.md')) {
       const outputFileName = file.replace('.md', '.html')
       const outputFilePath = join(publicPath, outputFileName)
       const thisIndex = indexes.find(idx => idx.path === articlesPath)
-      const pageAddress =
-        articlesLanguage === 'en'
-          ? `https://${process.env.ADDRESS}/${outputFileName}`
-          : `https://${process.env.ADDRESS}/${articlesLanguage}/${outputFileName}`
-      const text = await generatePage(
-        pageAddress,
-        filePath,
-        outputFilePath,
-        thisIndex.language
-      )
-      thisIndex.links.push({
-        text: text,
-        address: outputFileName
-      })
+      if (file !== 'index.md') {
+        const pageAddress =
+          articlesLanguage === 'en'
+            ? `https://${process.env.ADDRESS}/${outputFileName}`
+            : `https://${process.env.ADDRESS}/${articlesLanguage}/${outputFileName}`
+        pages.push({ path: pageAddress, lastmod: formatDateForSitemap(fileStat.mtime), priority: Math.max(0.5, depth-0.2) });
+        const text = await generatePage(
+          pageAddress,
+          filePath,
+          outputFilePath,
+          thisIndex.language
+        )
+        thisIndex.links.push({
+          text: text,
+          address: outputFileName
+        })
+      }
+      else {
+        const pageAddress =
+          articlesLanguage === 'en'
+            ? `https://${process.env.ADDRESS}/`
+            : `https://${process.env.ADDRESS}/${articlesLanguage}/`
+        pages.push({ path: pageAddress, lastmod: formatDateForSitemap(fileStat.mtime), priority: Math.max(0.5, depth) });
+      }
     }
+
+
+      
   }
 }
 
 async function generateSite() {
   const articlesPath = 'articles'
   const publicPath = 'public'
+  const indexes: Indexes = []
+  const pages: { path: string, lastmod: string, priority: number }[] = []
 
   try {
-    const indexes: Indexes = []
-    await processDirectory(articlesPath, publicPath, indexes)
+    await processDirectory(articlesPath, publicPath, indexes, pages, 1.0)
     await generateIndexes(publicPath, indexes)
+    await generateSitemap(publicPath, pages)
   } catch (error) {
     console.error(`Error generating site: ${error}`)
   }
