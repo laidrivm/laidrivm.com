@@ -1,4 +1,4 @@
-import {readdir, stat} from 'node:fs/promises'
+import {readdir, stat, rm} from 'node:fs/promises'
 import {join} from 'path'
 
 import {renderToString} from 'preact-render-to-string'
@@ -11,6 +11,7 @@ import Heading from './components/heading.tsx'
 import ArticleList from './components/articlelist.tsx'
 import CodeSnippet from './components/codesnippet.tsx'
 import customWhiteList from './xssconfig.ts'
+import pullArticles from './pullArticles.ts'
 
 const dotEnv = await Bun.file('.env')
 
@@ -227,7 +228,7 @@ ${urls}
   console.log('Sitemap generated successfully.')
 }
 
-async function processDirectory(
+async function processArticles(
   articlesPath: string,
   publicPath: string,
   indexes: Indexes,
@@ -247,7 +248,7 @@ async function processDirectory(
     const fileStat = await stat(filePath)
 
     if (fileStat.isDirectory()) {
-      await processDirectory(
+      await processArticles(
         filePath,
         join(publicPath, file),
         indexes,
@@ -293,6 +294,18 @@ async function processDirectory(
   }
 }
 
+async function clearArticles(articlesPath){
+  try {
+    await rm(articlesPath, { recursive: true });
+  } catch (error) {
+    if (error.code === 'ENOENT') {
+      console.log(articlesPath + ' directory doesn\'t exist');
+    } else {
+      throw error;
+    }
+  }
+}
+
 async function generateSite() {
   const articlesPath = 'articles'
   const publicPath = 'public'
@@ -300,9 +313,15 @@ async function generateSite() {
   const pages: {path: string; lastmod: string; priority: number}[] = []
 
   try {
-    await processDirectory(articlesPath, publicPath, indexes, pages, 1.0)
+    if (process.env.SOURCE !== 'local') {
+      await pullArticles(articlesPath)
+    }
+    await processArticles(articlesPath, publicPath, indexes, pages, 1.0)
     await generateIndexes(publicPath, indexes)
     await generateSitemap(publicPath, pages)
+    if (process.env.SOURCE !== 'local') {
+      await clearArticles(articlesPath)
+    }
   } catch (error) {
     console.error(`Error generating site: ${error}`)
   }
