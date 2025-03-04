@@ -1,8 +1,10 @@
 # Based on https://raw.githubusercontent.com/github/gitignore/main/Node.gitignore
 
 # Locals
-public
-articles
+public/*.html
+public/*.css
+public/ru/*
+public/sitemap.xml
 out
 certs
 
