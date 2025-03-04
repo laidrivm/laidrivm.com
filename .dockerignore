@@ -16,6 +16,8 @@ coverage*
 # Locals
 
 certs
+articles
+.env_example
 
 # Logs
 

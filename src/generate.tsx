@@ -294,14 +294,14 @@ async function processArticles(
   }
 }
 
-async function clearArticles(articlesPath){
+async function clearArticles(articlesPath) {
   try {
-    await rm(articlesPath, { recursive: true });
+    await rm(articlesPath, {recursive: true})
   } catch (error) {
     if (error.code === 'ENOENT') {
-      console.log(articlesPath + ' directory doesn\'t exist');
+      console.log(articlesPath + " directory doesn't exist")
     } else {
-      throw error;
+      throw error
     }
   }
 }

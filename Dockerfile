@@ -14,7 +14,6 @@ WORKDIR /usr/src/app
 
 COPY --from=builder /usr/src/app/out ./out
 COPY --from=builder /usr/src/app/public ./public
-COPY --from=builder /usr/src/app/articles ./articles
 COPY --from=builder /usr/src/app/package.json ./
 
 EXPOSE 3000
