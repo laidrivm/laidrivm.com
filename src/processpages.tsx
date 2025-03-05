@@ -119,7 +119,23 @@ async function processArticleFile(
     basename(outputDir)
   )
 
-  if (!isIndexMd) {
+  if (isIndexMd) {
+    try {
+      await generateHtmlPage({
+        address: pageAddress,
+        mdPath: filePath,
+        outputPath: join(outputDir, outputFileName),
+        language: thisIndex.language
+      })
+      pages.push({
+        path: PathUtils.generatePageAddress(articlesLanguage, ''),
+        lastmod: formatDateForSitemap(fileStat.mtime),
+        priority: Math.max(0.5, depth)
+      })
+    } catch (error) {
+      console.warn(`Skipping index generation for ${filePath}`)
+    }
+  } else {
     try {
       const text = await generateHtmlPage({
         address: pageAddress,
@@ -143,17 +159,6 @@ async function processArticleFile(
       }
     } catch (error) {
       console.error(`Error processing article ${filePath}:`, error)
-    }
-  } else {
-    try {
-      await generateHtmlPage({
-        address: pageAddress,
-        mdPath: filePath,
-        outputPath: join(outputDir, outputFileName),
-        language: thisIndex.language
-      })
-    } catch (error) {
-      console.warn(`Skipping index generation for ${filePath}`)
     }
   }
 }
@@ -191,14 +196,12 @@ export async function processArticles(options: ArticleProcessingConfig) {
     const fileStat = await stat(filePath)
 
     if (fileStat.isDirectory()) {
-      if (PathUtils.isLanguageDirectory(filePath)) {
-        await processArticles({
-          ...options,
-          articlesPath: filePath,
-          publicPath: join(publicPath, file),
-          depth: depth - 0.1
-        })
-      }
+      await processArticles({
+        ...options,
+        articlesPath: filePath,
+        publicPath: join(publicPath, file),
+        depth: depth - 0.1
+      })
     } else if (file.endsWith('.md')) {
       await processArticleFile({
         ...options,

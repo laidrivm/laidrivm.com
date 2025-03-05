@@ -3,7 +3,7 @@ import {rm} from 'node:fs/promises'
 
 import type {Indexes, PageEntry, ArticleProcessingConfig} from './types.ts'
 import pullArticles from './pullarticles.ts'
-import {processArticles, processIndexes} from './processpages.ts'
+import {processArticles, processIndexes} from './processpages.tsx'
 
 /**
  * Generate XML sitemap from page entries
@@ -20,7 +20,7 @@ async function generateSitemap(
   <lastmod>${page.lastmod}</lastmod>
   <priority>${page.priority.toFixed(2)}</priority>
 </url>\n`
-  )
+  ).join('')
 
   const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset

@@ -29,8 +29,8 @@ export function generatePageAddress(
 ): string {
   const baseUrl = `https://${process.env.ADDRESS}`
   return language === 'en'
-    ? `${baseUrl}/${baseFileName}/`
-    : `${baseUrl}/${language}/${baseFileName}/`
+    ? `${baseUrl}/${baseFileName}`
+    : `${baseUrl}/${language}/${baseFileName}`
 }
 
 /**
