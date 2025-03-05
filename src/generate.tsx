@@ -1,9 +1,9 @@
 import {join} from 'path'
 import {rm} from 'node:fs/promises'
 
-import type {Indexes, PageEntry, ArticleProcessingConfig} from './types'
-import pullArticles from './pullArticles'
-import {processArticles, processIndexes} from './processPages'
+import type {Indexes, PageEntry, ArticleProcessingConfig} from './types.ts'
+import pullArticles from './pullarticles.ts'
+import {processArticles, processIndexes} from './processpages.ts'
 
 /**
  * Generate XML sitemap from page entries
