@@ -1,4 +1,5 @@
 import {join} from 'path'
+
 /**
  * Determines the language of a given path
  */
@@ -56,4 +57,12 @@ export function resolveOutputPaths(
     outputFileName: 'index.html',
     isIndexMd: false
   }
+}
+
+export function isLanguageDirectory(path: string): boolean {
+  const validLanguages: SupportedLanguage[] = ['en', 'ru', 'es', 'fr']
+  const parts = path.replace(/\/+$/, '').split('/').filter(Boolean)
+
+  const candidate = parts[parts.length - 1]
+  return validLanguages.includes(candidate as SupportedLanguage)
 }

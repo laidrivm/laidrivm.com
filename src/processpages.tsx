@@ -138,7 +138,7 @@ async function processArticleFile(
 
         thisIndex.links.push({
           text,
-          address: `${basename(outputDir)}/index.html`
+          address: `${basename(outputDir)}`
         })
       }
     } catch (error) {
@@ -191,12 +191,14 @@ export async function processArticles(options: ArticleProcessingConfig) {
     const fileStat = await stat(filePath)
 
     if (fileStat.isDirectory()) {
-      await processArticles({
-        ...options,
-        articlesPath: filePath,
-        publicPath: join(publicPath, file),
-        depth: depth - 0.1
-      })
+      if (PathUtils.isLanguageDirectory(filePath)) {
+        await processArticles({
+          ...options,
+          articlesPath: filePath,
+          publicPath: join(publicPath, file),
+          depth: depth - 0.1
+        })
+      }
     } else if (file.endsWith('.md')) {
       await processArticleFile({
         ...options,
@@ -227,15 +229,17 @@ export async function processIndexes(publicPath: string, indexes: Indexes) {
           ? `https://${process.env.ADDRESS}/`
           : `https://${process.env.ADDRESS}/${index.language}/`
 
-      await generateHtmlPage({
-        address: indexAddress,
-        mdPath,
-        outputPath,
-        language: index.language,
-        links: index.links
-      })
-
-      console.log(`${index.language} index page generated successfully.`)
+      if (
+        await generateHtmlPage({
+          address: indexAddress,
+          mdPath,
+          outputPath,
+          language: index.language,
+          links: index.links
+        })
+      ) {
+        console.log(`${index.language} index page generated successfully.`)
+      }
     }
   } catch (error) {
     console.error(`Error generating indexes: ${error}`)
