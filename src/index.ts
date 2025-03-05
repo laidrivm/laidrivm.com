@@ -15,7 +15,7 @@ const app = new Elysia()
   .use(
     staticPlugin({
       prefix: '/',
-      assets: 'public',
+      assets: process.env.PUBLIC,
       indexHTML: true,
       noCache: true //temporary because of https://github.com/elysiajs/elysia/issues/739
     })
