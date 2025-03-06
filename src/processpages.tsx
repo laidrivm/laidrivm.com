@@ -232,16 +232,19 @@ export async function processIndexes(publicPath: string, indexes: Indexes) {
           ? `https://${process.env.ADDRESS}/`
           : `https://${process.env.ADDRESS}/${index.language}/`
 
-      if (
-        await generateHtmlPage({
-          address: indexAddress,
-          mdPath,
-          outputPath,
-          language: index.language,
-          links: index.links
-        })
-      ) {
-        console.log(`${index.language} index page generated successfully.`)
+      const file = Bun.file(mdPath)
+      if ((await file.exists())||PathUtils.isLanguageDirectory(indexAddress)) {
+        if (
+          await generateHtmlPage({
+            address: indexAddress,
+            mdPath,
+            outputPath,
+            language: index.language,
+            links: index.links
+          })
+        ) {
+          console.log(`${index.language} index page generated successfully.`)
+        }
       }
     }
   } catch (error) {
