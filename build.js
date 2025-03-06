@@ -1,9 +1,8 @@
 import esbuild from 'esbuild'
 import cssModulesPlugin from 'esbuild-css-modules-plugin'
 import path from 'path'
-import fs from 'fs'
+import {mkdir} from 'node:fs/promises'
 
-// Create a plugin to handle Prism.js components properly
 const prismPlugin = {
   name: 'prism-resolver',
   setup(build) {
@@ -12,7 +11,7 @@ const prismPlugin = {
         path.join(process.cwd(), 'node_modules', args.path + '.min.js')
       );
       
-      if (fs.existsSync(componentPath)) {
+      if (Bun.file(componentPath).exists()) {
         return { path: componentPath };
       }
       return { 
@@ -21,7 +20,7 @@ const prismPlugin = {
       };
     });
   }
-};
+}
 
 esbuild.build({
   entryPoints: ['./src/index.ts', './src/generate.tsx'],
@@ -33,6 +32,34 @@ esbuild.build({
   format: 'esm',
   target: 'esnext',
   external: [],
+  nodePaths: ['node_modules'],
+}).catch(() => process.exit(1))
+
+const dotEnv = await Bun.file('.env')
+if (!(await dotEnv.exists())) {
+  throw new Error('No .env file found')
+}
+
+const pub = Bun.file(process.env.PUBLIC)
+if (!await pub.exists()) {
+  await mkdir(process.env.PUBLIC, { recursive: true });
+}
+
+const fonts = Bun.file(path.join(process.env.PUBLIC, 'fonts'))
+if (!await fonts.exists('./public/fonts')) {
+  await mkdir(path.join(process.env.PUBLIC, 'fonts'), { recursive: true });
+}
+
+esbuild.build({
+  entryPoints: ['./src/styles/main.css'],
+  bundle: true,
+  outfile: './public/main.css',
+  minify: true,
+  metafile: true,
+  loader: {
+    '.ttf.woff2': 'file',
+    '.woff2': 'file',
+  },
   plugins: [
     cssModulesPlugin({
       inject: true,
@@ -40,5 +67,6 @@ esbuild.build({
       targets: '>= 0.25%',
     }),
   ],
-  nodePaths: ['node_modules'],
-}).catch(() => process.exit(1));
+  publicPath: '/', // Set public path for file references
+  assetNames: 'fonts/[name]', // Output assets to the fonts directory
+}).catch(() => process.exit(1))

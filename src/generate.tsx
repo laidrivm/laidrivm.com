@@ -14,13 +14,15 @@ async function generateSitemap(
   publicPath: string,
   pages: PageEntry[]
 ): Promise<void> {
-  const urls = pages.map(
-    page => `<url>
+  const urls = pages
+    .map(
+      page => `<url>
   <loc>${page.path}</loc>
   <lastmod>${page.lastmod}</lastmod>
   <priority>${page.priority.toFixed(2)}</priority>
 </url>\n`
-  ).join('')
+    )
+    .join('')
 
   const sitemapContent = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset

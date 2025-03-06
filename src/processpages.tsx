@@ -233,7 +233,10 @@ export async function processIndexes(publicPath: string, indexes: Indexes) {
           : `https://${process.env.ADDRESS}/${index.language}/`
 
       const file = Bun.file(mdPath)
-      if ((await file.exists())||PathUtils.isLanguageDirectory(indexAddress)) {
+      if (
+        (await file.exists()) ||
+        PathUtils.isLanguageDirectory(indexAddress)
+      ) {
         if (
           await generateHtmlPage({
             address: indexAddress,
