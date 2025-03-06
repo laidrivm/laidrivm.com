@@ -10,6 +10,8 @@ interface PullArticlesConfig {
   sourceUrl: string
 }
 
+const IGNORE_LIST: string[] = ['README.md', '.git', '.gitignore']
+
 /**
  * Parse GitHub repository details from URL
  * @param sourceUrl GitHub repository URL
@@ -94,9 +96,12 @@ async function processRepoContents(
       path: repoPath
     })
 
-    for (const item of contents) {
-      // Skip README.md at root
-      if (item.name === 'README.md' && repoPath === '') continue
+    for (const item of Array.isArray(contents) ? contents : [contents]) {
+      if (IGNORE_LIST.includes(item.name) || 
+          IGNORE_LIST.some(ignored => item.path.includes(`/${ignored}`))) {
+        console.log(`Skipped: ${item.path}`)
+        continue
+      }
 
       if (item.type === 'dir') {
         await processRepoContents(octokit, owner, repo, item.path, articlesDir)
