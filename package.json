@@ -19,6 +19,7 @@
   },
   "dependencies": {
     "@elysiajs/static": "^1.2.0",
+    "buffer": "^6.0.3",
     "elysia": "^1.2.24",
     "esbuild": "^0.25.0",
     "esbuild-css-modules-plugin": "^3.1.4",
@@ -31,7 +32,7 @@
   },
   "scripts": {
     "format": "prettier --write 'src/**/*.{css,html,ts,tsx}'",
-    "lint": "eslint 'src/**/*.{css,html,ts,tsx}'",
+    "lint": "eslint 'src/**/*.{css,html,ts,tsx}' --fix",
     "build": "bun run build.js",
     "test": "bun test --watch --timeout 1000 --rerun-each 2 --coverage",
     "generate_dev": "bun src/generate.tsx",

@@ -90,18 +90,4 @@ const customWhiteList = {
   ]
 }
 
-export function createXssOptions() {
-  return {
-    whiteList: customWhiteList,
-    stripIgnoreTag: true,
-    stripIgnoreTagBody: ['script']
-  }
-}
-
-export function sanitizeContent(content: string) {
-  const xss = require('xss')
-  const options = createXssOptions()
-  return xss(content, options)
-}
-
 export default customWhiteList

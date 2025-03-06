@@ -1,14 +1,8 @@
 import fs from 'fs/promises'
 import path from 'path'
+
 import {Octokit} from 'octokit'
-
-import type {SupportedLanguage} from './types'
-
-interface PullArticlesConfig {
-  articlePath: string
-  githubToken?: string
-  sourceUrl: string
-}
+import {Buffer} from 'buffer/'
 
 const IGNORE_LIST: string[] = ['README.md', '.git', '.gitignore']
 
@@ -86,7 +80,7 @@ async function processRepoContents(
   octokit: Octokit,
   owner: string,
   repo: string,
-  repoPath: string = '',
+  repoPath = '',
   articlesDir: string
 ): Promise<void> {
   try {
@@ -97,8 +91,10 @@ async function processRepoContents(
     })
 
     for (const item of Array.isArray(contents) ? contents : [contents]) {
-      if (IGNORE_LIST.includes(item.name) || 
-          IGNORE_LIST.some(ignored => item.path.includes(`/${ignored}`))) {
+      if (
+        IGNORE_LIST.includes(item.name) ||
+        IGNORE_LIST.some(ignored => item.path.includes(`/${ignored}`))
+      ) {
         console.log(`Skipped: ${item.path}`)
         continue
       }

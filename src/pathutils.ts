@@ -1,5 +1,7 @@
 import {join} from 'path'
 
+import type {SupportedLanguage, Index} from './types'
+
 /**
  * Determines the language of a given path
  */
@@ -40,7 +42,7 @@ export function resolveOutputPaths(
   articlesPath: string,
   publicPath: string,
   file: string
-) {
+): Index {
   const isIndexMd = file === 'index.md'
 
   if (isIndexMd) {

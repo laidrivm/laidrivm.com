@@ -1,22 +1,16 @@
 import {join, basename, dirname} from 'path'
 import {readdir, stat, mkdir} from 'node:fs/promises'
+import type {Stats} from 'fs'
+
 import {renderToString} from 'preact-render-to-string'
 import xss from 'xss'
 
 import customWhiteList from './xssconfig.ts'
 import Page from './components/page.tsx'
 import ArticleList from './components/articlelist.tsx'
-
 import * as MarkdownUtils from './markdown.tsx'
 import * as PathUtils from './pathutils.ts'
-
-import type {
-  SupportedLanguage,
-  Index,
-  Indexes,
-  PageEntry,
-  ArticleProcessingConfig
-} from './types'
+import type {SupportedLanguage, Indexes, ArticleProcessingConfig} from './types'
 
 const XSS_OPTIONS = {
   whiteList: customWhiteList
@@ -92,7 +86,7 @@ async function generateHtmlPage({
 async function processArticleFile(
   options: ArticleProcessingConfig & {
     filePath: string
-    fileStat: import('fs').Stats
+    fileStat: Stats
   }
 ) {
   const {articlesPath, publicPath, indexes, pages, depth, filePath, fileStat} =
@@ -133,7 +127,7 @@ async function processArticleFile(
         priority: Math.max(0.5, depth)
       })
     } catch (error) {
-      console.warn(`Skipping index generation for ${filePath}`)
+      console.warn(`Error: ${error}. Skipping index generation for ${filePath}`)
     }
   } else {
     try {
@@ -176,8 +170,10 @@ async function copyNonMarkdownFile(sourcePath: string, destPath: string) {
 /**
  * Recursively processes articles in a directory
  */
-export async function processArticles(options: ArticleProcessingConfig) {
-  const {articlesPath, publicPath, indexes, pages, depth} = options
+export async function processArticles(
+  options: ArticleProcessingConfig
+): Promise<void> {
+  const {articlesPath, publicPath, indexes, depth} = options
 
   const articlesLanguage = PathUtils.getLanguageFromPath(articlesPath)
 
@@ -218,7 +214,10 @@ export async function processArticles(options: ArticleProcessingConfig) {
 /**
  * Process index pages for different languages
  */
-export async function processIndexes(publicPath: string, indexes: Indexes) {
+export async function processIndexes(
+  publicPath: string,
+  indexes: Indexes
+): Promise<void> {
   try {
     for (const index of indexes) {
       const mdPath = `${index.path}/index.md`
