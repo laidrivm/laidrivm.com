@@ -35,9 +35,28 @@ esbuild.build({
   nodePaths: ['node_modules'],
 }).catch(() => process.exit(1))
 
-const dotEnv = await Bun.file('.env')
-if (!(await dotEnv.exists())) {
-  throw new Error('No .env file found')
+function hasRequiredEnvVars(): boolean {
+  const requiredVars = [
+    'PORT',
+    'ADDRESS',
+    'SOURCE',
+    'GITHUB_TOKEN',
+    'ARTICLES',
+    'PUBLIC'
+  ]
+  return requiredVars.every(varName => !!process.env[varName])
+}
+
+try {
+  if (!hasRequiredEnvVars()) {
+    const dotEnv = await Bun.file('.env')
+    if (!(await dotEnv.exists())) {
+      throw new Error('No .env file found')
+    }
+  }
+} catch (error) {
+  console.error('Site generation initialization error:', error)
+  process.exit(1)
 }
 
 const pub = Bun.file(process.env.PUBLIC)
