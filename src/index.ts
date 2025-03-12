@@ -24,7 +24,7 @@ try {
     }
   }
 } catch (error) {
-  console.error('Site generation initialization error:', error)
+  console.error('Site serving initialization error:', error)
   process.exit(1)
 }
 

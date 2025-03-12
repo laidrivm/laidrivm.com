@@ -35,26 +35,12 @@ esbuild.build({
   nodePaths: ['node_modules'],
 }).catch(() => process.exit(1))
 
-function hasRequiredEnvVars() {
-  const requiredVars = [
-    'PUBLIC'
-  ]
-  return requiredVars.every(varName => !!process.env[varName])
-}
-
-try {
-  if (!hasRequiredEnvVars()) {
-    const dotEnv = await Bun.file('.env')
-    if (!(await dotEnv.exists())) {
-      throw new Error('No .env file found')
-    }
-  }
-} catch (error) {
-  console.error('Site generation initialization error:', error)
-  process.exit(1)
+if (!process.env.PUBLIC) {
+  process.env.PUBLIC = 'public'
 }
 
 const pub = Bun.file(process.env.PUBLIC)
+
 if (!await pub.exists()) {
   await mkdir(process.env.PUBLIC, { recursive: true });
 }

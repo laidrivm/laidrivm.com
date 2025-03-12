@@ -1,4 +1,0 @@
-User-agent: *
-Disallow: /hello-there
-Crawl-delay: 10
-Sitemap: https://laidrivm.com/sitemap.xml
