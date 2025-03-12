@@ -45,7 +45,8 @@ async function deleteRecursively(dirPath: string) {
 }
 
 async function cleanupPublicDirectory() {
-  const publicDir = process.env.PUBLIC ? process.env.PUBLIC : 'public'
+  process.env.PUBLIC = process.env.PUBLIC ? process.env.PUBLIC : 'public'
+  const publicDir = process.env.PUBLIC
 
   if (!existsSync(publicDir)) {
     console.error(`Directory does not exist: ${publicDir}`)
