@@ -19,13 +19,6 @@ jobs:
         username: ${{ secrets.DOCKER_USERNAME }}
         password: ${{ secrets.DOCKER_PASSWORD }}
         logout: true
-    - name: Create .env file
-      run: |
-        touch .env
-        echo "${{ secrets.ENV }}" > .env
-        cat .env
-    - name: Look for .env file
-      run: ls -la
     - name: Build and push the Docker image
       uses: docker/build-push-action@v6.15.0
       with:
@@ -35,6 +28,4 @@ jobs:
         platforms: linux/amd64
         pull: true
         push: true
-        secret-files: |
-          "ENV_FILE=.env"
         tags: laidrivm/blog:latest
