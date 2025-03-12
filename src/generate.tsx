@@ -106,13 +106,29 @@ async function generateSite(config: SiteGenerationConfig = {}): Promise<void> {
   }
 }
 
+/**
+ * Validate if arguments are already loaded in the environment
+ */
+function hasRequiredEnvVars(): boolean {
+  const requiredVars = [
+    'PORT',
+    'ADDRESS',
+    'SOURCE',
+    'GITHUB_TOKEN',
+    'ARTICLES',
+    'PUBLIC'
+  ]
+  return requiredVars.every(varName => !!process.env[varName])
+}
+
 async function initializeSiteGeneration(): Promise<void> {
   try {
-    const dotEnv = await Bun.file('.env')
-    if (!(await dotEnv.exists())) {
-      throw new Error('No .env file found')
+    if (!hasRequiredEnvVars()) {
+      const dotEnv = await Bun.file('.env')
+      if (!(await dotEnv.exists())) {
+        throw new Error('No .env file found')
+      }
     }
-
     await generateSite()
   } catch (error) {
     console.error('Site generation initialization error:', error)
