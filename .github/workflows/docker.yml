@@ -28,6 +28,4 @@ jobs:
         platforms: linux/amd64
         pull: true
         push: true
-        secret-envs: |
-          PUBLIC: ${{ secrets.PUBLIC }}
         tags: laidrivm/blog:latest
