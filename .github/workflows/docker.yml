@@ -36,6 +36,7 @@ jobs:
   deploy:
     needs: build
     runs-on: ubuntu-latest
+    environment: prod
     steps:
       - name: Execute remote commands via SSH to deploy
         uses: appleboy/ssh-action@v1.2.2
