@@ -40,6 +40,7 @@
     "dev": "bun run build && bun run generate_dev && bun run server_dev",
     "generate": "bun out/generate.js",
     "server": "bun out/index.js",
-    "prod": "bun run generate && bun run server"
+    "prod": "bun run generate && bun run server",
+    "clean": "bun run src/public-clean-up.ts"
   }
 }

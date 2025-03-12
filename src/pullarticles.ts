@@ -5,6 +5,7 @@ import {Octokit} from 'octokit'
 import {Buffer} from 'buffer/'
 
 const IGNORE_LIST: string[] = ['README.md', '.git', '.gitignore']
+const IMAGE_EXTENSIONS: string[] = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp']
 
 /**
  * Parse GitHub repository details from URL
@@ -34,14 +35,24 @@ function createOctokitClient(githubToken?: string): Octokit {
 }
 
 /**
- * Download individual markdown file
+ * Check if a file is an image based on its extension
+ * @param filename Filename to check
+ * @returns Boolean indicating if file is an image
+ */
+function isImage(filename: string): boolean {
+  const ext = path.extname(filename).toLowerCase()
+  return IMAGE_EXTENSIONS.includes(ext)
+}
+
+/**
+ * Download both markdowns or images
  * @param octokit Octokit client
  * @param owner Repository owner
  * @param repo Repository name
  * @param item File item details
  * @param articlesDir Destination directory
  */
-async function downloadMarkdownFile(
+async function downloadFile(
   octokit: Octokit,
   owner: string,
   repo: string,
@@ -56,11 +67,18 @@ async function downloadMarkdownFile(
     })
 
     // Decode file content (GitHub API returns base64 encoded content)
-    const fileContent = Buffer.from(data.content, 'base64').toString('utf-8')
-
+    const fileContent = Buffer.from(data.content, 'base64')
+    
     const localFilePath = path.join(articlesDir, item.path)
     await fs.mkdir(path.dirname(localFilePath), {recursive: true})
-    await fs.writeFile(localFilePath, fileContent)
+    
+    if (item.name.endsWith('.md')) {
+      // For markdown files, convert to utf-8 string before writing
+      await fs.writeFile(localFilePath, fileContent.toString('utf-8'))
+    } else {
+      // For binary files like images, write the buffer directly
+      await fs.writeFile(localFilePath, fileContent)
+    }
 
     console.log(`Downloaded: ${item.path}`)
   } catch (error) {
@@ -101,8 +119,11 @@ async function processRepoContents(
 
       if (item.type === 'dir') {
         await processRepoContents(octokit, owner, repo, item.path, articlesDir)
-      } else if (item.type === 'file' && item.name.endsWith('.md')) {
-        await downloadMarkdownFile(octokit, owner, repo, item, articlesDir)
+      } else if (
+        item.type === 'file' && 
+        (item.name.endsWith('.md') || isImage(item.name))
+      ) {
+        await downloadFile(octokit, owner, repo, item, articlesDir)
       }
     }
   } catch (error) {
@@ -112,7 +133,7 @@ async function processRepoContents(
 }
 
 /**
- * Pull articles from a GitHub repository
+ * Pull articles and images from a GitHub repository
  * @param articlePath Destination path for articles
  * @param config Configuration options
  */
@@ -124,7 +145,6 @@ async function pullArticles(
   }
 ): Promise<void> {
   try {
-    // Use environment variables if not provided
     const githubToken = config?.githubToken || process.env.GITHUB_TOKEN
     const sourceUrl = config?.sourceUrl || process.env.SOURCE
 
@@ -139,12 +159,11 @@ async function pullArticles(
     const articlesDir = path.resolve(process.cwd(), articlePath)
     await fs.mkdir(articlesDir, {recursive: true})
 
-    // Start processing from root
     await processRepoContents(octokit, owner, repo, '', articlesDir)
 
-    console.log('Article pull completed successfully')
+    console.log('Article and image pull completed successfully')
   } catch (error) {
-    console.error('Error pulling articles:', error)
+    console.error('Error pulling articles and images:', error)
     throw error
   }
 }

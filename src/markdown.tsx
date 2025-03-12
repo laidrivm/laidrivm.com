@@ -53,7 +53,7 @@ export function extractDescription(markdown: string): string {
   const lines = markdown.split('\n')
   for (const line of lines) {
     if (/^\p{L}/u.test(line)) {
-      return this.convertToPlaintext(line)
+      return convertToPlaintext(line)
     }
   }
   return ''
@@ -98,7 +98,7 @@ export function convertToHtml(markdown: string): string {
       <Heading
         depth={header.depth}
         text={header.text}
-        id={this.generateId(header.text)}
+        id={generateId(header.text)}
       />
     )
   }
