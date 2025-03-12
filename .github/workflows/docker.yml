@@ -45,5 +45,6 @@ jobs:
           port: ${{ secrets.VM_PORT }}
           username: ${{ secrets.VM_USERNAME }}
           key: ${{ secrets.VM_SSH_KEY }}
+          password: ${{ secrets.VM_PASS }}
           script: |
             sudo ./deploy.sh
