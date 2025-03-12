@@ -37,11 +37,6 @@ esbuild.build({
 
 function hasRequiredEnvVars() {
   const requiredVars = [
-    'PORT',
-    'ADDRESS',
-    'SOURCE',
-    'GITHUB_TOKEN',
-    'ARTICLES',
     'PUBLIC'
   ]
   return requiredVars.every(varName => !!process.env[varName])
