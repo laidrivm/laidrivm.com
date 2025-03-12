@@ -35,7 +35,7 @@ esbuild.build({
   nodePaths: ['node_modules'],
 }).catch(() => process.exit(1))
 
-function hasRequiredEnvVars(): boolean {
+function hasRequiredEnvVars() {
   const requiredVars = [
     'PORT',
     'ADDRESS',
