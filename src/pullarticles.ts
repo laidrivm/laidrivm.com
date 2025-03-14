@@ -3,7 +3,7 @@ import fs from 'fs/promises'
 import {Octokit} from 'octokit'
 import {Buffer} from 'buffer/'
 
-import {join, isImage, getDirname, resolvePath} from './pathutils'
+import {join, isImage, getDirname, resolvePath} from './pathutils.ts'
 
 const IGNORE_LIST: string[] = ['README.md', '.git', '.gitignore', 'LICENSE']
 

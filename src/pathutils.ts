@@ -105,4 +105,4 @@ export function resolvePath(...paths: string[]): string {
   return resolve(...paths)
 }
 
-export { join }
+export {join}

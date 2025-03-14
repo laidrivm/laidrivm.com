@@ -57,15 +57,6 @@ async function cleanupArticlesDirectory(articlesPath: string): Promise<void> {
 }
 
 /**
- * Configuration for site generation
- */
-interface SiteGenerationConfig {
-  articlesPath?: string
-  publicPath?: string
-  source?: string
-}
-
-/**
  * Generate static site with configurable options
  * @param config Site generation configuration
  */
