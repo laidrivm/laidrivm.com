@@ -1,6 +1,7 @@
 import {join} from 'path'
 import {rm} from 'node:fs/promises'
 
+import * as EnvUtils from './envutils.ts'
 import type {Indexes, PageEntry, ArticleProcessingConfig} from './types.ts'
 import pullArticles from './pullarticles.ts'
 import {processArticles, processIndexes} from './processpages.tsx'
@@ -68,7 +69,7 @@ interface SiteGenerationConfig {
  * Generate static site with configurable options
  * @param config Site generation configuration
  */
-async function generateSite(config: SiteGenerationConfig = {}): Promise<void> {
+async function generateSite(config: SiteGenerationConfig = {}): void {
   const {
     articlesPath = process.env.ARTICLES,
     publicPath = process.env.PUBLIC,
@@ -106,34 +107,5 @@ async function generateSite(config: SiteGenerationConfig = {}): Promise<void> {
   }
 }
 
-/**
- * Validate if arguments are already loaded in the environment
- */
-function hasRequiredEnvVars(): boolean {
-  const requiredVars = [
-    'PORT',
-    'ADDRESS',
-    'SOURCE',
-    'GITHUB_TOKEN',
-    'ARTICLES',
-    'PUBLIC'
-  ]
-  return requiredVars.every(varName => !!process.env[varName])
-}
-
-async function initializeSiteGeneration(): Promise<void> {
-  try {
-    if (!hasRequiredEnvVars()) {
-      const dotEnv = await Bun.file('.env')
-      if (!(await dotEnv.exists())) {
-        throw new Error('No .env file found')
-      }
-    }
-    await generateSite()
-  } catch (error) {
-    console.error('Site generation initialization error:', error)
-    process.exit(1)
-  }
-}
-
-initializeSiteGeneration()
+EnvUtils.initDefaults()
+await generateSite()

@@ -1,32 +1,12 @@
 import {Elysia} from 'elysia'
 import {staticPlugin} from '@elysiajs/static'
 
+import * as EnvUtils from './envutils.ts'
+
 const key = await Bun.file('certs/key.pem').text()
 const cert = await Bun.file('certs/cert.pem').text()
 
-function hasRequiredEnvVars(): boolean {
-  const requiredVars = [
-    'PORT',
-    'ADDRESS',
-    'SOURCE',
-    'GITHUB_TOKEN',
-    'ARTICLES',
-    'PUBLIC'
-  ]
-  return requiredVars.every(varName => !!process.env[varName])
-}
-
-try {
-  if (!hasRequiredEnvVars()) {
-    const dotEnv = await Bun.file('.env')
-    if (!(await dotEnv.exists())) {
-      throw new Error('No .env file found')
-    }
-  }
-} catch (error) {
-  console.error('Site serving initialization error:', error)
-  process.exit(1)
-}
+EnvUtils.initDefaults()
 
 const app = new Elysia()
   .use(

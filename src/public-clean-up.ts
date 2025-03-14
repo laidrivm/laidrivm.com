@@ -2,6 +2,8 @@ import {existsSync, statSync, rmdirSync} from 'node:fs'
 import {readdir} from 'node:fs/promises'
 import path from 'path'
 
+import * as EnvUtils from './envutils.ts'
+
 const EXCEPTIONS = [
   'favicon.png',
   'mellon-for-incubators.pdf',
@@ -9,7 +11,7 @@ const EXCEPTIONS = [
   'robots.txt'
 ]
 
-async function deleteRecursively(dirPath: string) {
+async function deleteRecursively(dirPath: string): void {
   if (!existsSync(dirPath)) return
 
   const items = await readdir(dirPath)
@@ -44,8 +46,8 @@ async function deleteRecursively(dirPath: string) {
   }
 }
 
-async function cleanupPublicDirectory() {
-  process.env.PUBLIC = process.env.PUBLIC ? process.env.PUBLIC : 'public'
+async function cleanupPublicDirectory(): void {
+  EnvUtils.initDefaults()
   const publicDir = process.env.PUBLIC
 
   if (!existsSync(publicDir)) {

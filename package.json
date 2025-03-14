@@ -33,13 +33,13 @@
   "scripts": {
     "format": "prettier --write 'src/**/*.{css,html,ts,tsx}'",
     "lint": "eslint 'src/**/*.{css,html,ts,tsx}' --fix",
-    "build": "bun run build.js",
+    "build": "bun run src/build.ts",
     "test": "bun test --watch --timeout 1000 --rerun-each 2 --coverage",
     "generate_dev": "bun src/generate.tsx",
     "server_dev": "bun run --watch src/index.ts",
     "dev": "bun run build && bun run generate_dev && bun run server_dev",
-    "generate": "bun out/generate.js",
-    "server": "bun out/index.js",
+    "generate": "bun run out/generate.js",
+    "server": "bun run out/index.js",
     "prod": "bun run generate && bun run server",
     "clean": "bun run src/public-clean-up.ts"
   }

@@ -5,7 +5,14 @@ import {Octokit} from 'octokit'
 import {Buffer} from 'buffer/'
 
 const IGNORE_LIST: string[] = ['README.md', '.git', '.gitignore']
-const IMAGE_EXTENSIONS: string[] = ['.png', '.jpg', '.jpeg', '.gif', '.svg', '.webp']
+const IMAGE_EXTENSIONS: string[] = [
+  '.png',
+  '.jpg',
+  '.jpeg',
+  '.gif',
+  '.svg',
+  '.webp'
+]
 
 /**
  * Parse GitHub repository details from URL
@@ -68,10 +75,10 @@ async function downloadFile(
 
     // Decode file content (GitHub API returns base64 encoded content)
     const fileContent = Buffer.from(data.content, 'base64')
-    
+
     const localFilePath = path.join(articlesDir, item.path)
     await fs.mkdir(path.dirname(localFilePath), {recursive: true})
-    
+
     if (item.name.endsWith('.md')) {
       // For markdown files, convert to utf-8 string before writing
       await fs.writeFile(localFilePath, fileContent.toString('utf-8'))
@@ -120,7 +127,7 @@ async function processRepoContents(
       if (item.type === 'dir') {
         await processRepoContents(octokit, owner, repo, item.path, articlesDir)
       } else if (
-        item.type === 'file' && 
+        item.type === 'file' &&
         (item.name.endsWith('.md') || isImage(item.name))
       ) {
         await downloadFile(octokit, owner, repo, item, articlesDir)
@@ -147,10 +154,6 @@ async function pullArticles(
   try {
     const githubToken = config?.githubToken || process.env.GITHUB_TOKEN
     const sourceUrl = config?.sourceUrl || process.env.SOURCE
-
-    if (!sourceUrl) {
-      throw new Error('Missing SOURCE environment variable')
-    }
 
     const octokit = createOctokitClient(githubToken)
 
