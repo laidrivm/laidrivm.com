@@ -12,6 +12,7 @@ helm-charts
 .env
 .editorconfig
 coverage*
+out
 
 # Locals
 
