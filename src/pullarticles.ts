@@ -88,7 +88,7 @@ async function processRepoContents(
   octokit: Octokit,
   owner: string,
   repo: string,
-  repoPath = '',
+  repoPath: string,
   articlesDir: string
 ): Promise<void> {
   try {
@@ -129,7 +129,7 @@ async function pullArticles(): Promise<void> {
   try {
     const octokit = createOctokitClient(process.env.GITHUB_TOKEN)
     const {owner, repo} = parseRepoDetails(process.env.SOURCE)
-    const articlesDir = resolvePath(process.cwd(), process.env.ARTICLE)
+    const articlesDir = resolvePath(process.cwd(), process.env.ARTICLES)
 
     await fs.mkdir(articlesDir, {recursive: true})
     await processRepoContents(octokit, owner, repo, '', articlesDir)

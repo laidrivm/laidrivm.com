@@ -44,7 +44,8 @@ ${urls}
  * Clean up articles directory after processing
  * @param articlesPath Path to articles directory
  */
-async function cleanupArticlesDirectory(articlesPath: string): Promise<void> {
+async function cleanupArticlesDirectory(): Promise<void> {
+  const articlesPath = process.env.ARTICLES
   try {
     await rm(articlesPath, {recursive: true})
   } catch (error) {
