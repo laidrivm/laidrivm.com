@@ -9,6 +9,11 @@ const cert = await Bun.file('certs/cert.pem').text()
 EnvUtils.initDefaults()
 
 const app = new Elysia()
+  .onRequest(({path, redirect}) => {
+    if (path.includes('.html')) {
+      return redirect(path.replace('.html', ''), 302)
+    }
+  })
   .use(
     staticPlugin({
       prefix: '/',

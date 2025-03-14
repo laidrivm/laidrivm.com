@@ -4,7 +4,7 @@ import {mkdir} from 'node:fs/promises'
 import esbuild from 'esbuild'
 import cssModulesPlugin from 'esbuild-css-modules-plugin'
 
-import * as EnvUtils from './envutils.ts'
+import * as EnvUtils from './src/envutils.ts'
 
 esbuild
   .build({
