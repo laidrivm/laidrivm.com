@@ -1,18 +1,22 @@
 import fs from 'fs/promises'
-import path from 'path'
 
 import {Octokit} from 'octokit'
 import {Buffer} from 'buffer/'
 
-const IGNORE_LIST: string[] = ['README.md', '.git', '.gitignore']
-const IMAGE_EXTENSIONS: string[] = [
-  '.png',
-  '.jpg',
-  '.jpeg',
-  '.gif',
-  '.svg',
-  '.webp'
-]
+import {join, isImage, getDirname, resolvePath} from './pathutils'
+
+const IGNORE_LIST: string[] = ['README.md', '.git', '.gitignore', 'LICENSE']
+
+/**
+ * Create Octokit instance based on authentication
+ * @param githubToken GitHub authentication token
+ * @returns Octokit instance
+ */
+function createOctokitClient(githubToken?: string): Octokit {
+  return githubToken && githubToken !== 'unauth'
+    ? new Octokit({auth: githubToken})
+    : new Octokit()
+}
 
 /**
  * Parse GitHub repository details from URL
@@ -31,28 +35,7 @@ function parseRepoDetails(sourceUrl: string): {owner: string; repo: string} {
 }
 
 /**
- * Create Octokit instance based on authentication
- * @param githubToken GitHub authentication token
- * @returns Octokit instance
- */
-function createOctokitClient(githubToken?: string): Octokit {
-  return githubToken && githubToken !== 'unauth'
-    ? new Octokit({auth: githubToken})
-    : new Octokit()
-}
-
-/**
- * Check if a file is an image based on its extension
- * @param filename Filename to check
- * @returns Boolean indicating if file is an image
- */
-function isImage(filename: string): boolean {
-  const ext = path.extname(filename).toLowerCase()
-  return IMAGE_EXTENSIONS.includes(ext)
-}
-
-/**
- * Download both markdowns or images
+ * Download both markdowns and images
  * @param octokit Octokit client
  * @param owner Repository owner
  * @param repo Repository name
@@ -76,8 +59,8 @@ async function downloadFile(
     // Decode file content (GitHub API returns base64 encoded content)
     const fileContent = Buffer.from(data.content, 'base64')
 
-    const localFilePath = path.join(articlesDir, item.path)
-    await fs.mkdir(path.dirname(localFilePath), {recursive: true})
+    const localFilePath = join(articlesDir, item.path)
+    await fs.mkdir(getDirname(localFilePath), {recursive: true})
 
     if (item.name.endsWith('.md')) {
       // For markdown files, convert to utf-8 string before writing
@@ -141,29 +124,15 @@ async function processRepoContents(
 
 /**
  * Pull articles and images from a GitHub repository
- * @param articlePath Destination path for articles
- * @param config Configuration options
  */
-async function pullArticles(
-  articlePath: string,
-  config?: {
-    githubToken?: string
-    sourceUrl?: string
-  }
-): Promise<void> {
+async function pullArticles(): Promise<void> {
   try {
-    const githubToken = config?.githubToken || process.env.GITHUB_TOKEN
-    const sourceUrl = config?.sourceUrl || process.env.SOURCE
+    const octokit = createOctokitClient(process.env.GITHUB_TOKEN)
+    const {owner, repo} = parseRepoDetails(process.env.SOURCE)
+    const articlesDir = resolvePath(process.cwd(), process.env.ARTICLE)
 
-    const octokit = createOctokitClient(githubToken)
-
-    const {owner, repo} = parseRepoDetails(sourceUrl)
-
-    const articlesDir = path.resolve(process.cwd(), articlePath)
     await fs.mkdir(articlesDir, {recursive: true})
-
     await processRepoContents(octokit, owner, repo, '', articlesDir)
-
     console.log('Article and image pull completed successfully')
   } catch (error) {
     console.error('Error pulling articles and images:', error)

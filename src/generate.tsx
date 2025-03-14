@@ -69,19 +69,16 @@ interface SiteGenerationConfig {
  * Generate static site with configurable options
  * @param config Site generation configuration
  */
-async function generateSite(config: SiteGenerationConfig = {}): void {
-  const {
-    articlesPath = process.env.ARTICLES,
-    publicPath = process.env.PUBLIC,
-    source = process.env.SOURCE
-  } = config
-
+async function generateSite(): void {
+  const articlesPath = process.env.ARTICLES
+  const publicPath = process.env.PUBLIC
+  const source = process.env.SOURCE
   const indexes: Indexes = []
   const pages: PageEntry[] = []
 
   try {
     if (source !== 'local') {
-      await pullArticles(articlesPath)
+      await pullArticles()
     }
 
     const processConfig: ArticleProcessingConfig = {
@@ -97,7 +94,7 @@ async function generateSite(config: SiteGenerationConfig = {}): void {
     await generateSitemap(publicPath, pages)
 
     if (source !== 'local') {
-      await cleanupArticlesDirectory(articlesPath)
+      await cleanupArticlesDirectory()
     }
 
     console.log('Static site generation completed successfully.')
