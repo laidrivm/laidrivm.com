@@ -7,23 +7,7 @@ export interface Link {
 
 export type Links = Link[]
 
-export interface Index {
-  path: string
-  links: Links
-  language: SupportedLanguage
-}
-
-export type Indexes = Index[]
-
 export type SupportedLanguage = 'en' | 'ru' | 'es' | 'fr'
-
-export interface ArticleProcessingConfig {
-  articlesPath: string
-  publicPath: string
-  indexes: Indexes
-  pages: PageEntry[]
-  depth: number
-}
 
 export interface PageEntry {
   path: string
@@ -39,4 +23,13 @@ export interface PageRenderOptions {
   language: SupportedLanguage
   includeArrow?: boolean
   image?: string
+}
+
+export type FileNodeType = 'folder' | 'article'
+
+export interface FileNode {
+  name: string
+  type: FileNodeType
+  edited: string // ISO date string
+  children?: FileNode[]
 }

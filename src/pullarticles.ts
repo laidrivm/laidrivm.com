@@ -1,9 +1,8 @@
-import fs from 'fs/promises'
+import fs from 'node:fs/promises'
+import {join, dirname, resolve} from 'path'
 
 import {Octokit} from 'octokit'
 import {Buffer} from 'buffer/'
-
-import {join, isImage, getDirname, resolvePath} from './pathutils.ts'
 
 const IGNORE_LIST: string[] = ['README.md', '.git', '.gitignore', 'LICENSE']
 
@@ -60,7 +59,7 @@ async function downloadFile(
     const fileContent = Buffer.from(data.content, 'base64')
 
     const localFilePath = join(articlesDir, item.path)
-    await fs.mkdir(getDirname(localFilePath), {recursive: true})
+    await fs.mkdir(dirname(localFilePath), {recursive: true})
 
     if (item.name.endsWith('.md')) {
       // For markdown files, convert to utf-8 string before writing
@@ -109,10 +108,7 @@ async function processRepoContents(
 
       if (item.type === 'dir') {
         await processRepoContents(octokit, owner, repo, item.path, articlesDir)
-      } else if (
-        item.type === 'file' &&
-        (item.name.endsWith('.md') || isImage(item.name))
-      ) {
+      } else if (item.type === 'file') {
         await downloadFile(octokit, owner, repo, item, articlesDir)
       }
     }
@@ -129,7 +125,7 @@ async function pullArticles(): Promise<void> {
   try {
     const octokit = createOctokitClient(process.env.GITHUB_TOKEN)
     const {owner, repo} = parseRepoDetails(process.env.SOURCE)
-    const articlesDir = resolvePath(process.cwd(), process.env.ARTICLES)
+    const articlesDir = resolve(process.cwd(), process.env.ARTICLES)
 
     await fs.mkdir(articlesDir, {recursive: true})
     await processRepoContents(octokit, owner, repo, '', articlesDir)

@@ -1,6 +1,5 @@
-import {join, basename, dirname} from 'path'
-import {readdir, stat, mkdir} from 'node:fs/promises'
-import type {Stats} from 'fs'
+import {join} from 'path'
+import {mkdir} from 'node:fs/promises'
 
 import {renderToString} from 'preact-render-to-string'
 import xss from 'xss'
@@ -9,35 +8,64 @@ import customWhiteList from './xssconfig.ts'
 import Page from './components/page.tsx'
 import ArticleList from './components/articlelist.tsx'
 import * as MarkdownUtils from './markdown.tsx'
-import * as PathUtils from './pathutils.ts'
-import type {SupportedLanguage, Indexes, ArticleProcessingConfig} from './types'
+import type {SupportedLanguage, FileNode, Links} from './types'
 
 const XSS_OPTIONS = {
   whiteList: customWhiteList
 }
 
-function formatDateForSitemap(date: Date): string {
-  return date.toISOString().replace(/\.\d{3}Z$/, '+00:00')
+/**
+ * Determines the language of a given path
+ */
+function getLanguageFromPath(path: string): SupportedLanguage {
+  if (!path || typeof path !== 'string') {
+    console.warn(`Invalid path provided: ${path}`)
+    return 'en'
+  }
+
+  const validLanguages: SupportedLanguage[] = ['en', 'ru', 'es', 'fr']
+  const parts = path.replace(/\/+$/, '').split('/').filter(Boolean)
+
+  if (parts.length <= 1) return 'en'
+
+  const language = parts[1]
+  return validLanguages.includes(language as SupportedLanguage)
+    ? (language as SupportedLanguage)
+    : 'en'
+}
+
+/**
+ * Generates a canonical page address
+ */
+function generatePageAddress(
+  language: SupportedLanguage,
+  baseFileName: string
+): string {
+  const baseUrl = `https://${process.env.ADDRESS}`
+  return language === 'en'
+    ? `${baseUrl}/${baseFileName}`
+    : `${baseUrl}/${language}/${baseFileName}`
+}
+
+export function isLanguageDirectory(path: string): boolean {
+  const validLanguages: SupportedLanguage[] = ['en', 'ru', 'es', 'fr']
+  const parts = path.replace(/\/+$/, '').split('/').filter(Boolean)
+
+  const candidate = parts[parts.length - 1]
+  return validLanguages.includes(candidate as SupportedLanguage)
 }
 
 /**
  * Generates an HTML page from a markdown file
  */
-async function generateHtmlPage({
-  address,
-  mdPath,
-  outputPath,
-  language,
-  links = [],
-  includeArrow = false
-}: {
-  address: string
-  mdPath: string
-  outputPath: string
-  language: SupportedLanguage
-  links?: {title: string; url: string}[]
-  includeArrow?: boolean
-}): Promise<string | null> {
+async function generateHtmlPage(
+  address: string,
+  mdPath: string,
+  outputPath: string,
+  language: SupportedLanguage,
+  includeArrow = false,
+  links: Links = []
+): Promise<string | null> {
   try {
     const file = Bun.file(mdPath)
 
@@ -80,181 +108,59 @@ async function generateHtmlPage({
   }
 }
 
-/**
- * Processes a single article file
- */
-async function processArticleFile(
-  options: ArticleProcessingConfig & {
-    filePath: string
-    fileStat: Stats
-  }
-) {
-  const {articlesPath, publicPath, indexes, pages, depth, filePath, fileStat} =
-    options
-
-  const articlesLanguage = PathUtils.getLanguageFromPath(articlesPath)
-  const thisIndex = indexes.find(idx => idx.path === articlesPath)
-
-  if (!thisIndex) {
-    console.warn(`No index found for path: ${articlesPath}`)
-    return
-  }
-
-  const {outputDir, outputFileName, isIndexMd} = PathUtils.resolveOutputPaths(
-    articlesPath,
-    publicPath,
-    basename(filePath)
-  )
-
-  await mkdir(outputDir, {recursive: true})
-
-  const pageAddress = PathUtils.generatePageAddress(
-    articlesLanguage,
-    basename(outputDir)
-  )
-
-  if (isIndexMd) {
-    try {
-      await generateHtmlPage({
-        address: pageAddress,
-        mdPath: filePath,
-        outputPath: join(outputDir, outputFileName),
-        language: thisIndex.language
-      })
-      pages.push({
-        path: PathUtils.generatePageAddress(articlesLanguage, ''),
-        lastmod: formatDateForSitemap(fileStat.mtime),
-        priority: Math.max(0.5, depth)
-      })
-    } catch (error) {
-      console.warn(`Error: ${error}. Skipping index generation for ${filePath}`)
-    }
-  } else {
-    try {
-      const text = await generateHtmlPage({
-        address: pageAddress,
-        mdPath: filePath,
-        outputPath: join(outputDir, outputFileName),
-        language: thisIndex.language,
-        includeArrow: true
-      })
-
-      if (text) {
-        pages.push({
-          path: pageAddress,
-          lastmod: formatDateForSitemap(fileStat.mtime),
-          priority: Math.max(0.5, depth - 0.2)
-        })
-
-        thisIndex.links.push({
-          text,
-          address: `${basename(outputDir)}`
-        })
-      }
-    } catch (error) {
-      console.error(`Error processing article ${filePath}:`, error)
-    }
-  }
-}
-
-/**
- * Copies non-markdown files to the public directory
- */
-async function copyNonMarkdownFile(sourcePath: string, destPath: string) {
-  await mkdir(dirname(destPath), {recursive: true})
-  const sourceFile = Bun.file(sourcePath)
-  const destFile = Bun.file(destPath)
-  await Bun.write(destFile, sourceFile)
-}
-
-/**
- * Recursively processes articles in a directory
- */
-export async function processArticles(
-  options: ArticleProcessingConfig
-): Promise<void> {
-  const {articlesPath, publicPath, indexes, depth} = options
-
-  const articlesLanguage = PathUtils.getLanguageFromPath(articlesPath)
-
-  await mkdir(publicPath, {recursive: true})
-
-  indexes.push({
-    path: articlesPath,
-    links: [],
-    language: articlesLanguage
-  })
-
-  const files = await readdir(articlesPath)
-
-  for (const file of files) {
-    const filePath = join(articlesPath, file)
-    const fileStat = await stat(filePath)
-
-    if (fileStat.isDirectory()) {
-      await processArticles({
-        ...options,
-        articlesPath: filePath,
-        publicPath: join(publicPath, file),
-        depth: depth - 0.1
-      })
-    } else if (file.endsWith('.md')) {
-      await processArticleFile({
-        ...options,
-        filePath,
-        fileStat
-      })
-    } else if (!file.endsWith('.md')) {
-      const destPath = join(publicPath, file)
-      await copyNonMarkdownFile(filePath, destPath)
-    }
-  }
-}
-
-/**
- * Process index pages for different languages
- */
-export async function processIndexes(
-  publicPath: string,
-  indexes: Indexes
+export async function processPages(
+  sourcePath: string,
+  destinationPath: string,
+  rootFileNode: FileNode
 ): Promise<void> {
   try {
-    for (const index of indexes) {
-      const mdPath = `${index.path}/index.md`
-      const outputPath =
-        index.language === 'en'
-          ? `${publicPath}/index.html`
-          : `${publicPath}/${index.language}/index.html`
+    await mkdir(destinationPath, {recursive: true})
+    const language = getLanguageFromPath(destinationPath)
+    const links: Links = []
 
-      const indexAddress =
-        index.language === 'en'
-          ? `https://${process.env.ADDRESS}/`
-          : `https://${process.env.ADDRESS}/${index.language}/`
-
-      const file = Bun.file(mdPath)
-      if (
-        (await file.exists()) ||
-        PathUtils.isLanguageDirectory(indexAddress)
-      ) {
-        if (
-          await generateHtmlPage({
-            address: indexAddress,
-            mdPath,
-            outputPath,
-            language: index.language,
-            links: index.links
-          })
-        ) {
-          console.log(`${index.language} index page generated successfully.`)
+    for (const node of rootFileNode.children) {
+      switch (node.type) {
+        case 'folder': {
+          await processPages(
+            join(sourcePath, node.name),
+            join(destinationPath, node.name),
+            node
+          )
+          break
+        }
+        case 'article': {
+          if (node.name === 'index') continue
+          const address = generatePageAddress(language, node.name)
+          const title = await generateHtmlPage(
+            address,
+            join(sourcePath, node.name + '.md'),
+            join(destinationPath, node.name, 'index.html'),
+            language,
+            true
+          )
+          if (title) {
+            links.push({
+              text: title,
+              address
+            })
+          }
+          break
+        }
+        default: {
+          console.log(`Unknown type for ${node.name}`)
         }
       }
     }
-  } catch (error) {
-    console.error(`Error generating indexes: ${error}`)
-  }
-}
 
-export default {
-  processArticles,
-  processIndexes
+    await generateHtmlPage(
+      generatePageAddress(language, ''),
+      join(sourcePath, 'index.md'),
+      join(destinationPath, 'index.html'),
+      language,
+      false,
+      links
+    )
+  } catch (error) {
+    console.error(`Error processing pages: ${error}`)
+  }
 }
