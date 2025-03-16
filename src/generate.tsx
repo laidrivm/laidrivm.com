@@ -2,7 +2,7 @@ import {join, extname, dirname} from 'path'
 import {rm, mkdir, readdir, stat} from 'node:fs/promises'
 
 import * as EnvUtils from './envutils.ts'
-import pullArticles from './pullarticles.ts'
+import {pullArticles, setEditedTime} from './pullarticles.ts'
 import {processPages} from './processpages.tsx'
 import {getDirectoryStructure} from './getstructure.ts'
 import type {SupportedLanguage, FileNode} from './types.ts'
@@ -29,9 +29,7 @@ function generatePageAddress(
   baseFileName: string
 ): string {
   const baseUrl = `https://${process.env.ADDRESS}`
-  baseFileName = baseFileName === 'index'
-    ? ''
-    : baseFileName
+  baseFileName = baseFileName === 'index' ? '' : baseFileName
   return language === 'en'
     ? `${baseUrl}/${baseFileName}`
     : `${baseUrl}/${language}/${baseFileName}`
@@ -46,7 +44,11 @@ function getSiteMapURLs(
   for (const node of nodes.children) {
     switch (node.type) {
       case 'folder': {
-        result += getSiteMapURLs(node, priority - 0.1, join(relativePath,node.name))
+        result += getSiteMapURLs(
+          node,
+          priority - 0.1,
+          join(relativePath, node.name)
+        )
         break
       }
       case 'article': {
@@ -183,10 +185,17 @@ async function generateSite(): void {
   const source = process.env.SOURCE
 
   try {
+    //ToDo: rewrite here for one big if for local and not local mode
+    //and to form nodes structure throug a single pass
     if (source !== 'local') {
       await pullArticles()
     }
+
     const nodes = await getDirectoryStructure(articlesPath)
+
+    if (source !== 'local') {
+      await setEditedTime(nodes)
+    }
 
     await processPages(articlesPath, publicPath, nodes)
     await copyImagesRecursively(articlesPath, publicPath)

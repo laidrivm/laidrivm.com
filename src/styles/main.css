@@ -50,6 +50,13 @@ body {
   text-align: right;
 }
 
+.social {
+  margin-top: 2rem;
+  margin-left: 5rem;
+  margin-right: 9rem;
+  text-align: right;
+}
+
 .content {
   margin-left: 5rem;
   margin-right: 9rem;

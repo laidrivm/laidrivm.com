@@ -63,6 +63,7 @@ async function generateHtmlPage(
   mdPath: string,
   outputPath: string,
   language: SupportedLanguage,
+  time: string,
   includeArrow = false,
   links: Links = []
 ): Promise<string | null> {
@@ -90,8 +91,9 @@ async function generateHtmlPage(
         address={address}
         title={title}
         description={description}
-        image={image}
         content={`${contentHtml}${linksHtml}`}
+        image={image}
+        time={time}
         lang={language}
         includeArrow={includeArrow}
       />
@@ -117,6 +119,7 @@ export async function processPages(
     await mkdir(destinationPath, {recursive: true})
     const language = getLanguageFromPath(destinationPath)
     const links: Links = []
+    let indexEdited = rootFileNode.edited
 
     for (const node of rootFileNode.children) {
       switch (node.type) {
@@ -136,6 +139,7 @@ export async function processPages(
             join(sourcePath, node.name + '.md'),
             join(destinationPath, node.name, 'index.html'),
             language,
+            node.edited,
             true
           )
           if (title) {
@@ -143,6 +147,12 @@ export async function processPages(
               text: title,
               address
             })
+          }
+          const indexDate = new Date(indexEdited)
+          const articleDate = new Date(node.edited)
+          //indexDate is earlier than articleDate
+          if (indexDate < articleDate) {
+            indexEdited = node.edited
           }
           break
         }
@@ -157,6 +167,7 @@ export async function processPages(
       join(sourcePath, 'index.md'),
       join(destinationPath, 'index.html'),
       language,
+      indexEdited,
       false,
       links
     )

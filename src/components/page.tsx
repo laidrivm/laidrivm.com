@@ -1,7 +1,24 @@
+import type {SupportedLanguage} from '../types.ts'
+
 import Arrow from './arrow.tsx'
 
 const LanguageSwitch = ({lang}: {lang: 'en' | 'ru'}) =>
   lang === 'en' ? <a href="/ru/">ru</a> : <a href="/">en</a>
+
+function updatedPhrase(lang: SupportedLanguage): string {
+  return lang === 'ru' ? 'Обновлено: ' : 'Updated: '
+}
+
+function humanDate(isoDate: string, lang: SupportedLanguage): string {
+  const date = new Date(isoDate)
+  const humanDate = new Intl.DateTimeFormat(lang, {
+    weekday: 'long',
+    year: 'numeric',
+    month: 'long',
+    day: 'numeric'
+  })
+  return humanDate.format(date)
+}
 
 const Page = ({
   address,
@@ -9,6 +26,7 @@ const Page = ({
   description,
   content,
   image,
+  time,
   lang = 'en',
   includeArrow = false
 }: {
@@ -16,8 +34,9 @@ const Page = ({
   title: string
   description: string
   content: string
+  time: string
   image: string
-  lang: 'en' | 'ru'
+  lang: SupportedLanguage
   includeArrow: boolean
 }): JSX.Element => {
   const copyScript = `
@@ -47,6 +66,7 @@ const Page = ({
         <title>{title}</title>
         <meta name="author" content="Vladimir Lazarev" />
         <meta name="description" content={description} />
+        <meta name="last-modified" content={time} />
         <meta property="og:image" content={image} />
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
@@ -94,6 +114,12 @@ const Page = ({
         </div>
         <div className="content" dangerouslySetInnerHTML={{__html: content}} />
         <script dangerouslySetInnerHTML={{__html: copyScript}} />
+        <div className="social">
+          <p>
+            {updatedPhrase(lang)}
+            <time dateTime={time}>{humanDate(time, lang)}</time>
+          </p>
+        </div>
       </body>
     </html>
   )

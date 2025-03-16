@@ -4,6 +4,8 @@ import {join, dirname, resolve} from 'path'
 import {Octokit} from 'octokit'
 import {Buffer} from 'buffer/'
 
+import type {FileNode} from './types.ts'
+
 const IGNORE_LIST: string[] = ['README.md', '.git', '.gitignore', 'LICENSE']
 
 /**
@@ -113,7 +115,10 @@ async function processRepoContents(
       }
     }
   } catch (error) {
-    console.error(`Error processing repository path ${repoPath}:`, error)
+    console.error(
+      `Error processing files for repository path ${repoPath}:`,
+      error
+    )
     throw error
   }
 }
@@ -121,7 +126,7 @@ async function processRepoContents(
 /**
  * Pull articles and images from a GitHub repository
  */
-async function pullArticles(): Promise<void> {
+export async function pullArticles(): Promise<void> {
   try {
     const octokit = createOctokitClient(process.env.GITHUB_TOKEN)
     const {owner, repo} = parseRepoDetails(process.env.SOURCE)
@@ -136,4 +141,115 @@ async function pullArticles(): Promise<void> {
   }
 }
 
-export default pullArticles
+function setNodeEdited(
+  currentNode: FileNode,
+  pathSegments: string[],
+  editedTime: string
+): boolean {
+  // If we've reached the end of the path, update the node
+  if (pathSegments.length === 1) {
+    // Find the node with matching name
+    if (currentNode.children) {
+      const targetNode = currentNode.children.find(
+        child => child.name === pathSegments[0].replace(/\.[^/.]+$/, '') // Remove file extension
+      )
+
+      if (targetNode) {
+        targetNode.edited = editedTime
+        console.log(`Set ${editedTime} for ${targetNode.name}`)
+        return true
+      }
+    }
+    console.log(`Time not set for ${pathSegments}`)
+    return false
+  }
+
+  // Not at the end of the path, so navigate to the next directory
+  const nextDirName = pathSegments[0]
+  const remainingPath = pathSegments.slice(1)
+
+  if (currentNode.children) {
+    // Find the next directory node
+    const nextDirNode = currentNode.children.find(
+      child => child.name === nextDirName && child.type === 'folder'
+    )
+
+    if (nextDirNode) {
+      return setNodeEdited(nextDirNode, remainingPath, editedTime)
+    }
+  }
+
+  console.log(`Time not set for ${pathSegments}`)
+  return false
+}
+
+async function processRepoTime(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  repoPath: string,
+  nodes: FileNode
+): Promise<void> {
+  try {
+    const {data: contents} = await octokit.rest.repos.getContent({
+      owner,
+      repo,
+      path: repoPath
+    })
+
+    const {data: commits} = await octokit.rest.repos.listCommits({
+      owner,
+      repo,
+      path: repoPath,
+      per_page: 1
+    })
+    if (commits.length > 0) {
+      const latestCommitDate = commits[0].commit.committer?.date || commits[0].commit.author?.date
+      if (latestCommitDate) {
+        const pathSegments = repoPath.split('/')
+        setNodeEdited(nodes, pathSegments, latestCommitDate)
+      }
+    }
+
+    for (const item of Array.isArray(contents) ? contents : [contents]) {
+      if (item.type === 'dir') {
+        await processRepoTime(octokit, owner, repo, item.path, nodes)
+      } else if (item.type === 'file' && item.name.endsWith('.md')) {
+        const {data: commits} = await octokit.rest.repos.listCommits({
+          owner,
+          repo,
+          path: item.path,
+          per_page: 1
+        })
+        if (commits.length > 0) {
+          const latestCommitDate =
+            commits[0].commit.committer?.date || commits[0].commit.author?.date
+          if (latestCommitDate) {
+            // Convert the path to an array of path segments
+            const pathSegments = item.path.split('/')
+            // Find and update the corresponding node
+            setNodeEdited(nodes, pathSegments, latestCommitDate)
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error(
+      `Error processing time for repository path ${repoPath}:`,
+      error
+    ) 
+    throw error
+  }
+}
+
+export async function setEditedTime(nodes: FileNode): Promise<void> {
+  try {
+    const octokit = createOctokitClient(process.env.GITHUB_TOKEN)
+    const {owner, repo} = parseRepoDetails(process.env.SOURCE)
+
+    await processRepoTime(octokit, owner, repo, '', nodes)
+  } catch (error) {
+    console.error('Error setting actual edited time:', error)
+    throw error
+  }
+}
