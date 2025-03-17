@@ -17,7 +17,7 @@ const XSS_OPTIONS = {
 /**
  * Determines the language of a given path
  */
-function getLanguageFromPath(path: string): SupportedLanguage {
+export function getLanguageFromPath(path: string): SupportedLanguage {
   if (!path || typeof path !== 'string') {
     console.warn(`Invalid path provided: ${path}`)
     return 'en'
@@ -37,7 +37,7 @@ function getLanguageFromPath(path: string): SupportedLanguage {
 /**
  * Generates a canonical page address
  */
-function generatePageAddress(
+export function generatePageAddress(
   language: SupportedLanguage,
   baseFileName: string
 ): string {
@@ -61,7 +61,7 @@ export function isLanguageDirectory(path: string): boolean {
 /**
  * Generates an HTML page from a markdown file
  */
-async function generateHtmlPage(
+export async function generateHtmlPage(
   address: string,
   mdPath: string,
   outputPath: string,
