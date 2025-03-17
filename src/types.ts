@@ -31,5 +31,6 @@ export interface FileNode {
   name: string
   type: FileNodeType
   edited: string // ISO date string
+  created: string // ISO date string
   children?: FileNode[]
 }

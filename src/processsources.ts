@@ -33,6 +33,7 @@ export async function processLocalSource(
 ): Promise<FileNode> {
   const dirStat = await fs.stat(articlesPath)
   const edited = dirStat.mtime.toISOString()
+  const created = dirStat.birthtime.toISOString()
 
   const children: FileNode[] = []
   const entries = await fs.readdir(articlesPath, {withFileTypes: true})
@@ -49,13 +50,15 @@ export async function processLocalSource(
     } else if (entry.isFile() && entry.name.endsWith('.md')) {
       const fileStat = await fs.stat(entryPath)
       const fileEdited = fileStat.mtime.toISOString()
+      const fileCreated = fileStat.birthtime.toISOString()
 
       const articleName = entry.name.replace(/\.md$/, '')
 
       children.push({
         name: articleName,
         type: 'article' as FileNodeType,
-        edited: fileEdited
+        edited: fileEdited,
+        created: fileCreated
       })
     }
   }
@@ -64,6 +67,7 @@ export async function processLocalSource(
     name: articlesPath,
     type: 'folder' as FileNodeType,
     edited,
+    created,
     children
   }
 }
@@ -151,6 +155,33 @@ async function getLastCommitDate(
 }
 
 /**
+ * Fetches the date of the first commit for a specific path
+ * @param octokit - The Octokit instance
+ * @param owner - The repository owner
+ * @param repo - The repository name
+ * @param repoPath - The file or directory path within the repository
+ * @returns The date of the first commit
+ */
+async function getFirstCommitDate(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  repoPath: string
+): Promise<string> {
+  const {data} = await octokit.rest.repos.listCommits({
+    owner,
+    repo,
+    path: repoPath,
+    per_page: 100
+  })
+
+  const firstCommit = data[data.length - 1]
+  return (
+    firstCommit?.commit?.committer?.date || firstCommit?.commit?.author?.date
+  )
+}
+
+/**
  * Download both markdowns and images
  * @param octokit Octokit client
  * @param owner Repository owner
@@ -168,6 +199,12 @@ async function downloadFile(
   try {
     const data = await getRepoContents(octokit, owner, repo, item.path)
     const latestCommitDate = await getLastCommitDate(
+      octokit,
+      owner,
+      repo,
+      item.path
+    )
+    const firstCommitDate = await getFirstCommitDate(
       octokit,
       owner,
       repo,
@@ -195,7 +232,8 @@ async function downloadFile(
       type: item.name.endsWith('.md')
         ? ('article' as FileNodeType)
         : ('misc' as FileNodeType),
-      edited: latestCommitDate
+      edited: latestCommitDate,
+      created: firstCommitDate
     }
   } catch (error) {
     console.error(`File download error: ${item.path}`, error)
@@ -221,6 +259,12 @@ async function processRepoContents(
   try {
     const contents = await getRepoContents(octokit, owner, repo, repoPath)
     const latestCommitDate = await getLastCommitDate(
+      octokit,
+      owner,
+      repo,
+      repoPath
+    )
+    const firstCommitDate = await getFirstCommitDate(
       octokit,
       owner,
       repo,
@@ -265,6 +309,7 @@ async function processRepoContents(
       name: basename(repoPath),
       type: 'folder' as FileNodeType,
       edited: latestCommitDate,
+      created: firstCommitDate,
       children
     }
   } catch (error) {
