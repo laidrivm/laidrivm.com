@@ -25,7 +25,7 @@ export interface PageRenderOptions {
   image?: string
 }
 
-export type FileNodeType = 'folder' | 'article'
+export type FileNodeType = 'folder' | 'article' | 'misc'
 
 export interface FileNode {
   name: string

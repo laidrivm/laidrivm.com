@@ -2,9 +2,8 @@ import {join, extname, dirname} from 'path'
 import {rm, mkdir, readdir, stat} from 'node:fs/promises'
 
 import * as EnvUtils from './envutils.ts'
-import {pullArticles, setEditedTime} from './pullarticles.ts'
+import {processLocalSource, processRemoteSource} from './processsources.ts'
 import {processPages} from './processpages.tsx'
-import {getDirectoryStructure} from './getstructure.ts'
 import type {SupportedLanguage, FileNode} from './types.ts'
 
 /**
@@ -185,17 +184,10 @@ async function generateSite(): void {
   const source = process.env.SOURCE
 
   try {
-    //ToDo: rewrite here for one big if for local and not local mode
-    //and to form nodes structure throug a single pass
-    if (source !== 'local') {
-      await pullArticles()
-    }
-
-    const nodes = await getDirectoryStructure(articlesPath)
-
-    if (source !== 'local') {
-      await setEditedTime(nodes)
-    }
+    const nodes =
+      source === 'local'
+        ? await processLocalSource(articlesPath)
+        : await processRemoteSource()
 
     await processPages(articlesPath, publicPath, nodes)
     await copyImagesRecursively(articlesPath, publicPath)
