@@ -21,7 +21,6 @@ import 'prismjs/components/prism-docker'
  * @returns JSX element with formatted code and copy functionality
  */
 const CodeSnippet = ({lang, text}: CodeSnippetProps): JSX.Element => {
-
   // Validate inputs
   const validLang = Prism.languages[lang] ? lang : 'plaintext'
   const safeText = typeof text === 'string' ? text : ''

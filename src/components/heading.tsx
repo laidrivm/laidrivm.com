@@ -27,9 +27,10 @@ const Heading = ({depth, text, id}: HeadingProps): JSX.Element => {
 
   return (
     <Tag id={safeId}>
-      <a href={`#${safeId}`} className="heading-anchor">
-        {text}
-      </a>
+      <div className="heading-content">
+        <a href={`#${safeId}`}>{text}</a>
+        <button className="copy-heading">Copy link</button>
+      </div>
     </Tag>
   )
 }

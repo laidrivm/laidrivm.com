@@ -42,6 +42,7 @@ body {
   text-rendering: optimizeLegibility;
   font-kerning: normal;
   hyphens: auto;
+  scroll-behavior: smooth;
 }
 
 .language {
@@ -125,6 +126,33 @@ a:active {
 h2 a:link,
 h3 a:link {
   text-decoration: none;
+}
+
+.heading-content {
+  width: fit-content;
+}
+
+.heading-content:hover > .copy-heading {
+  opacity: 1;
+}
+
+.copy-heading {
+  opacity: 0;
+  background: #ffffff;
+  border: 0;
+  font-size: 22px;
+  font-family: 'SourceSerif4', sans-serif;
+  transition: opacity 0.2s;
+  margin-left: 8px;
+  padding-bottom: 4px;
+  padding-top: 4px;
+}
+
+.copy-heading:hover {
+  background: #f6f6f6;
+  transition-property: background;
+  transition-duration: 0.2s;
+  border-radius: 8px;
 }
 
 li {

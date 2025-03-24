@@ -9,13 +9,7 @@ import {writeTextFile, createDir} from './fileutils.ts'
 /**
  * List of files to ignore when processing repositories
  */
-const IGNORE_LIST = [
-  'README.md',
-  '.git',
-  '.gitignore',
-  'LICENSE',
-  '.github'
-]
+const IGNORE_LIST = ['README.md', '.git', '.gitignore', 'LICENSE', '.github']
 
 /**
  * Check if a path should be ignored
@@ -53,7 +47,7 @@ export function parseRepoDetails(sourceUrl: string): RepoConfig {
   if (!owner || !repo) {
     throw new Error(`Invalid repository URL: ${sourceUrl}`)
   }
-  
+
   return {owner, repo}
 }
 

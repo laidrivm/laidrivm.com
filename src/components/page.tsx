@@ -1,25 +1,45 @@
 import type {PageProps, SupportedLanguage} from '../types.ts'
 
-import {
-  formatDate,
-  getLocalizedText,
-  isValidLanguage
-} from './utils.ts'
+import {formatDate, getLocalizedText, isValidLanguage} from './utils.ts'
 import Arrow from './arrow.tsx'
 import LanguageSwitch from './languageswitch.tsx'
 
 /**
- * Creates the client-side script for code snippet copy functionality
+ * Creates the client-side script to scroll to an anchor link
+ *
+ * @returns JavaScript code as a string
+ */
+function createScrollScript(): string {
+  return `
+    function scrollToAnchor() {
+      const hash = window.location.hash;
+      if (!hash) return;
+
+      const targetLink = document.querySelector('a[href="' + hash + '"]');
+      if (targetLink) {
+        targetLink.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+
+    window.addEventListener('load', scrollToAnchor);
+    window.addEventListener('hashchange', scrollToAnchor);
+  `
+}
+
+/**
+ * Creates the client-side script for code snippet and header copy functionality
  *
  * @param lang - Current language for localization
  * @returns JavaScript code as a string
  */
 function createCopyScript(lang: SupportedLanguage): string {
-  const copyText = getLocalizedText('copyCode', lang)
+  const copyCodeText = getLocalizedText('copyCode', lang)
+  const copyHeadingText = getLocalizedText('copyHeading', lang)
   const copiedText = getLocalizedText('copied', lang)
 
   return `
     document.addEventListener('DOMContentLoaded', () => {
+      // Copy code snippets
       const codeSnippets = document.querySelectorAll('.code-snippet');
       codeSnippets.forEach(snippet => {
         const button = snippet.querySelector('.copy-code');
@@ -31,10 +51,26 @@ function createCopyScript(lang: SupportedLanguage): string {
             navigator.clipboard.writeText(codeElement.textContent || '');
             button.textContent = '${copiedText}';
             setTimeout(() => {
-              button.textContent = '${copyText}';
+              button.textContent = '${copyCodeText}';
             }, 2000);
           }
         });
+      });
+
+      // Copy heading anchor links
+      const headings = document.querySelectorAll('.heading-content');
+      headings.forEach(headingContent => {
+          const button = headingContent.querySelector('.copy-heading');
+          if (!button) return;
+
+          button.addEventListener('click', () => {
+            const link = headingContent.querySelector('a').href;
+            navigator.clipboard.writeText(link || '');
+            button.textContent = '${copiedText}';
+            setTimeout(() => {
+              button.textContent = '${copyHeadingText}';
+            }, 2000);
+          });
       });
     });
   `
@@ -63,8 +99,9 @@ const Page = ({
   const updateText = getLocalizedText('updated', validLang)
   const formattedDate = formatDate(time, validLang)
 
-  // Create copy script
+  // Create scripts
   const copyScript = createCopyScript(validLang)
+  const scrollScript = createScrollScript()
 
   return (
     <html lang={validLang}>
@@ -122,6 +159,7 @@ const Page = ({
         </div>
         <div className="content" dangerouslySetInnerHTML={{__html: content}} />
         <script dangerouslySetInnerHTML={{__html: copyScript}} />
+        <script dangerouslySetInnerHTML={{__html: scrollScript}} />
         <div className="social">
           <p>
             {updateText}
