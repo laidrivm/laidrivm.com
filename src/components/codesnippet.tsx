@@ -1,4 +1,3 @@
-import {useEffect, useRef} from 'preact/hooks'
 import Prism from 'prismjs'
 
 import type {CodeSnippetProps} from '../types.ts'
@@ -22,8 +21,6 @@ import 'prismjs/components/prism-docker'
  * @returns JSX element with formatted code and copy functionality
  */
 const CodeSnippet = ({lang, text}: CodeSnippetProps): JSX.Element => {
-  const buttonRef = useRef<HTMLButtonElement>(null)
-  const codeRef = useRef<HTMLElement>(null)
 
   // Validate inputs
   const validLang = Prism.languages[lang] ? lang : 'plaintext'
@@ -36,45 +33,15 @@ const CodeSnippet = ({lang, text}: CodeSnippetProps): JSX.Element => {
     validLang
   )
 
-  useEffect(() => {
-    const button = buttonRef.current
-    const codeElement = codeRef.current
-
-    if (!button || !codeElement) return
-
-    const handleClick = async () => {
-      try {
-        await navigator.clipboard.writeText(codeElement.textContent || '')
-        const originalText = button.textContent
-        button.textContent = 'Copied!'
-
-        setTimeout(() => {
-          button.textContent = originalText
-        }, 2000)
-      } catch (err) {
-        console.error('Failed to copy text:', err)
-      }
-    }
-
-    button.addEventListener('click', handleClick)
-
-    return () => {
-      button.removeEventListener('click', handleClick)
-    }
-  }, [])
-
   return (
     <div className="code-snippet">
       <div className="code-panel">
-        <p className="language-label">{validLang}</p>
-        <button ref={buttonRef} className="copy-code">
-          Copy code
-        </button>
+        <p>{lang}</p>
+        <button className="copy-code">Copy code</button>
       </div>
       <pre>
         <code
-          ref={codeRef}
-          className={`language-${validLang}`}
+          className={`language-${lang}`}
           dangerouslySetInnerHTML={{__html: highlightedCode}}
         />
       </pre>
