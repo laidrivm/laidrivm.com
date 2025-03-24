@@ -45,7 +45,10 @@ export async function generateHtmlPage(
     }
 
     const markdown = await file.text()
-    const contentHtml = xss(MarkdownUtils.convertToHtml(markdown), XSS_OPTIONS)
+    const contentHtml = xss(
+      MarkdownUtils.convertToHtml(markdown, language),
+      XSS_OPTIONS
+    )
 
     const title = MarkdownUtils.extractTitle(markdown)
     const description = MarkdownUtils.extractDescription(markdown)

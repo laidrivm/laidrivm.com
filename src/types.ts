@@ -116,12 +116,14 @@ export interface HeadingProps {
   depth: 1 | 2 | 3 | 4 | 5 | 6
   text: string
   id: string
+  siteLanguage: SupportedLanguage
 }
 
 /**
  * Properties for code snippet components
  */
 export interface CodeSnippetProps {
-  lang: string
+  codeLanguage: string
   text: string
+  siteLanguage: SupportedLanguage
 }

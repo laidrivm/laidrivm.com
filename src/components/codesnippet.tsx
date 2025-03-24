@@ -2,6 +2,8 @@ import Prism from 'prismjs'
 
 import type {CodeSnippetProps} from '../types.ts'
 
+import {getLocalizedText} from './utils.ts'
+
 import 'prismjs/components/prism-markup'
 import 'prismjs/components/prism-css'
 import 'prismjs/components/prism-javascript'
@@ -20,9 +22,13 @@ import 'prismjs/components/prism-docker'
  * @param props - Component properties
  * @returns JSX element with formatted code and copy functionality
  */
-const CodeSnippet = ({lang, text}: CodeSnippetProps): JSX.Element => {
+const CodeSnippet = ({
+  codeLanguage,
+  text,
+  siteLanguage
+}: CodeSnippetProps): JSX.Element => {
   // Validate inputs
-  const validLang = Prism.languages[lang] ? lang : 'plaintext'
+  const validLang = Prism.languages[codeLanguage] ? codeLanguage : 'plaintext'
   const safeText = typeof text === 'string' ? text : ''
 
   // Highlight code with Prism
@@ -32,15 +38,17 @@ const CodeSnippet = ({lang, text}: CodeSnippetProps): JSX.Element => {
     validLang
   )
 
+  const copyText = getLocalizedText('copyCode', siteLanguage)
+
   return (
     <div className="code-snippet">
       <div className="code-panel">
-        <p>{lang}</p>
-        <button className="copy-code">Copy code</button>
+        <p>{codeLanguage}</p>
+        <button className="copy-code">{copyText}</button>
       </div>
       <pre>
         <code
-          className={`language-${lang}`}
+          className={`language-${codeLanguage}`}
           dangerouslySetInnerHTML={{__html: highlightedCode}}
         />
       </pre>

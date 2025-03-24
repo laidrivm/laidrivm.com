@@ -1,6 +1,8 @@
 import {marked} from 'marked'
 import {renderToString} from 'preact-render-to-string'
 
+import type {SupportedLanguage} from '../types.ts'
+
 import Heading from './components/heading.tsx'
 import CodeSnippet from './components/codesnippet.tsx'
 
@@ -101,7 +103,10 @@ export function extractOGImage(markdown: string): string {
  * @param markdown - Markdown content
  * @returns HTML content
  */
-export function convertToHtml(markdown: string): string {
+export function convertToHtml(
+  markdown: string,
+  uiLanguage: SupportedLanguage
+): string {
   const renderer = new marked.Renderer()
 
   renderer.heading = header => {
@@ -110,13 +115,18 @@ export function convertToHtml(markdown: string): string {
         depth={header.depth}
         text={header.text}
         id={generateId(header.text)}
+        siteLanguage={uiLanguage}
       />
     )
   }
 
   renderer.code = code => {
     return renderToString(
-      <CodeSnippet lang={code.lang || 'plaintext'} text={code.text} />
+      <CodeSnippet
+        codeLanguage={code.lang || 'plaintext'}
+        text={code.text}
+        siteLanguage={uiLanguage}
+      />
     )
   }
 
