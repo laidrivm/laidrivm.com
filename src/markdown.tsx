@@ -1,5 +1,6 @@
 import {marked} from 'marked'
 import {renderToString} from 'preact-render-to-string'
+import unidecode from 'unidecode'
 
 import type {SupportedLanguage} from '../types.ts'
 
@@ -7,12 +8,14 @@ import Heading from './components/heading.tsx'
 import CodeSnippet from './components/codesnippet.tsx'
 
 /**
- * Generates a URL-friendly ID from text
+ * Generates a URL-friendly ID from text with transliteration
  * @param text - Original text
  * @returns URL-friendly slug
  */
 export function generateId(text: string): string {
-  return text
+  const transliterated = unidecode(text)
+
+  return transliterated
     .toLowerCase()
     .replace(/[^\w\s-]/g, '')
     .trim()

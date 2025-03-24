@@ -28,6 +28,7 @@
     "preact": "^10.26.4",
     "preact-render-to-string": "^6.5.13",
     "prismjs": "^1.29.0",
+    "unidecode": "^1.1.0",
     "xss": "^1.0.15"
   },
   "scripts": {
