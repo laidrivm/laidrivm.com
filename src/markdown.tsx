@@ -5,8 +5,22 @@ import Heading from './components/heading.tsx'
 import CodeSnippet from './components/codesnippet.tsx'
 
 /**
+ * Generates a URL-friendly ID from text
+ * @param text - Original text
+ * @returns URL-friendly slug
+ */
+export function generateId(text: string): string {
+  return text
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+/**
  * Extracts the title from a markdown document
- * Looks for the first line starting with '# '
+ * @param markdown - Markdown content
+ * @returns Extracted title or default
  */
 export function extractTitle(markdown: string): string {
   const lines = markdown.split('\n')
@@ -20,24 +34,26 @@ export function extractTitle(markdown: string): string {
 
 /**
  * Converts markdown to plain text, stripping HTML and formatting
+ * @param markdown - Markdown content
+ * @returns Plain text content
  */
 export function convertToPlaintext(markdown: string): string {
   const renderer = new marked.Renderer()
 
-  renderer.text = text => text.text
-  renderer.link = link => link.text
-  renderer.paragraph = paragraph => {
+  renderer.text = token => token.text
+  renderer.link = token => token.text
+  renderer.paragraph = token => {
     let result = ''
-    for (const token of paragraph.tokens) {
-      switch (token.type) {
+    for (const innerToken of token.tokens) {
+      switch (innerToken.type) {
         case 'link':
-          result += renderer.link(token)
+          result += renderer.link(innerToken)
           break
         case 'text':
-          result += renderer.text(token)
+          result += renderer.text(innerToken)
           break
         default:
-          throw new Error(`Unsupported token type: ${token.type}`)
+          throw new Error(`Unsupported token type: ${innerToken.type}`)
       }
     }
     return result
@@ -48,6 +64,8 @@ export function convertToPlaintext(markdown: string): string {
 
 /**
  * Extracts the first line of text as a description
+ * @param markdown - Markdown content
+ * @returns Extracted description or empty string
  */
 export function extractDescription(markdown: string): string {
   const lines = markdown.split('\n')
@@ -61,6 +79,8 @@ export function extractDescription(markdown: string): string {
 
 /**
  * Extracts the first image URL from markdown
+ * @param markdown - Markdown content
+ * @returns Extracted image URL or default
  */
 export function extractOGImage(markdown: string): string {
   const lines = markdown.split('\n')
@@ -77,18 +97,9 @@ export function extractOGImage(markdown: string): string {
 }
 
 /**
- * Generates a URL-friendly ID from text
- */
-export function generateId(text: string): string {
-  return text
-    .toLowerCase()
-    .replace(/[^\w\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '-')
-}
-
-/**
  * Converts markdown to HTML with custom rendering
+ * @param markdown - Markdown content
+ * @returns HTML content
  */
 export function convertToHtml(markdown: string): string {
   const renderer = new marked.Renderer()

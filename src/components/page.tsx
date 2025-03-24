@@ -1,25 +1,51 @@
-import type {SupportedLanguage} from '../types.ts'
+import type {PageProps, SupportedLanguage} from '../types.ts'
 
+import {
+  formatDate,
+  getLocalizedText,
+  isValidLanguage
+} from './utils.ts'
 import Arrow from './arrow.tsx'
+import LanguageSwitch from './languageswitch.tsx'
 
-const LanguageSwitch = ({lang}: {lang: 'en' | 'ru'}) =>
-  lang === 'en' ? <a href="/ru/">ru</a> : <a href="/">en</a>
+/**
+ * Creates the client-side script for code snippet copy functionality
+ *
+ * @param lang - Current language for localization
+ * @returns JavaScript code as a string
+ */
+function createCopyScript(lang: SupportedLanguage): string {
+  const copyText = getLocalizedText('copyCode', lang)
+  const copiedText = getLocalizedText('copied', lang)
 
-function updatedPhrase(lang: SupportedLanguage): string {
-  return lang === 'ru' ? 'Обновлено: ' : 'Updated: '
+  return `
+    document.addEventListener('DOMContentLoaded', () => {
+      const codeSnippets = document.querySelectorAll('.code-snippet');
+      codeSnippets.forEach(snippet => {
+        const button = snippet.querySelector('.copy-code');
+        if (!button) return;
+        
+        button.addEventListener('click', () => {
+          const codeElement = snippet.querySelector('code');
+          if (codeElement) {
+            navigator.clipboard.writeText(codeElement.textContent || '');
+            button.textContent = '${copiedText}';
+            setTimeout(() => {
+              button.textContent = '${copyText}';
+            }, 2000);
+          }
+        });
+      });
+    });
+  `
 }
 
-function humanDate(isoDate: string, lang: SupportedLanguage): string {
-  const date = new Date(isoDate)
-  const humanDate = new Intl.DateTimeFormat(lang, {
-    weekday: 'long',
-    year: 'numeric',
-    month: 'long',
-    day: 'numeric'
-  })
-  return humanDate.format(date)
-}
-
+/**
+ * Renders a complete HTML page with metadata and content
+ *
+ * @param props - Page component properties
+ * @returns JSX element representing a complete HTML document
+ */
 const Page = ({
   address,
   title,
@@ -29,37 +55,19 @@ const Page = ({
   time,
   lang = 'en',
   includeArrow = false
-}: {
-  address: string
-  title: string
-  description: string
-  content: string
-  time: string
-  image: string
-  lang: SupportedLanguage
-  includeArrow: boolean
-}): JSX.Element => {
-  const copyScript = `
-    document.addEventListener('DOMContentLoaded', () => {
-      const codeSnippets = document.querySelectorAll('.code-snippet')
-      codeSnippets.forEach(snippet => {
-        const button = snippet.firstChild.lastChild
-        button.addEventListener('click', () => {
-          const codeElement = snippet.lastChild.firstChild;
-          if (codeElement) {
-            navigator.clipboard.writeText(codeElement.textContent);
-            button.textContent = 'Copied!';
-            setTimeout(() => {
-              button.textContent = 'Copy code';
-            }, 2000);
-          }
-        });
-      });
-    });
-  `
+}: PageProps): JSX.Element => {
+  // Validate language
+  const validLang = isValidLanguage(lang) ? lang : 'en'
+
+  // Format the update text and date
+  const updateText = getLocalizedText('updated', validLang)
+  const formattedDate = formatDate(time, validLang)
+
+  // Create copy script
+  const copyScript = createCopyScript(validLang)
 
   return (
-    <html lang={lang}>
+    <html lang={validLang}>
       <head>
         <meta charSet="UTF-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -108,16 +116,16 @@ const Page = ({
         />
       </head>
       <body>
-        {includeArrow && <Arrow lang={lang} />}
+        {includeArrow && <Arrow lang={validLang} />}
         <div className="language">
-          <LanguageSwitch lang={lang} />
+          <LanguageSwitch lang={validLang} />
         </div>
         <div className="content" dangerouslySetInnerHTML={{__html: content}} />
         <script dangerouslySetInnerHTML={{__html: copyScript}} />
         <div className="social">
           <p>
-            {updatedPhrase(lang)}
-            <time dateTime={time}>{humanDate(time, lang)}</time>
+            {updateText}
+            <time dateTime={time}>{formattedDate}</time>
           </p>
         </div>
       </body>

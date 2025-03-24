@@ -1,11 +1,35 @@
-const Heading = ({depth, text, id}: {nubmer; string; string}): string => {
-  if (depth === 1) {
+import type {HeadingProps} from '../types'
+
+/**
+ * Renders a heading element with the specified depth and optional anchor link
+ *
+ * @param props - Component properties
+ * @returns JSX element with appropriate heading level
+ */
+const Heading = ({depth, text, id}: HeadingProps): JSX.Element => {
+  // Validate the depth value
+  const validDepth = (depth >= 1 && depth <= 6 ? depth : 2) as
+    | 1
+    | 2
+    | 3
+    | 4
+    | 5
+    | 6
+
+  // For H1, don't include the anchor link
+  if (validDepth === 1) {
     return <h1>{text}</h1>
   }
-  const Tag = `h${depth}` as keyof JSX.IntrinsicElements
+
+  // Create the appropriate heading tag
+  const Tag = `h${validDepth}` as keyof JSX.IntrinsicElements
+  const safeId = id ? id.replace(/[^a-z0-9-_]/gi, '') : ''
+
   return (
-    <Tag id={id}>
-      <a href={`#${id}`}>{text}</a>
+    <Tag id={safeId}>
+      <a href={`#${safeId}`} className="heading-anchor">
+        {text}
+      </a>
     </Tag>
   )
 }

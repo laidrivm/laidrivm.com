@@ -1,75 +1,16 @@
-import {join, extname, dirname} from 'path'
-import {rm, mkdir, readdir, stat} from 'node:fs/promises'
+import {join} from 'path'
 
-import * as EnvUtils from './envutils.ts'
-import {processLocalSource, processRemoteSource} from './processsources.ts'
+import * as EnvUtils from './utils/envutils.ts'
+import * as FileUtils from './utils/fileutils.ts'
+import * as PathUtils from './utils/pathutils.ts'
+import * as SourceProcessor from './processsources.ts'
 import {processPages} from './processpages.tsx'
-import type {SupportedLanguage, FileNode} from './types.ts'
-
-/**
- * Determines the language of a given path
- */
-function getLanguageFromPath(path: string): SupportedLanguage {
-  if (!path || typeof path !== 'string') {
-    console.warn(`Invalid path provided: ${path}`)
-    return 'en'
-  }
-
-  const validLanguages: SupportedLanguage[] = ['en', 'ru', 'es', 'fr']
-  const language = path.replace(/\/+$/, '').split('/').filter(Boolean)[0]
-
-  return validLanguages.includes(language as SupportedLanguage)
-    ? (language as SupportedLanguage)
-    : 'en'
-}
-
-function generatePageAddress(
-  language: SupportedLanguage,
-  baseFileName: string
-): string {
-  const baseUrl = `https://${process.env.ADDRESS}`
-  baseFileName = baseFileName === 'index' ? '' : baseFileName
-  return language === 'en'
-    ? `${baseUrl}/${baseFileName}`
-    : `${baseUrl}/${language}/${baseFileName}`
-}
-
-function getSiteMapURLs(
-  nodes: FileNode,
-  priority: number,
-  relativePath: string
-): string {
-  let result = ''
-  for (const node of nodes.children) {
-    switch (node.type) {
-      case 'folder': {
-        result += getSiteMapURLs(
-          node,
-          priority - 0.1,
-          join(relativePath, node.name)
-        )
-        break
-      }
-      case 'article': {
-        result += `<url>
-  <loc>${generatePageAddress(getLanguageFromPath(relativePath), node.name)}</loc>
-  <lastmod>${node.edited.replace(/\.\d{3}Z$/, '+00:00')}</lastmod>
-  <priority>${node.name === 'index' ? priority.toFixed(2) : (priority - 0.2).toFixed(2)}</priority>
-</url>\n`
-        break
-      }
-      default: {
-        console.log(`Unknown type for ${node.name}`)
-      }
-    }
-  }
-  return result
-}
+import type {FileNode} from './types.ts'
 
 /**
  * Generate XML sitemap from page entries
- * @param publicPath Output directory for sitemap
- * @param pages Page entries to include in sitemap
+ * @param publicPath - Output directory for sitemap
+ * @param nodes - Page entries to include in sitemap
  */
 async function generateSitemap(
   publicPath: string,
@@ -90,111 +31,74 @@ ${getSiteMapURLs(nodes, 1.0, '/')}
 }
 
 /**
- * Check if a file is an image based on its extension
- * @param filename Filename to check
- * @returns Boolean indicating if file is an image
+ * Recursively generates sitemap URLs from file nodes
+ * @param nodes - File node structure
+ * @param priority - Priority value for current level
+ * @param relativePath - Current relative path
+ * @returns Sitemap URL entries as string
  */
-function isImage(filename: string): boolean {
-  const IMAGE_EXTENSIONS: string[] = [
-    '.png',
-    '.jpg',
-    '.jpeg',
-    '.gif',
-    '.svg',
-    '.webp'
-  ]
-  const ext = extname(filename).toLowerCase()
-  return IMAGE_EXTENSIONS.includes(ext)
-}
+function getSiteMapURLs(
+  nodes: FileNode,
+  priority: number,
+  relativePath: string
+): string {
+  if (!nodes.children) return ''
 
-/**
- * Copies non-markdown files to the public directory
- * @param articlesPath Path to articles directory
- */
-async function copyFile(sourcePath: string, destPath: string) {
-  await mkdir(dirname(destPath), {recursive: true})
-  const sourceFile = Bun.file(sourcePath)
-  const destFile = Bun.file(destPath)
-  await Bun.write(destFile, sourceFile)
-}
+  const baseUrl = EnvUtils.getBaseUrl()
+  let result = ''
 
-/**
- * Recursively traverses a directory and copies all image files to destination
- * preserving the folder structure
- * @param sourceDir Source directory path
- * @param destDir Destination directory path
- * @param relativePath Current relative path (used in recursion)
- */
-async function copyImagesRecursively(
-  sourceDir: string,
-  destDir: string,
-  relativePath = ''
-) {
-  const currentDir = join(sourceDir, relativePath)
+  for (const node of nodes.children) {
+    switch (node.type) {
+      case 'folder': {
+        result += getSiteMapURLs(
+          node,
+          priority - 0.1,
+          join(relativePath, node.name)
+        )
+        break
+      }
+      case 'article': {
+        const lang = PathUtils.getLanguageFromPath(relativePath)
+        const address = PathUtils.generatePageAddress(lang, node.name, baseUrl)
+        const nodePriority = node.name === 'index' ? priority : priority - 0.2
 
-  try {
-    // Read all entries in the current directory using fs.promises.readdir
-    const entries = await readdir(currentDir)
-
-    // Process each entry
-    for (const entry of entries) {
-      const entryPath = join(relativePath, entry)
-      const fullSourcePath = join(sourceDir, entryPath)
-      const fullDestPath = join(destDir, entryPath)
-
-      // Check if entry is directory or file
-      const stats = await stat(fullSourcePath)
-
-      if (stats.isDirectory()) {
-        // Recursively process subdirectories
-        await copyImagesRecursively(sourceDir, destDir, entryPath)
-      } else if (isImage(entry)) {
-        // Copy image files
-        console.log(`Copying image: ${entryPath}`)
-        await copyFile(fullSourcePath, fullDestPath)
+        result += `<url>
+  <loc>${address}</loc>
+  <lastmod>${node.edited.replace(/\.\d{3}Z$/, '+00:00')}</lastmod>
+  <priority>${nodePriority.toFixed(2)}</priority>
+</url>\n`
+        break
       }
     }
-  } catch (error) {
-    console.error(`Error processing directory ${currentDir}:`, error)
   }
-}
-
-/**
- * Clean up articles directory after processing
- */
-async function cleanupArticlesDirectory(): Promise<void> {
-  const articlesPath = process.env.ARTICLES
-  try {
-    await rm(articlesPath, {recursive: true})
-  } catch (error) {
-    if (error.code === 'ENOENT') {
-      console.log(`${articlesPath} directory doesn't exist`)
-    } else {
-      throw error
-    }
-  }
+  return result
 }
 
 /**
  * Generate static site with configurable options
  */
-async function generateSite(): void {
-  const articlesPath = process.env.ARTICLES
-  const publicPath = process.env.PUBLIC
-  const source = process.env.SOURCE
+async function generateSite(): Promise<void> {
+  const config = EnvUtils.getConfig()
+  const articlesPath = config.ARTICLES
+  const publicPath = config.PUBLIC
+  const source = config.SOURCE
 
   try {
-    const nodes =
-      source === 'local'
-        ? await processLocalSource(articlesPath)
-        : await processRemoteSource()
+    // Process content source (local or remote)
+    const nodes = await SourceProcessor.processSource()
 
+    // Generate HTML pages
     await processPages(articlesPath, publicPath, nodes)
-    await copyImagesRecursively(articlesPath, publicPath)
+
+    // Copy images from content to public directory
+    await FileUtils.copyImagesRecursively(articlesPath, publicPath)
+
+    // Generate sitemap for SEO
     await generateSitemap(publicPath, nodes)
 
+    // Clean up temporary files if using remote source
     if (source !== 'local') {
-      await cleanupArticlesDirectory()
+      await SourceProcessor.cleanupArticlesDirectory()
     }
 
     console.log('Static site generation completed successfully.')
@@ -204,5 +108,6 @@ async function generateSite(): void {
   }
 }
 
+// Initialize environment and generate site
 EnvUtils.initDefaults()
 await generateSite()
