@@ -11,7 +11,8 @@ const PRESERVED_FILES = [
   'favicon.png',
   'mellon-for-incubators.pdf',
   'og_image-min.jpg',
-  'robots.txt'
+  'robots.txt',
+  'telegram.svg'
 ]
 
 /**

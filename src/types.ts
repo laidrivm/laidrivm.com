@@ -127,3 +127,9 @@ export interface CodeSnippetProps {
   text: string
   siteLanguage: SupportedLanguage
 }
+
+export interface TelegramShareProps {
+  lang: SupportedLanguage
+  url: string
+  text?: string
+}

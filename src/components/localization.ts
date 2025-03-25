@@ -6,12 +6,14 @@ export const LOCALIZED_TEXT = {
     updated: 'Updated: ',
     copyCode: 'Copy code',
     copyHeading: 'Copy heading link',
-    copied: 'Copied!'
+    copied: 'Copied!',
+    telegram: 'Share on Telegram'
   },
   ru: {
     updated: 'Обновлено: ',
     copyCode: 'Копировать код',
     copyHeading: 'Копировать ссылку на заголовок',
-    copied: 'Скопировано!'
+    copied: 'Скопировано!',
+    telegram: 'Поделиться в Telegram'
   }
 }

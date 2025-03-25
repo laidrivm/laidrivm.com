@@ -3,6 +3,7 @@ import type {PageProps, SupportedLanguage} from '../types.ts'
 import {formatDate, getLocalizedText, isValidLanguage} from './utils.ts'
 import Arrow from './arrow.tsx'
 import LanguageSwitch from './languageswitch.tsx'
+import TelegramShareButton from './telegram.tsx'
 
 /**
  * Creates the client-side script to scroll to an anchor link
@@ -158,14 +159,19 @@ const Page = ({
           <LanguageSwitch lang={validLang} />
         </div>
         <div className="content" dangerouslySetInnerHTML={{__html: content}} />
-        <script dangerouslySetInnerHTML={{__html: copyScript}} />
-        <script dangerouslySetInnerHTML={{__html: scrollScript}} />
         <div className="social">
+          <TelegramShareButton
+            lang={validLang}
+            url={address}
+            text={description}
+          />
           <p>
             {updateText}
             <time dateTime={time}>{formattedDate}</time>
           </p>
         </div>
+        <script dangerouslySetInnerHTML={{__html: copyScript}} />
+        <script dangerouslySetInnerHTML={{__html: scrollScript}} />
       </body>
     </html>
   )

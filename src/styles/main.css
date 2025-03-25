@@ -55,7 +55,13 @@ body {
   margin-top: 2rem;
   margin-left: 5rem;
   margin-right: 9rem;
-  text-align: right;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.social p {
+  margin: 0;
 }
 
 .content {
@@ -287,4 +293,19 @@ a.arrow-container {
   code[class*='language-'] {
     font-size: 12px;
   }
+}
+
+.telegram-share-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  margin-right: 8px;
+  transition: background 0.2s;
+  border-radius: 8px;
+  display: flex;
+}
+
+.telegram-share-button:hover {
+  background: #f6f6f6;
 }
