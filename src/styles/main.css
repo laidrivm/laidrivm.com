@@ -295,8 +295,20 @@ a.arrow-container {
     font-size: 12px;
   }
 
+  .social {
+    margin-left: 2rem;
+    margin-right: 2rem;
+    margin-top: 2rem;
+    flex-direction: column;
+    row-gap: 1rem;
+  }
+
+  .social p {
+  }
+
   .sharing-links {
-    gap: 8px;
+    gap: 8px 1rem;
+    order: 1;
   }
   
   .social-share-link {
