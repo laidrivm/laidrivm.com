@@ -6,6 +6,7 @@ import type {SupportedLanguage} from '../types.ts'
 
 import Heading from './components/heading.tsx'
 import CodeSnippet from './components/codesnippet.tsx'
+import Image from './components/image.tsx'
 
 /**
  * Generates a URL-friendly ID from text with transliteration
@@ -130,6 +131,12 @@ export function convertToHtml(
         text={code.text}
         siteLanguage={uiLanguage}
       />
+    )
+  }
+
+  renderer.image = image => {
+    return renderToString(
+      <Image src={image.href} alt={image.text || image.title || ''} />
     )
   }
 

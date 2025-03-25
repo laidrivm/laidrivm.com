@@ -5,6 +5,28 @@ import Arrow from './arrow.tsx'
 import LanguageSwitch from './languageswitch.tsx'
 import SharingLinks from './sharinglinks.tsx'
 
+function createZoomScript(): string {
+  return `
+    document.addEventListener('DOMContentLoaded', () => {
+      const images = document.querySelectorAll('.image-container');
+      
+      images.forEach(img => {
+        img.childNodes[0].addEventListener('click', function() {
+          // Toggle zoomed state
+          this.classList.toggle('zoomed');
+          
+          // Prevent page scrolling when zoomed
+          if (this.classList.contains('zoomed')) {
+            document.body.style.overflow = 'hidden';
+          } else {
+            document.body.style.overflow = 'auto';
+          }
+        });
+      });
+    });
+  `
+}
+
 /**
  * Creates the client-side script to scroll to an anchor link
  *
@@ -103,6 +125,7 @@ const Page = ({
   // Create scripts
   const copyScript = createCopyScript(validLang)
   const scrollScript = createScrollScript()
+  const zoomScript = createZoomScript()
 
   return (
     <html lang={validLang}>
@@ -168,6 +191,7 @@ const Page = ({
         </div>
         <script dangerouslySetInnerHTML={{__html: copyScript}} />
         <script dangerouslySetInnerHTML={{__html: scrollScript}} />
+        <script dangerouslySetInnerHTML={{__html: zoomScript}} />
       </body>
     </html>
   )

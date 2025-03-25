@@ -140,3 +140,8 @@ export type ShareButtonConfig = {
   urlParam?: string
   textParam?: string
 }
+
+export interface ImageProps {
+  src: string
+  alt: string
+}
