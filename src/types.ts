@@ -128,8 +128,15 @@ export interface CodeSnippetProps {
   siteLanguage: SupportedLanguage
 }
 
-export interface TelegramShareProps {
+export interface SocialShareProps {
   lang: SupportedLanguage
   url: string
   text?: string
+}
+
+// Type for share button configurations
+export type ShareButtonConfig = {
+  baseUrl: string
+  urlParam?: string
+  textParam?: string
 }

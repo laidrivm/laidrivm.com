@@ -12,7 +12,10 @@ const PRESERVED_FILES = [
   'mellon-for-incubators.pdf',
   'og_image-min.jpg',
   'robots.txt',
-  'telegram.svg'
+  'telegram.svg',
+  'bluesky.svg',
+  'minds.svg',
+  'reddit.svg'
 ]
 
 /**
