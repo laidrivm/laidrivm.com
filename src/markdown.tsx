@@ -111,34 +111,48 @@ export function convertToHtml(
   markdown: string,
   uiLanguage: SupportedLanguage
 ): string {
-  const renderer = new marked.Renderer()
+  // Create a custom renderer using marked.use()
+  marked.use({
+    renderer: {
+      heading({tokens, depth}) {
+        // Parse the inline tokens to get the text
+        const text = this.parser.parseInline(tokens)
 
-  renderer.heading = header => {
-    return renderToString(
-      <Heading
-        depth={header.depth}
-        text={header.text}
-        id={generateId(header.text)}
-        siteLanguage={uiLanguage}
-      />
-    )
-  }
+        // Generate an ID for the heading
+        const id = generateId(text)
 
-  renderer.code = code => {
-    return renderToString(
-      <CodeSnippet
-        codeLanguage={code.lang || 'plaintext'}
-        text={code.text}
-        siteLanguage={uiLanguage}
-      />
-    )
-  }
+        // Render the heading using the custom Heading component
+        return renderToString(
+          <Heading
+            depth={depth}
+            text={text}
+            id={id}
+            siteLanguage={uiLanguage}
+          />
+        )
+      },
 
-  renderer.image = image => {
-    return renderToString(
-      <Image src={image.href} alt={image.text || image.title || ''} />
-    )
-  }
+      code({text, lang}) {
+        // Render code snippets using the CodeSnippet component
+        return renderToString(
+          <CodeSnippet
+            codeLanguage={lang || 'plaintext'}
+            text={text}
+            siteLanguage={uiLanguage}
+          />
+        )
+      },
 
-  return marked(markdown, {renderer})
+      image({href, text, title}) {
+        // Render images using the Image component
+        return renderToString(<Image src={href} alt={text || title || ''} />)
+      },
+
+      paragraph({tokens}) {
+        return `<p>${this.parser.parseInline(tokens)}</p>\n`
+      }
+    }
+  })
+
+  return marked.parse(markdown)
 }
