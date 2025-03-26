@@ -38,7 +38,7 @@ const Heading = ({
     <Tag id={safeId}>
       <div className="heading-content">
         <a href={`#${safeId}`}>{text}</a>
-        <button className="copy-heading">{copyText}</button>
+        <button className="copy-heading">🔗</button>
       </div>
     </Tag>
   )

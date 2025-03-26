@@ -89,9 +89,9 @@ function createCopyScript(lang: SupportedLanguage): string {
           button.addEventListener('click', () => {
             const link = headingContent.querySelector('a').href;
             navigator.clipboard.writeText(link || '');
-            button.textContent = '${copiedText}';
+            button.textContent = '👍';
             setTimeout(() => {
-              button.textContent = '${copyHeadingText}';
+              button.textContent = '🔗';
             }, 2000);
           });
       });

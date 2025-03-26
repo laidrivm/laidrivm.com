@@ -70,28 +70,28 @@ body {
   margin-right: 9rem;
 }
 
-h1 {
-  font-size: 56px;
+h1,
+h2,
+h3 {
   line-height: 1.15;
-  margin-block-start: 0.5em;
   margin-block-end: 0;
   text-decoration: none;
 }
 
+h1 {
+  font-size: 56px;
+  margin-block-start: 0.5em;
+}
+
+
 h2 {
   font-size: 40px;
-  line-height: 1.15;
   margin-block-start: 1em;
-  margin-block-end: 0;
-  text-decoration: none;
 }
 
 h3 {
   font-size: 32px;
-  line-height: 1.15;
   margin-block-start: 1.2em;
-  margin-block-end: 0;
-  text-decoration: none;
 }
 
 .lead {
@@ -136,7 +136,13 @@ h3 a:link {
 }
 
 .heading-content {
-  width: fit-content;
+  white-space: nowrap;
+}
+
+.heading-content a {
+  white-space: normal;
+  position: relative;
+  z-index: 2;
 }
 
 .heading-content:hover > .copy-heading {
@@ -147,12 +153,13 @@ h3 a:link {
   opacity: 0;
   background: #ffffff;
   border: 0;
-  font-size: 22px;
+  font-size: 32px;
   font-family: 'SourceSerif4', sans-serif;
   transition: opacity 0.2s;
   margin-left: 8px;
   padding-bottom: 4px;
   padding-top: 4px;
+  display: inline;
 }
 
 .copy-heading:hover {
@@ -331,6 +338,10 @@ img.zoomed {
   }
 
   h3 {
+    font-size: 24px;
+  }
+
+  .copy-heading {
     font-size: 24px;
   }
 
