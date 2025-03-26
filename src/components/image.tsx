@@ -6,10 +6,11 @@ import type {ImageProps} from '../types.ts'
  * @param props - Component properties
  * @returns JSX element with zoomable image
  */
-const Image = ({src, alt}: ImageProps): JSX.Element => {
+const Image = ({src, alt, caption}: ImageProps): JSX.Element => {
   return (
     <div className="image-container">
       <img src={src} alt={alt} />
+      {caption && <em>{caption}</em>}
     </div>
   )
 }

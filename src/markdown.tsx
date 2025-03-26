@@ -105,23 +105,21 @@ export function extractOGImage(markdown: string): string {
 /**
  * Converts markdown to HTML with custom rendering
  * @param markdown - Markdown content
+ * @param uiLanguage - The language page should be rendered in
  * @returns HTML content
  */
 export function convertToHtml(
   markdown: string,
   uiLanguage: SupportedLanguage
 ): string {
-  // Create a custom renderer using marked.use()
   marked.use({
     renderer: {
       heading({tokens, depth}) {
         // Parse the inline tokens to get the text
         const text = this.parser.parseInline(tokens)
 
-        // Generate an ID for the heading
         const id = generateId(text)
 
-        // Render the heading using the custom Heading component
         return renderToString(
           <Heading
             depth={depth}
@@ -133,7 +131,6 @@ export function convertToHtml(
       },
 
       code({text, lang}) {
-        // Render code snippets using the CodeSnippet component
         return renderToString(
           <CodeSnippet
             codeLanguage={lang || 'plaintext'}
@@ -143,13 +140,19 @@ export function convertToHtml(
         )
       },
 
-      image({href, text, title}) {
-        // Render images using the Image component
-        return renderToString(<Image src={href} alt={text || title || ''} />)
-      },
-
       paragraph({tokens}) {
-        return `<p>${this.parser.parseInline(tokens)}</p>\n`
+        if (tokens[0].type === 'image'){
+          const caption = (tokens.length > 2) && (tokens[2].type === 'em') ? tokens[2].text : ''
+          return renderToString(
+            <Image 
+              src={tokens[0].href} 
+              alt={tokens[0].text || tokens[0].title || ''} 
+              caption={caption} 
+            />
+          )
+        } else {
+          return `<p>${this.parser.parseInline(tokens)}</p>\n`
+        }
       }
     }
   })
