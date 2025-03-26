@@ -120,14 +120,7 @@ export function convertToHtml(
 
         const id = generateId(text)
 
-        return renderToString(
-          <Heading
-            depth={depth}
-            text={text}
-            id={id}
-            siteLanguage={uiLanguage}
-          />
-        )
+        return renderToString(<Heading depth={depth} text={text} id={id} />)
       },
 
       code({text, lang}) {
@@ -141,13 +134,14 @@ export function convertToHtml(
       },
 
       paragraph({tokens}) {
-        if (tokens[0].type === 'image'){
-          const caption = (tokens.length > 2) && (tokens[2].type === 'em') ? tokens[2].text : ''
+        if (tokens[0].type === 'image') {
+          const caption =
+            tokens.length > 2 && tokens[2].type === 'em' ? tokens[2].text : ''
           return renderToString(
-            <Image 
-              src={tokens[0].href} 
-              alt={tokens[0].text || tokens[0].title || ''} 
-              caption={caption} 
+            <Image
+              src={tokens[0].href}
+              alt={tokens[0].text || tokens[0].title || ''}
+              caption={caption}
             />
           )
         } else {

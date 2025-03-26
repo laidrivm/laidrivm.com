@@ -57,7 +57,6 @@ function createScrollScript(): string {
  */
 function createCopyScript(lang: SupportedLanguage): string {
   const copyCodeText = getLocalizedText('copyCode', lang)
-  const copyHeadingText = getLocalizedText('copyHeading', lang)
   const copiedText = getLocalizedText('copied', lang)
 
   return `

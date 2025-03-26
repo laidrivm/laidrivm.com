@@ -1,19 +1,12 @@
 import type {HeadingProps} from '../types'
 
-import {getLocalizedText} from './utils.ts'
-
 /**
  * Renders a heading element with the specified depth and optional anchor link
  *
  * @param props - Component properties
  * @returns JSX element with appropriate heading level
  */
-const Heading = ({
-  depth,
-  text,
-  id,
-  siteLanguage
-}: HeadingProps): JSX.Element => {
+const Heading = ({depth, text, id}: HeadingProps): JSX.Element => {
   // Validate the depth value
   const validDepth = (depth >= 1 && depth <= 6 ? depth : 2) as
     | 1
@@ -31,8 +24,6 @@ const Heading = ({
   // Create the appropriate heading tag
   const Tag = `h${validDepth}` as keyof JSX.IntrinsicElements
   const safeId = id ? id.replace(/[^a-z0-9-_]/gi, '') : ''
-
-  const copyText = getLocalizedText('copyHeading', siteLanguage)
 
   return (
     <Tag id={safeId}>
