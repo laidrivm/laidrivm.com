@@ -112,6 +112,8 @@ export function convertToHtml(
   markdown: string,
   uiLanguage: SupportedLanguage
 ): string {
+  let isFirstParagraph = true
+
   marked.use({
     renderer: {
       heading({tokens, depth}) {
@@ -144,9 +146,11 @@ export function convertToHtml(
               caption={caption}
             />
           )
-        } else {
-          return `<p>${this.parser.parseInline(tokens)}</p>\n`
+        } else if (isFirstParagraph) {
+          isFirstParagraph = false
+          return `<div class="lead"><p>${this.parser.parseInline(tokens)}</p></div>\n`
         }
+        return `<p>${this.parser.parseInline(tokens)}</p>\n`
       }
     }
   })

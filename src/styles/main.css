@@ -340,6 +340,10 @@ img.zoomed {
     font-size: 24px;
   }
 
+  .lead {
+    font-size: 20px;
+  }
+
   .copy-heading {
     font-size: 24px;
   }
