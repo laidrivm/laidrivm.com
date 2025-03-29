@@ -6,6 +6,7 @@
   src: url('../fonts/SourceCodePro-Regular.ttf.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
+  font-variant-numeric: slashed-zero;
 }
 
 @font-face {
@@ -13,6 +14,8 @@
   src: url('../fonts/SourceSerif4-Regular.ttf.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
+  font-variant-numeric: diagonal-fractions;
+  font-variant-numeric: tabular-nums;
 }
 
 @font-face {
@@ -20,6 +23,8 @@
   src: url('../fonts/SourceSerif4-Semibold.ttf.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
+  font-variant-numeric: diagonal-fractions;
+  font-variant-numeric: tabular-nums;
 }
 
 @font-face {
@@ -27,6 +32,8 @@
   src: url('../fonts/SourceSerif4-It.ttf.woff2') format('woff2');
   font-weight: normal;
   font-style: italic;
+  font-variant-numeric: diagonal-fractions;
+  font-variant-numeric: tabular-nums;
 }
 
 body {
@@ -43,6 +50,16 @@ body {
   font-kerning: normal;
   hyphens: auto;
   scroll-behavior: smooth;
+  font-feature-settings: 'liga' 1;
+  font-kerning: normal;
+}
+
+.small-caps {
+  font-feature-settings: 'smcp' on;
+}
+
+.all-small-caps {
+  font-feature-settings: 'c2sc', 'smcp';
 }
 
 .language {
@@ -365,6 +382,10 @@ img.zoomed {
     padding-inline-start: 1em;
   }
 
+  ol {
+    padding-inline-start: 1em;
+  }
+
   li {
     word-wrap: break-word;
   }
@@ -401,4 +422,34 @@ img.zoomed {
   .image-container em {
     font-size: 14px;
   }
+}
+
+.typograf-oa-sp-lbracket {
+  margin-right: 0.3em;
+}
+
+.typograf-oa-lbracket,
+.typograf-oa-n-lbracket {
+  margin-left: -0.3em;
+}
+
+.typograf-oa-comma {
+  margin-right: -0.2em;
+}
+
+.typograf-oa-comma-sp {
+  margin-left: 0.2em;
+}
+
+.typograf-oa-sp-lquote {
+  margin-right: 0.44em;
+}
+
+.typograf-oa-lquote,
+.typograf-oa-n-lquote {
+  margin-left: -0.44em;
+}
+
+.no-hyphens {
+  hyphens: none;
 }
