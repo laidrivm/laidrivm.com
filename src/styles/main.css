@@ -179,6 +179,7 @@ h3 a:link {
   padding-bottom: 4px;
   padding-top: 4px;
   display: inline;
+  margin-right: -2em;
 }
 
 .copy-heading:hover {
@@ -356,7 +357,7 @@ a.arrow-container {
   margin: 0;
   cursor: zoom-out;
   display: flex;
-  justify-content: center; 
+  justify-content: center;
   align-items: center;
 }
 
@@ -383,14 +384,17 @@ a.arrow-container {
 
   h1 {
     font-size: 36px;
+    margin-block-start: 0.8em;
   }
 
   h2 {
     font-size: 28px;
+    margin-block-start: 0.9em;
   }
 
   h3 {
     font-size: 24px;
+    margin-block-start: 0.95em;
   }
 
   .lead {
@@ -399,6 +403,7 @@ a.arrow-container {
 
   .copy-heading {
     font-size: 24px;
+    margin-right: -1em;
   }
 
   a.arrow-container {

@@ -137,6 +137,10 @@ export function convertToHtml(
         )
       },
 
+      image({text, href, title}) {
+        return renderToString(<Image src={href} alt={text || title || ''} />)
+      },
+
       paragraph({tokens}) {
         if (tokens[0].type === 'image') {
           const caption =
