@@ -30,6 +30,23 @@ Add .md files with your content. For example write "Hello, World!" in:
 nano articles/index.md
 ```
 
+Project will run locally smoothly even without .env, but you can still use default one:
+
+```bash
+cp .env.example .env
+```
+
+You may use the following example to render first page:
+
+```bash
+mkdir articles
+nano articles/index.md
+```
+
+```markdown
+# Hello, World!
+```
+
 Generate static pages and run server:
 
 ```bash
