@@ -50,16 +50,19 @@ body {
   font-kerning: normal;
   hyphens: auto;
   scroll-behavior: smooth;
-  font-feature-settings: 'liga' 1;
-  font-kerning: normal;
+  font-feature-settings:
+    'liga' 1,
+    'kern' 1;
 }
 
 .small-caps {
-  font-feature-settings: 'smcp' on;
+  font-feature-settings: 'smcp' 1;
 }
 
 .all-small-caps {
-  font-feature-settings: 'c2sc', 'smcp';
+  font-feature-settings:
+    'c2sc' 1,
+    'smcp' 1;
 }
 
 .language {
@@ -183,6 +186,34 @@ h3 a:link {
   transition-property: background;
   transition-duration: 0.2s;
   border-radius: 8px;
+}
+
+ul {
+  padding-inline-start: 1em;
+}
+
+ol {
+  counter-reset: item;
+  padding-inline-start: 1em;
+}
+
+ol li,
+ul li {
+  margin-left: 1.5rem;
+  list-style: none;
+}
+
+ol li:before {
+  counter-increment: item;
+  content: counter(item);
+  position: absolute;
+  margin-left: -1.5rem;
+}
+
+ul li:before {
+  content: '—';
+  position: absolute;
+  margin-left: -1.5rem;
 }
 
 li {
@@ -378,14 +409,6 @@ img.zoomed {
     padding: 0 0 0 16px;
   }
 
-  ul {
-    padding-inline-start: 1em;
-  }
-
-  ol {
-    padding-inline-start: 1em;
-  }
-
   li {
     word-wrap: break-word;
   }
@@ -424,32 +447,7 @@ img.zoomed {
   }
 }
 
-.typograf-oa-sp-lbracket {
-  margin-right: 0.3em;
-}
-
-.typograf-oa-lbracket,
-.typograf-oa-n-lbracket {
-  margin-left: -0.3em;
-}
-
-.typograf-oa-comma {
-  margin-right: -0.2em;
-}
-
-.typograf-oa-comma-sp {
-  margin-left: 0.2em;
-}
-
-.typograf-oa-sp-lquote {
-  margin-right: 0.44em;
-}
-
-.typograf-oa-lquote,
-.typograf-oa-n-lquote {
-  margin-left: -0.44em;
-}
-
 .no-hyphens {
   hyphens: none;
+  white-space: nowrap;
 }

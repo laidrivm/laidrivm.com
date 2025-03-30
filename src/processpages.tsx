@@ -19,7 +19,7 @@ const XSS_OPTIONS = {
   whiteList: customWhiteList
 }
 
-function processNodes(nodes: ChildNode[]): void {
+function setNoHyphens(nodes) {
   nodes.forEach(node => {
     if (node.nodeName === '#text') {
       if (!node.value.trim()) return
@@ -43,8 +43,14 @@ function processNodes(nodes: ChildNode[]): void {
         const index = parent.childNodes.indexOf(node)
         parent.childNodes.splice(index + 1, 0, spanElement)
       }
+
+      // Match URLs (not inside attributes)
+      node.value = node.value.replace(
+        /(https?:\/\/[^\s]+)/g,
+        '<span class="no-hyphens">$1</span>'
+      )
     } else if (node.childNodes && !['code', 'pre'].includes(node.nodeName)) {
-      processNodes(node.childNodes)
+      setNoHyphens(node.childNodes)
     }
   })
 }
@@ -60,7 +66,7 @@ function typography(html: string, language: SupportedLanguage): string {
     tp.enableRule('common/space/delLeadingBlanks')
     tp.enableRule('common/number/digitGrouping')
     tp.enableRule('common/nbsp/afterNumber')
-    tp.setSetting('common/nbsp/afterShortWord', 'lengthShortWord', 3)
+    tp.setSetting('common/nbsp/afterShortWord', 'lengthShortWord', 2)
     tp.disableRule('common/nbsp/nowrap')
     tp.disableRule('common/nbsp/replaceNbsp')
     tp.enableRule('common/html/processingAttrs')
@@ -72,7 +78,7 @@ function typography(html: string, language: SupportedLanguage): string {
       handler: function (text, _settings, context) {
         if (context.isHTML) {
           const document = parseFragment(text)
-          processNodes(document.childNodes)
+          setNoHyphens(document.childNodes)
           return serialize(document)
         }
         return text
