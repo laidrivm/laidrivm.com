@@ -9,7 +9,9 @@ import type {ImageProps} from '../types.ts'
 const Image = ({src, alt, caption}: ImageProps): JSX.Element => {
   return (
     <div className="image-container">
-      <img src={src} alt={alt} />
+      <div className="image-zoom-wrapper">
+        <img src={src} alt={alt} />
+      </div>
       {caption && <em>{caption}</em>}
     </div>
   )

@@ -8,10 +8,10 @@ import SharingLinks from './sharinglinks.tsx'
 function createZoomScript(): string {
   return `
     document.addEventListener('DOMContentLoaded', () => {
-      const images = document.querySelectorAll('.image-container');
+      const images = document.querySelectorAll('.image-zoom-wrapper');
       
       images.forEach(img => {
-        img.childNodes[0].addEventListener('click', function() {
+        img.addEventListener('click', function() {
           // Toggle zoomed state
           this.classList.toggle('zoomed');
           
