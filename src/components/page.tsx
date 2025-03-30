@@ -148,28 +148,28 @@ const Page = ({
         <link rel="alternate" href="https://laidrivm.com/ru/" hrefLang="ru" />
         <link
           rel="preload"
-          href="fonts/SourceCodePro-Regular.ttf.woff2"
+          href="/fonts/SourceCodePro-Regular.ttf.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
         />
         <link
           rel="preload"
-          href="fonts/SourceSerif4-Regular.ttf.woff2"
+          href="/fonts/SourceSerif4-Regular.ttf.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
         />
         <link
           rel="preload"
-          href="fonts/SourceSerif4-Semibold.ttf.woff2"
+          href="/fonts/SourceSerif4-Semibold.ttf.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
         />
         <link
           rel="preload"
-          href="fonts/SourceSerif4-It.ttf.woff2"
+          href="/fonts/SourceSerif4-It.ttf.woff2"
           as="font"
           type="font/woff2"
           crossOrigin="anonymous"
