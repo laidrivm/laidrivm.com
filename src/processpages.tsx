@@ -19,7 +19,7 @@ const XSS_OPTIONS = {
   whiteList: customWhiteList
 }
 
-function setNoHyphens(nodes) {
+function setNoHyphens(nodes: ChildNode): void {
   nodes.forEach(node => {
     if (node.nodeName === '#text') {
       if (!node.value.trim()) return
