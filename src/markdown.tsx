@@ -84,7 +84,7 @@ export function extractDescription(markdown: string): string {
 }
 
 /**
- * Extracts the first image URL from markdown
+ * Extracts the first relative image URL from markdown
  * @param markdown - Markdown content
  * @returns Extracted image URL or default
  */
@@ -93,9 +93,11 @@ export function extractOGImage(markdown: string): string {
   const defaultImage = '/og_image-min.jpg'
 
   for (const line of lines) {
-    const match = /!\[.*?\]\((https?:\/\/[^\s)]+)(?:\s+"[^"]*")?\)/g.exec(line)
+    const match = /!\[.*?\]\(((?!https?:\/\/)[^\s)]+)(?:\s+"[^"]*")?\)/.exec(
+      line
+    )
     if (match) {
-      return match[1]
+      return match[1] // Return the first found relative image path
     }
   }
 
