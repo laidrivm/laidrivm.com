@@ -1,12 +1,51 @@
-import {marked} from 'marked'
+import {Marked, Renderer} from 'marked'
+import {markedTypograf} from 'marked-typograf'
 import {renderToString} from 'preact-render-to-string'
 import unidecode from 'unidecode'
+import {parseFragment, serialize} from 'parse5'
 
 import type {SupportedLanguage} from '../types.ts'
+import type {ChildNode} from 'parse5'
 
 import Heading from './components/heading.tsx'
 import CodeSnippet from './components/codesnippet.tsx'
 import Image from './components/image.tsx'
+
+function setNoHyphens(nodes: ChildNode): void {
+  nodes.forEach(node => {
+    if (node.nodeName === '#text') {
+      if (!node.value.trim()) return
+
+      // Match last word, capturing leading spaces if any
+      let match = node.value.match(/(\s+)(\S+[\w\p{P}])$|(\S+[\w\p{P}])$/u)
+      if (match) {
+        const spaces = match[1] || '' // Capture leading spaces
+        const word = match[2] || match[3] // Capture last word
+
+        if (spaces && node.value.trim().includes(' ')) {
+          node.value = node.value.slice(0, -match[0].length) + '\u00A0'
+        } else {
+          node.value = node.value.slice(0, -match[0].length)
+        }
+
+        const spanElement = parseFragment(
+          `<span class="no-hyphens">${word}</span>`
+        ).childNodes[0]
+        const parent = node.parentNode
+        const index = parent.childNodes.indexOf(node)
+        parent.childNodes.splice(index + 1, 0, spanElement)
+      }
+
+      // Match URLs (not inside attributes)
+      node.value = node.value.replace(
+        /(https?:\/\/[^\s]+)/g,
+        '<span class="no-hyphens">$1</span>'
+      )
+    } else if (node.childNodes && !['code', 'pre'].includes(node.nodeName)) {
+      setNoHyphens(node.childNodes)
+    }
+  })
+}
 
 /**
  * Generates a URL-friendly ID from text with transliteration
@@ -44,6 +83,7 @@ export function extractTitle(markdown: string): string {
  * @returns Plain text content
  */
 export function convertToPlaintext(markdown: string): string {
+  const marked = new Marked()
   const renderer = new marked.Renderer()
 
   renderer.text = token => token.text
@@ -65,7 +105,7 @@ export function convertToPlaintext(markdown: string): string {
     return result
   }
 
-  return marked(markdown, {renderer})
+  return marked.parse(markdown, {renderer})
 }
 
 /**
@@ -114,6 +154,7 @@ export function convertToHtml(
   markdown: string,
   uiLanguage: SupportedLanguage
 ): string {
+  const marked = new Marked()
   let isFirstParagraph = true
 
   marked.use({
@@ -160,6 +201,41 @@ export function convertToHtml(
       }
     }
   })
+
+  const options = {
+    typografOptions: {
+      locale: uiLanguage === 'en' ? 'en-US' : 'ru'
+    },
+    typografSetup: (tp) => {
+      tp.addSafeTag('<code>', '</code>')
+      tp.addSafeTag('<pre>', '</pre>')
+      tp.enableRule('common/space/delLeadingBlanks')
+      tp.enableRule('common/number/digitGrouping')
+      tp.enableRule('common/nbsp/afterNumber')
+      tp.setSetting('common/nbsp/afterShortWord', 'lengthShortWord', 2)
+      tp.disableRule('common/nbsp/nowrap')
+      tp.disableRule('common/nbsp/replaceNbsp')
+      tp.enableRule('common/html/processingAttrs')
+      tp.setSetting('common/html/processingAttrs', 'attrs', ['title', 'alt'])
+    },
+    customRules: [{
+      name: 'common/other/lastWordNoHypens',
+      handler: function (text, _settings, context) {
+        if (context.isHTML) {
+          const document = parseFragment(text)
+          //setNoHyphens(document.childNodes)
+          return serialize(document)
+        }
+        return text
+      },
+      locale: 'common',
+      queue: 'end',
+      enabled: true,
+      processingSeparateParts: false
+    }]
+  }
+
+  marked.use(markedTypograf(options))
 
   return marked.parse(markdown)
 }

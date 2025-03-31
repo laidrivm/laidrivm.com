@@ -24,12 +24,12 @@
     "esbuild": "^0.25.1",
     "esbuild-css-modules-plugin": "^3.1.4",
     "marked": "^15.0.7",
+    "marked-typograf": "^0.0.6",
     "octokit": "^4.1.2",
     "parse5": "^7.2.1",
     "preact": "^10.26.4",
     "preact-render-to-string": "^6.5.13",
     "prismjs": "^1.30.0",
-    "typograf": "^7.4.2",
     "unidecode": "^1.1.0",
     "xss": "^1.0.15"
   },

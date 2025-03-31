@@ -1,10 +1,7 @@
 import {join} from 'path'
 
-import Typograf from 'typograf'
 import {renderToString} from 'preact-render-to-string'
 import xss from 'xss'
-import {parseFragment, serialize} from 'parse5'
-import type {ChildNode} from 'parse5'
 
 import customWhiteList from './xssconfig.ts'
 import Page from './components/page.tsx'
@@ -17,86 +14,6 @@ import type {SupportedLanguage, FileNode, Links} from './types.ts'
 
 const XSS_OPTIONS = {
   whiteList: customWhiteList
-}
-
-function setNoHyphens(nodes: ChildNode): void {
-  nodes.forEach(node => {
-    if (node.nodeName === '#text') {
-      if (!node.value.trim()) return
-
-      // Match last word, capturing leading spaces if any
-      let match = node.value.match(/(\s+)(\S+[\w\p{P}])$|(\S+[\w\p{P}])$/u)
-      if (match) {
-        const spaces = match[1] || '' // Capture leading spaces
-        const word = match[2] || match[3] // Capture last word
-
-        if (spaces && node.value.trim().includes(' ')) {
-          node.value = node.value.slice(0, -match[0].length) + '\u00A0'
-        } else {
-          node.value = node.value.slice(0, -match[0].length)
-        }
-
-        const spanElement = parseFragment(
-          `<span class="no-hyphens">${word}</span>`
-        ).childNodes[0]
-        const parent = node.parentNode
-        const index = parent.childNodes.indexOf(node)
-        parent.childNodes.splice(index + 1, 0, spanElement)
-      }
-
-      // Match URLs (not inside attributes)
-      node.value = node.value.replace(
-        /(https?:\/\/[^\s]+)/g,
-        '<span class="no-hyphens">$1</span>'
-      )
-    } else if (node.childNodes && !['code', 'pre'].includes(node.nodeName)) {
-      setNoHyphens(node.childNodes)
-    }
-  })
-}
-
-function typography(html: string, language: SupportedLanguage): string {
-  const typografOptions = {
-    locale: language === 'en' ? 'en-US' : 'ru'
-  }
-
-  const typografSetup = tp => {
-    tp.addSafeTag('<code>', '</code>')
-    tp.addSafeTag('<pre>', '</pre>')
-    tp.enableRule('common/space/delLeadingBlanks')
-    tp.enableRule('common/number/digitGrouping')
-    tp.enableRule('common/nbsp/afterNumber')
-    tp.setSetting('common/nbsp/afterShortWord', 'lengthShortWord', 2)
-    tp.disableRule('common/nbsp/nowrap')
-    tp.disableRule('common/nbsp/replaceNbsp')
-    tp.enableRule('common/html/processingAttrs')
-    tp.setSetting('common/html/processingAttrs', 'attrs', ['title', 'alt'])
-  }
-  const customRules = [
-    {
-      name: 'common/other/lastWordNoHypens',
-      handler: function (text, _settings, context) {
-        if (context.isHTML) {
-          const document = parseFragment(text)
-          setNoHyphens(document.childNodes)
-          return serialize(document)
-        }
-        return text
-      },
-      locale: 'common',
-      queue: 'end',
-      enabled: true,
-      processingSeparateParts: false
-    }
-  ]
-
-  if (!Typograf.getRule('common/other/lastWordNoHypens')) {
-    Typograf.addRules(customRules)
-  }
-  const tp = new Typograf(typografOptions)
-  typografSetup(tp)
-
-  return tp.execute(html)
 }
 
 /**
@@ -129,7 +46,7 @@ export async function generateHtmlPage(
 
     const markdown = await file.text()
     const contentHtml = xss(
-      typography(MarkdownUtils.convertToHtml(markdown, language), language),
+      MarkdownUtils.convertToHtml(markdown, language),
       XSS_OPTIONS
     )
 
