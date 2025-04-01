@@ -1,11 +1,11 @@
-import {Marked, Renderer} from 'marked'
+import {Marked} from 'marked'
 import {markedTypograf} from 'marked-typograf'
 import {renderToString} from 'preact-render-to-string'
 import unidecode from 'unidecode'
 import {parseFragment, serialize} from 'parse5'
+import type {ChildNode} from 'parse5'
 
 import type {SupportedLanguage} from '../types.ts'
-import type {ChildNode} from 'parse5'
 
 import Heading from './components/heading.tsx'
 import CodeSnippet from './components/codesnippet.tsx'
@@ -206,7 +206,7 @@ export function convertToHtml(
     typografOptions: {
       locale: uiLanguage === 'en' ? 'en-US' : 'ru'
     },
-    typografSetup: (tp) => {
+    typografSetup: tp => {
       tp.addSafeTag('<code>', '</code>')
       tp.addSafeTag('<pre>', '</pre>')
       tp.enableRule('common/space/delLeadingBlanks')
@@ -216,23 +216,26 @@ export function convertToHtml(
       tp.disableRule('common/nbsp/nowrap')
       tp.disableRule('common/nbsp/replaceNbsp')
       tp.enableRule('common/html/processingAttrs')
-      tp.setSetting('common/html/processingAttrs', 'attrs', ['title', 'alt'])
+      //tp.setSetting('common/html/processingAttrs', 'attrs', ['title', 'alt'])
+      //turns pre code into privatesymbol 
     },
-    customRules: [{
-      name: 'common/other/lastWordNoHypens',
-      handler: function (text, _settings, context) {
-        if (context.isHTML) {
-          const document = parseFragment(text)
-          //setNoHyphens(document.childNodes)
-          return serialize(document)
-        }
-        return text
-      },
-      locale: 'common',
-      queue: 'end',
-      enabled: true,
-      processingSeparateParts: false
-    }]
+    customRules: [
+      {
+        name: 'common/other/lastWordNoHypens',
+        handler: function (text, _settings, context) {
+          if (context.isHTML) {
+            const document = parseFragment(text)
+            setNoHyphens(document.childNodes)
+            return serialize(document)
+          }
+          return text
+        },
+        locale: 'common',
+        queue: 'end',
+        enabled: true,
+        processingSeparateParts: false
+      }
+    ]
   }
 
   marked.use(markedTypograf(options))
