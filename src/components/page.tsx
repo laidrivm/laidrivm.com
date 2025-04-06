@@ -139,7 +139,7 @@ const Page = ({
         <meta property="og:title" content={title} />
         <meta property="og:description" content={description} />
         <meta property="og:url" content={address} />
-        <meta property="og:sitename" content="Vladimir Lazarev's Page" />
+        <meta property="og:sitename" content="Vladimir Lazarev's Blog" />
         <meta property="og:type" content="website" />
         <link rel="canonical" href={address} />
         <link rel="stylesheet" href="/main.css" />

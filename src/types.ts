@@ -1,3 +1,5 @@
+import type {Token} from 'marked'
+
 export type SupportedLanguage = 'en' | 'ru' | 'es' | 'fr'
 
 export interface Link {
@@ -144,5 +146,7 @@ export type ShareButtonConfig = {
 export interface ImageProps {
   src: string
   alt: string
-  caption?: string
+  caption?: Token
 }
+
+export type {Token} from 'marked'

@@ -58,7 +58,11 @@ const SocialShareLink = ({platform, lang, url, text = ''}): JSX.Element => {
   )
 }
 
-const SharingLinks = ({lang, url, text}: SocialShareProps): JSX.Element => {
+export const SharingLinks = ({
+  lang,
+  url,
+  text
+}: SocialShareProps): JSX.Element => {
   const platforms = ['telegram', 'reddit', 'bluesky', 'minds']
 
   return (

@@ -105,12 +105,12 @@ h1 {
 
 h2 {
   font-size: 40px;
-  margin-block-start: 1em;
+  margin-block-start: 1.2em;
 }
 
 h3 {
   font-size: 32px;
-  margin-block-start: 1.2em;
+  margin-block-start: 1em;
 }
 
 .lead {
@@ -227,9 +227,17 @@ img {
   background: #ffffff;
 }
 
-code,
+code {
+  font-family: 'SourceCodePro', monospace;
+  font-size: 20px;
+  border-radius: 8px;
+  background: #f6f6f6;
+}
+
 .code-snippet {
   font-family: 'SourceCodePro', monospace;
+  margin-top: 1em;
+  margin-bottom: 1em;
 }
 
 .code-panel {
@@ -253,6 +261,7 @@ pre {
 
 code[class*='language-'] {
   font-size: 16px;
+  font-family: 'SourceCodePro', monospace;
 }
 
 .copy-code {
@@ -335,7 +344,12 @@ a.arrow-container {
 .image-container {
   position: relative;
   max-width: 100%;
-  margin: 1rem 0;
+  margin-top: 1.2em;
+  margin-bottom: 1em;
+}
+
+.image-container em {
+  font-size: 18px;
 }
 
 .image-zoom-wrapper {
@@ -359,10 +373,6 @@ a.arrow-container {
   display: flex;
   justify-content: center;
   align-items: center;
-}
-
-.image-container em {
-  font-size: 18px;
 }
 
 @media (max-width: 480px) {
@@ -421,6 +431,11 @@ a.arrow-container {
 
   li {
     word-wrap: break-word;
+  }
+
+  code {
+    font-size: 14px;
+    border-radius: 4px;
   }
 
   .code-panel {

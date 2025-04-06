@@ -1,4 +1,21 @@
-import type {ImageProps} from '../types.ts'
+import type {ImageProps, Token} from '../types.ts'
+
+function captionToHTML(caption: Token) {
+  console.log(caption)
+  let result = ''
+  for (const token of caption.tokens) {
+    switch (token.type) {
+      case 'text':
+        result += token.text
+        break
+      case 'link':
+        result += `<a href='${token.href}'>${token.text}</a>`
+        break
+      default:
+    }
+  }
+  return result
+}
 
 /**
  * Renders a markdown image with zoom functionality
@@ -12,7 +29,9 @@ const Image = ({src, alt, caption}: ImageProps): JSX.Element => {
       <div className="image-zoom-wrapper">
         <img src={src} alt={alt} />
       </div>
-      {caption && <em>{caption}</em>}
+      {caption && (
+        <em dangerouslySetInnerHTML={{__html: captionToHTML(caption)}} />
+      )}
     </div>
   )
 }

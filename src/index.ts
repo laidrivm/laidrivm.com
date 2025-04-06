@@ -33,80 +33,71 @@ function validateAuthToken(authHeader: string | undefined): boolean {
   return token === process.env.REGENERATE_TOKEN
 }
 
-/**
- * Initialize and start the web server
- */
-async function startServer(): Promise<void> {
-  // Initialize environment variables
-  EnvUtils.initDefaults()
-  const config = EnvUtils.getConfig()
+// Initialize environment variables
+EnvUtils.initDefaults()
+const config = EnvUtils.getConfig()
 
-  // Load TLS certificates
-  const {key, cert} = await loadTlsCertificates()
+// Load TLS certificates
+const {key, cert} = await loadTlsCertificates()
 
-  // Create and configure Elysia app
-  const app = new Elysia()
-    // Handle .html extension redirects
-    .onRequest(({path, redirect}) => {
+// Handle .html extension redirects
+const redirectHTML = new Elysia()
+ .onRequest(({path, redirect}) => {
       if (path.includes('.html')) {
         return redirect(path.replace('.html', ''), 302)
-      }
-    })
-    // Serve static files
-    .use(
-      staticPlugin({
-        prefix: '/',
-        assets: config.PUBLIC,
-        indexHTML: true,
-        noCache: true // temporary because of https://github.com/elysiajs/elysia/issues/739
-      })
-    )
-    // Support HEAD requests
-    .route('HEAD', '/', '')
-    // Regeneration endpoint with authentication
-    .post('/regenerate', async ({headers, set}) => {
-      if (!validateAuthToken(headers.authorization)) {
-        set.status = 401
-        return {
-          success: false,
-          message: 'Unauthorized: Invalid or missing token'
-        }
-      }
+    }
+  })
 
-      try {
-        await regenerate()
-        set.status = 200
-        return 'Ok'
-      } catch (error) {
-        set.status = 500
-        return {
-          success: false,
-          message: `Regeneration failed: ${error.message}`
-        }
+// Regeneration endpoint with authentication
+const postRegenerate = new Elysia()
+  .post('/regenerate', async ({headers, set}) => {
+    if (!validateAuthToken(headers.authorization)) {
+      set.status = 401
+      return {
+        success: false,
+        message: 'Unauthorized: Invalid or missing token'
       }
-    })
-    // Error handling
-    .onError(({code}) => {
-      if (code === 'NOT_FOUND') {
-        return 'Route not found :('
-      }
-    })
-    // Start the server with TLS
-    .listen({
-      port: Number(config.PORT),
-      tls: {
-        key,
-        cert
-      }
-    })
+    }
 
-  console.log(
-    `Elysia is running at ${app.server?.hostname}:${app.server?.port} on Bun ${Bun.version} for ${Bun.nanoseconds() / 1000000000} seconds`
+    try {
+      await regenerate()
+      set.status = 200
+      return 'Ok'
+    } catch (error) {
+      set.status = 500
+      return {
+        success: false,
+        message: `Regeneration failed: ${error.message}`
+      }
+    }
+  })
+
+// Create and configure Elysia app
+const app = new Elysia()
+  .use(redirectHTML)
+  .use(
+    staticPlugin({
+      prefix: '/',
+      assets: config.PUBLIC,
+      indexHTML: true,
+      noCache: true // temporary because of https://github.com/elysiajs/elysia/issues/739
+    })
   )
-}
+  .route('HEAD', '/', '')
+  .use(postRegenerate)
+  .onError(({code}) => {
+    if (code === 'NOT_FOUND') {
+      return 'Route not found :('
+    }
+  })
+  .listen({
+    port: Number(config.PORT),
+    tls: {
+      key,
+      cert
+    }
+  })
 
-// Start the server
-startServer().catch(error => {
-  console.error('Failed to start server:', error)
-  process.exit(1)
-})
+console.log(
+  `Elysia is running at ${app.server?.hostname}:${app.server?.port} on Bun ${Bun.version} for ${Bun.nanoseconds() / 1000000000} seconds`
+)

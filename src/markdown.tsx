@@ -185,7 +185,7 @@ export function convertToHtml(
       paragraph({tokens}) {
         if (tokens[0].type === 'image') {
           const caption =
-            tokens.length > 2 && tokens[2].type === 'em' ? tokens[2].text : ''
+            tokens.length > 2 && tokens[2].type === 'em' ? tokens[2] : ''
           return renderToString(
             <Image
               src={tokens[0].href}
@@ -214,10 +214,10 @@ export function convertToHtml(
       tp.enableRule('common/nbsp/afterNumber')
       tp.setSetting('common/nbsp/afterShortWord', 'lengthShortWord', 2)
       tp.disableRule('common/nbsp/nowrap')
-      tp.disableRule('common/nbsp/replaceNbsp')
+      tp.enableRule('common/nbsp/replaceNbsp')
       tp.enableRule('common/html/processingAttrs')
       //tp.setSetting('common/html/processingAttrs', 'attrs', ['title', 'alt'])
-      //turns pre code into privatesymbol 
+      //turns pre code into privatesymbol
     },
     customRules: [
       {
@@ -232,7 +232,6 @@ export function convertToHtml(
         },
         locale: 'common',
         queue: 'end',
-        enabled: true,
         processingSeparateParts: false
       }
     ]
