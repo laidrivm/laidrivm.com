@@ -7,9 +7,9 @@ import type {ChildNode} from 'parse5'
 
 import type {SupportedLanguage} from '../types.ts'
 
-import Heading from './components/heading.tsx'
-import CodeSnippet from './components/codesnippet.tsx'
-import Image from './components/image.tsx'
+import {Heading} from './components/heading.tsx'
+import {CodeSnippet} from './components/codesnippet.tsx'
+import {Image} from './components/image.tsx'
 
 function setNoHyphens(nodes: ChildNode): void {
   nodes.forEach(node => {

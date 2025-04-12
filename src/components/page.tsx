@@ -1,9 +1,9 @@
 import type {PageProps, SupportedLanguage} from '../types.ts'
 
 import {formatDate, getLocalizedText, isValidLanguage} from './utils.ts'
-import Arrow from './arrow.tsx'
-import LanguageSwitch from './languageswitch.tsx'
-import SharingLinks from './sharinglinks.tsx'
+import {Arrow} from './arrow.tsx'
+import {LanguageSwitch} from './languageswitch.tsx'
+import {SharingLinks} from './sharinglinks.tsx'
 
 function createZoomScript(): string {
   return `
@@ -104,7 +104,7 @@ function createCopyScript(lang: SupportedLanguage): string {
  * @param props - Page component properties
  * @returns JSX element representing a complete HTML document
  */
-const Page = ({
+export function Page({
   address,
   title,
   description,
@@ -113,7 +113,7 @@ const Page = ({
   time,
   lang = 'en',
   includeArrow = false
-}: PageProps): JSX.Element => {
+}: PageProps): JSX.Element {
   // Validate language
   const validLang = isValidLanguage(lang) ? lang : 'en'
 
@@ -195,5 +195,3 @@ const Page = ({
     </html>
   )
 }
-
-export default Page

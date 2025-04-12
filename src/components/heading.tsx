@@ -6,7 +6,7 @@ import type {HeadingProps} from '../types'
  * @param props - Component properties
  * @returns JSX element with appropriate heading level
  */
-export const Heading = ({depth, text, id}: HeadingProps): JSX.Element => {
+export function Heading({depth, text, id}: HeadingProps): JSX.Element {
   // Validate the depth value
   const validDepth = (depth >= 1 && depth <= 6 ? depth : 2) as
     | 1
@@ -33,5 +33,3 @@ export const Heading = ({depth, text, id}: HeadingProps): JSX.Element => {
     </Tag>
   )
 }
-
-export default Heading

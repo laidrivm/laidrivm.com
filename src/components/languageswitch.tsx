@@ -6,7 +6,7 @@ import type {LocalizedProps} from '../types'
  * @param props - Component properties
  * @returns JSX element with language switch link
  */
-const LanguageSwitch = ({lang}: LocalizedProps): JSX.Element => {
+export function LanguageSwitch({lang}: LocalizedProps): JSX.Element {
   const targetLang = lang === 'en' ? 'ru' : 'en'
   const href = targetLang === 'ru' ? '/ru/' : '/'
 
@@ -20,5 +20,3 @@ const LanguageSwitch = ({lang}: LocalizedProps): JSX.Element => {
     </a>
   )
 }
-
-export default LanguageSwitch

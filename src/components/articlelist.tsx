@@ -6,7 +6,7 @@ import type {Links, Link} from '../types'
  * @param props - Component properties containing links array
  * @returns JSX element with an unordered list of links
  */
-const ArticleList = ({links}: Links): JSX.Element => {
+export function ArticleList({links}: Links): JSX.Element {
   if (!Array.isArray(links) || links.length === 0) {
     return <div className="empty-list">No articles available</div>
   }
@@ -21,5 +21,3 @@ const ArticleList = ({links}: Links): JSX.Element => {
     </ul>
   )
 }
-
-export default ArticleList

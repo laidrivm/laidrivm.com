@@ -22,11 +22,11 @@ import 'prismjs/components/prism-docker'
  * @param props - Component properties
  * @returns JSX element with formatted code and copy functionality
  */
-const CodeSnippet = ({
+export function CodeSnippet({
   codeLanguage,
   text,
   siteLanguage
-}: CodeSnippetProps): JSX.Element => {
+}: CodeSnippetProps): JSX.Element {
   // Validate inputs
   const validLang = Prism.languages[codeLanguage] ? codeLanguage : 'plaintext'
   const safeText = typeof text === 'string' ? text : ''
@@ -55,5 +55,3 @@ const CodeSnippet = ({
     </div>
   )
 }
-
-export default CodeSnippet

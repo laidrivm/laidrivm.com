@@ -1,7 +1,6 @@
 import type {ImageProps, Token} from '../types.ts'
 
 function captionToHTML(caption: Token) {
-  console.log(caption)
   let result = ''
   for (const token of caption.tokens) {
     switch (token.type) {
@@ -23,7 +22,7 @@ function captionToHTML(caption: Token) {
  * @param props - Component properties
  * @returns JSX element with zoomable image
  */
-const Image = ({src, alt, caption}: ImageProps): JSX.Element => {
+export function Image({src, alt, caption}: ImageProps): JSX.Element {
   return (
     <div className="image-container">
       <div className="image-zoom-wrapper">
@@ -35,5 +34,3 @@ const Image = ({src, alt, caption}: ImageProps): JSX.Element => {
     </div>
   )
 }
-
-export default Image

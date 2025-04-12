@@ -41,16 +41,16 @@ const config = EnvUtils.getConfig()
 const {key, cert} = await loadTlsCertificates()
 
 // Handle .html extension redirects
-const redirectHTML = new Elysia()
- .onRequest(({path, redirect}) => {
-      if (path.includes('.html')) {
-        return redirect(path.replace('.html', ''), 302)
-    }
-  })
+const redirectHTML = new Elysia().onRequest(({path, redirect}) => {
+  if (path.includes('.html')) {
+    return redirect(path.replace('.html', ''), 302)
+  }
+})
 
 // Regeneration endpoint with authentication
-const postRegenerate = new Elysia()
-  .post('/regenerate', async ({headers, set}) => {
+const postRegenerate = new Elysia().post(
+  '/regenerate',
+  async ({headers, set}) => {
     if (!validateAuthToken(headers.authorization)) {
       set.status = 401
       return {
@@ -70,7 +70,8 @@ const postRegenerate = new Elysia()
         message: `Regeneration failed: ${error.message}`
       }
     }
-  })
+  }
+)
 
 // Create and configure Elysia app
 const app = new Elysia()

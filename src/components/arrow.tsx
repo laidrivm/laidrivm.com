@@ -6,7 +6,7 @@ import type {LocalizedProps} from '../types'
  * @param props - Component properties
  * @returns JSX element with a back arrow link
  */
-const Arrow = ({lang}: LocalizedProps): JSX.Element => {
+export function Arrow({lang}: LocalizedProps): JSX.Element {
   const href = lang === 'ru' ? '/ru/' : '/'
 
   return (
@@ -15,5 +15,3 @@ const Arrow = ({lang}: LocalizedProps): JSX.Element => {
     </a>
   )
 }
-
-export default Arrow
