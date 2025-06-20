@@ -10,6 +10,8 @@ import * as EnvUtils from './utils/envutils.ts'
 const PRESERVED_FILES = [
   'favicon.png',
   'mellon-for-incubators.pdf',
+  'cv-vladimir-lazarev-engineering-director.pdf',
+  'mellon-prototype.pdf',
   'og_image-min.jpg',
   'robots.txt',
   'telegram.svg',
