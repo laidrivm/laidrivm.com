@@ -310,7 +310,6 @@ a.arrow-container {
 .sharing-links {
   display: flex;
   flex-direction: row;
-  align-items: center;
   gap: 12px;
   margin-top: 0;
   margin-left: 0;

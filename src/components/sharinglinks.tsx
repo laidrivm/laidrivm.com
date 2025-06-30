@@ -63,6 +63,7 @@ export function SharingLinks({lang, url, text}: SocialShareProps): JSX.Element {
 
   return (
     <div className="sharing-links">
+      <p>{getLocalizedText('share', lang)}: </p>
       {platforms.map(platform => (
         <SocialShareLink
           platform={platform}
@@ -71,6 +72,7 @@ export function SharingLinks({lang, url, text}: SocialShareProps): JSX.Element {
           text={text}
         />
       ))}
+
     </div>
   )
 }

@@ -17,7 +17,8 @@ const PRESERVED_FILES = [
   'telegram.svg',
   'bluesky.svg',
   'minds.svg',
-  'reddit.svg'
+  'reddit.svg',
+  'link.svg'
 ]
 
 /**

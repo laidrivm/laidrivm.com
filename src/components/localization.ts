@@ -9,7 +9,8 @@ export const LOCALIZED_TEXT = {
     telegram: 'Share on Telegram',
     reddit: 'Share on Reddit',
     bluesky: 'Share on Bluesky',
-    minds: 'Share to Minds'
+    minds: 'Share to Minds',
+    share: 'Share'
   },
   ru: {
     updated: 'Обновлено: ',
@@ -18,6 +19,7 @@ export const LOCALIZED_TEXT = {
     telegram: 'Поделиться в Телеграме',
     reddit: 'Поделиться на Реддите',
     bluesky: 'Поделиться в Блюскае',
-    minds: 'Поделиться в Майндс'
+    minds: 'Поделиться в Майндс',
+    share: 'Поделиться'
   }
 }
