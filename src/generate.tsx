@@ -2,7 +2,6 @@ import {join} from 'path'
 
 import * as EnvUtils from './utils/envutils.ts'
 import * as FileUtils from './utils/fileutils.ts'
-import * as PathUtils from './utils/pathutils.ts'
 import * as SourceProcessor from './processsources.ts'
 import {processPages} from './processpages.tsx'
 import type {FileNode} from './types.ts'
@@ -28,6 +27,21 @@ ${getSiteMapURLs(nodes, 1.0, '/')}
 </urlset>`
   await Bun.write(join(publicPath, 'sitemap.xml'), sitemapContent)
   console.log('Sitemap generated successfully.')
+}
+
+function generatePageAddress(
+  prefix: string,
+  baseFileName: string,
+  baseUrl: string
+): string {
+  console.log(`generatePageAddress: ${prefix}, ${baseFileName}, ${baseUrl}`)
+
+  // Empty baseFileName becomes empty string (for index pages)
+  const filename = baseFileName === 'index' ? '' : baseFileName
+
+  return prefix === '/'
+    ? `${baseUrl}/${filename}`
+    : `${baseUrl}${prefix}/${filename}`
 }
 
 /**
@@ -58,11 +72,7 @@ function getSiteMapURLs(
         break
       }
       case 'article': {
-        const address = PathUtils.generatePageAddress(
-          relativePath,
-          node.name,
-          baseUrl
-        )
+        const address = generatePageAddress(relativePath, node.name, baseUrl)
         const nodePriority = node.name === 'index' ? priority : priority - 0.2
 
         result += `<url>

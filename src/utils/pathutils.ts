@@ -18,6 +18,8 @@ const DEFAULT_LANGUAGE: SupportedLanguage = 'en'
  * @returns Language code
  */
 export function getLanguageFromPath(path: string): SupportedLanguage {
+  console.log(`getLanguageFromPath: ${path}`)
+
   if (!path || typeof path !== 'string') {
     console.warn(`Invalid path provided: ${path}`)
     return DEFAULT_LANGUAGE
@@ -29,7 +31,7 @@ export function getLanguageFromPath(path: string): SupportedLanguage {
   if (parts.length <= 1) return DEFAULT_LANGUAGE
 
   // Check if second path segment is a valid language code
-  const language = parts[0]
+  const language = parts[1]
   return VALID_LANGUAGES.includes(language as SupportedLanguage)
     ? (language as SupportedLanguage)
     : DEFAULT_LANGUAGE
@@ -54,16 +56,18 @@ export function isLanguageDirectory(path: string): boolean {
  * @returns Canonical page URL
  */
 export function generatePageAddress(
-  prefix: string,
+  language: SupportedLanguage,
   baseFileName: string,
   baseUrl: string
 ): string {
+  console.log(`generatePageAddress: ${language}, ${baseFileName}, ${baseUrl}`)
+
   // Empty baseFileName becomes empty string (for index pages)
   const filename = baseFileName === 'index' ? '' : baseFileName
 
-  return prefix === '/'
+  return language === DEFAULT_LANGUAGE
     ? `${baseUrl}/${filename}`
-    : `${baseUrl}${prefix}/${filename}`
+    : `${baseUrl}/${language}/${filename}`
 }
 
 /**
