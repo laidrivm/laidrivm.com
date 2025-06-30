@@ -198,6 +198,20 @@ export function convertToHtml(
           return `<div class="lead"><p>${this.parser.parseInline(tokens)}</p></div>\n`
         }
         return `<p>${this.parser.parseInline(tokens)}</p>\n`
+      },
+
+      blockquote({tokens}) {
+        console.log(tokens)
+        const body = this.parser.parse(tokens)
+
+        // Convert single line breaks to <br> tags within paragraphs
+        const processedBody = body.replace(/<p>(.*?)<\/p>/gs, (match, content) => {
+          // Replace single newlines with <br> tags, but preserve existing <br> tags
+          const withBreaks = content.replace(/\n(?!<)/g, '<br>\n')
+          return `<p>${withBreaks}</p>`
+        })
+
+        return `<blockquote>\n${processedBody}</blockquote>\n`
       }
     }
   })
@@ -218,7 +232,7 @@ export function convertToHtml(
       tp.enableRule('common/html/processingAttrs')
       //tp.setSetting('common/html/processingAttrs', 'attrs', ['title', 'alt'])
       //turns pre code into privatesymbol
-    },
+    }/*,
     customRules: [
       {
         name: 'common/other/lastWordNoHypens',
@@ -234,7 +248,7 @@ export function convertToHtml(
         queue: 'end',
         processingSeparateParts: false
       }
-    ]
+    ]*/
   }
 
   marked.use(markedTypograf(options))
