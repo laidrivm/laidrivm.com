@@ -72,7 +72,6 @@ export function SharingLinks({lang, url, text}: SocialShareProps): JSX.Element {
           text={text}
         />
       ))}
-
     </div>
   )
 }

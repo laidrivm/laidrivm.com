@@ -2,8 +2,8 @@ import {Marked} from 'marked'
 import {markedTypograf} from 'marked-typograf'
 import {renderToString} from 'preact-render-to-string'
 import unidecode from 'unidecode'
-import {parseFragment, serialize} from 'parse5'
-import type {ChildNode} from 'parse5'
+//import {parseFragment, serialize} from 'parse5'
+//import type {ChildNode} from 'parse5'
 
 import type {SupportedLanguage} from '../types.ts'
 
@@ -11,7 +11,7 @@ import {Heading} from './components/heading.tsx'
 import {CodeSnippet} from './components/codesnippet.tsx'
 import {Image} from './components/image.tsx'
 
-function setNoHyphens(nodes: ChildNode): void {
+/*function setNoHyphens(nodes: ChildNode): void {
   nodes.forEach(node => {
     if (node.nodeName === '#text') {
       if (!node.value.trim()) return
@@ -45,7 +45,7 @@ function setNoHyphens(nodes: ChildNode): void {
       setNoHyphens(node.childNodes)
     }
   })
-}
+}*/
 
 /**
  * Generates a URL-friendly ID from text with transliteration
@@ -205,11 +205,14 @@ export function convertToHtml(
         const body = this.parser.parse(tokens)
 
         // Convert single line breaks to <br> tags within paragraphs
-        const processedBody = body.replace(/<p>(.*?)<\/p>/gs, (match, content) => {
-          // Replace single newlines with <br> tags, but preserve existing <br> tags
-          const withBreaks = content.replace(/\n(?!<)/g, '<br>\n')
-          return `<p>${withBreaks}</p>`
-        })
+        const processedBody = body.replace(
+          /<p>(.*?)<\/p>/gs,
+          (match, content) => {
+            // Replace single newlines with <br> tags, but preserve existing <br> tags
+            const withBreaks = content.replace(/\n(?!<)/g, '<br>\n')
+            return `<p>${withBreaks}</p>`
+          }
+        )
 
         return `<blockquote>\n${processedBody}</blockquote>\n`
       }
@@ -232,7 +235,7 @@ export function convertToHtml(
       tp.enableRule('common/html/processingAttrs')
       //tp.setSetting('common/html/processingAttrs', 'attrs', ['title', 'alt'])
       //turns pre code into privatesymbol
-    }/*,
+    } /*,
     customRules: [
       {
         name: 'common/other/lastWordNoHypens',
