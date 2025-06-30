@@ -58,8 +58,11 @@ function getSiteMapURLs(
         break
       }
       case 'article': {
-        const lang = PathUtils.getLanguageFromPath(relativePath)
-        const address = PathUtils.generatePageAddress(lang, node.name, baseUrl)
+        const address = PathUtils.generatePageAddress(
+          relativePath,
+          node.name,
+          baseUrl
+        )
         const nodePriority = node.name === 'index' ? priority : priority - 0.2
 
         result += `<url>

@@ -201,7 +201,6 @@ export function convertToHtml(
       },
 
       blockquote({tokens}) {
-        console.log(tokens)
         const body = this.parser.parse(tokens)
 
         // Convert single line breaks to <br> tags within paragraphs

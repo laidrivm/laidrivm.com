@@ -29,7 +29,7 @@ export function getLanguageFromPath(path: string): SupportedLanguage {
   if (parts.length <= 1) return DEFAULT_LANGUAGE
 
   // Check if second path segment is a valid language code
-  const language = parts[1]
+  const language = parts[0]
   return VALID_LANGUAGES.includes(language as SupportedLanguage)
     ? (language as SupportedLanguage)
     : DEFAULT_LANGUAGE
@@ -54,16 +54,16 @@ export function isLanguageDirectory(path: string): boolean {
  * @returns Canonical page URL
  */
 export function generatePageAddress(
-  language: SupportedLanguage,
+  prefix: string,
   baseFileName: string,
   baseUrl: string
 ): string {
   // Empty baseFileName becomes empty string (for index pages)
   const filename = baseFileName === 'index' ? '' : baseFileName
 
-  return language === DEFAULT_LANGUAGE
+  return prefix === '/'
     ? `${baseUrl}/${filename}`
-    : `${baseUrl}/${language}/${filename}`
+    : `${baseUrl}${prefix}/${filename}`
 }
 
 /**
