@@ -224,7 +224,7 @@ export function convertToHtml(
       tp.addSafeTag('<code>', '</code>')
       tp.addSafeTag('<pre>', '</pre>')
       tp.enableRule('common/space/delLeadingBlanks')
-      tp.enableRule('common/number/digitGrouping')
+      tp.disableRule('common/number/digitGrouping')
       tp.enableRule('common/nbsp/afterNumber')
       tp.setSetting('common/nbsp/afterShortWord', 'lengthShortWord', 2)
       tp.disableRule('common/nbsp/nowrap')
