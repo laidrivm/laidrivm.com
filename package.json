@@ -40,7 +40,7 @@
     "test": "bun test --watch --timeout 1000 --rerun-each 2 --coverage",
     "generate_dev": "bun run --env-file=.env.development src/generate.tsx",
     "server_dev": "bun run --env-file=.env.development --watch src/index.ts",
-    "dev": "bun generate_dev && bun run server_dev",
+    "dev": "bun lint && bun format && bun build && bun generate_dev && bun run server_dev",
     "generate": "bun run out/generate.js",
     "server": "bun run out/index.js",
     "prod": "NODE_ENV=production bun run generate && bun run server",
