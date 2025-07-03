@@ -58,6 +58,43 @@ export default [
       "@typescript-eslint/consistent-type-imports": "warn",
     },
   },
+  // Test files configuration
+  {
+    files: ["**/*.test.{js,ts,jsx,tsx}", "**/*.spec.{js,ts,jsx,tsx}"],
+    languageOptions: {
+      parser: tsparser,
+      parserOptions: {
+        ecmaVersion: "latest",
+        sourceType: "module",
+        ecmaFeatures: {
+          jsx: true,
+        },
+        project: "./tsconfig.json",
+      },
+      globals: {
+        ...globals.browser,
+        JSX: true,
+        Bun: true,
+        process: true,
+      },
+    },
+    plugins: {
+      "@typescript-eslint": pluginTs,
+      import: pluginImport,
+    },
+    rules: {
+      // Relax rules for test files
+      "no-unused-vars": "off",
+      "@typescript-eslint/no-unused-vars": "off",
+      "@typescript-eslint/explicit-module-boundary-types": "off",
+      "@typescript-eslint/no-explicit-any": "off",
+      "import/no-unresolved": ["error", { 
+        "ignore": ["octokit", "bun:test", "bun:*"] 
+      }],
+      // Allow console in tests
+      "no-console": "off",
+    },
+  },
   pluginJs.configs.recommended,
   {
     settings: {
