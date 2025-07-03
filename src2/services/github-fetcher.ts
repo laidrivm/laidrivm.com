@@ -179,7 +179,7 @@ async function fetchRepositoryContent(
           octokit,
           owner,
           repo,
-          path
+          item.path
         )
 
         const fileInfo: FileInfo = {

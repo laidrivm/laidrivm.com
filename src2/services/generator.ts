@@ -1,7 +1,7 @@
 import {asyncPipe} from '../utils.ts'
 import type {ServiceResponse} from '../types.ts'
 
-import {fetchGitHubContent} from './fetchGitHubContent.ts'
+import {fetchGitHubContent} from './github-fetcher.ts'
 
 /**
  * Triggers the complete site generation process

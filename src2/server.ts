@@ -1,6 +1,6 @@
 import {Elysia} from 'elysia'
 
-import {generate} from './services/generate.ts'
+import {generate} from './services/generator.ts'
 
 /**
  * Loads TLS certificates for secure server
