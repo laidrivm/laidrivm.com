@@ -6,6 +6,24 @@ import type {FileInfo, ServiceResponse, FileCollection} from '../types.ts'
 import {isCacheValid, invalidateCache, storeInCache} from './cache.ts'
 
 /**
+ * List of files to ignore when processing repositories
+ */
+const IGNORE_LIST = ['README.md', '.git', '.gitignore', 'LICENSE', '.github']
+
+/**
+ * Check if a path should be ignored
+ * @param path - File path
+ * @param name - File name
+ * @returns Whether the path should be ignored
+ */
+function isIgnored(path: string, name: string): boolean {
+  return (
+    IGNORE_LIST.includes(name) ||
+    IGNORE_LIST.some(ignored => path.includes(`/${ignored}`))
+  )
+}
+
+/**
  * Creates Octokit instance with proper configuration
  * @returns Configured Octokit instance
  */
@@ -165,6 +183,11 @@ async function fetchRepositoryContent(
 
   for (const item of items) {
     if (item.type === 'file') {
+      if (isIgnored(item.path, item.name)) {
+        console.log(`Skipped because of ignore list: ${item.path}`)
+        continue
+      }
+
       const fileSha = await getLastCommitSha(octokit, owner, repo, item.path)
       if (isCacheValid(fileSha, item.path)) {
         console.log(`Content for ${item.path} is cached)`)
