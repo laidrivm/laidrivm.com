@@ -1,7 +1,8 @@
-import {asyncPipe} from '../utils.ts'
+import {asyncPipe, ok} from '../utils.ts'
 import type {ServiceResponse} from '../types.ts'
 
 import {fetchGitHubContent} from './github-fetcher.ts'
+import {processFilesContent} from './file-scanner.ts'
 
 /**
  * Triggers the complete site generation process
@@ -9,28 +10,26 @@ import {fetchGitHubContent} from './github-fetcher.ts'
  */
 export async function generate(): Promise<ServiceResponse> {
   const startTime = Date.now()
-  try {
-    console.log('Starting site generation...')
-    const data = await asyncPipe(
-      fetchGitHubContent
-      // readFileContent,
-      // parseMarkdown,
-      // extractMetadata,
-      // renderFromTemplate,
-      // optimizeOutput,
-      // processAssets,
-      // uploadToCloudflare
-    )(undefined)
-    const buildTime = Date.now() - startTime
+  console.log('Starting site generation...')
+
+  const pipelineResult = await asyncPipe(
+    fetchGitHubContent,
+    processFilesContent
+    // parseMarkdown,
+    // extractMetadata,
+    // renderFromTemplate,
+    // optimizeOutput,
+    // processAssets,
+    // uploadToCloudflare
+  )(undefined)
+
+  const buildTime = Date.now() - startTime
+
+  if (pipelineResult.success) {
     console.log(`Site generation completed in ${buildTime}ms`)
-    return {
-      success: true,
-      data
-    }
-  } catch (error) {
-    return {
-      success: false,
-      error
-    }
+    return ok(pipelineResult.data)
   }
+
+  console.log(`Site generation failed after ${buildTime}ms`)
+  return pipelineResult
 }

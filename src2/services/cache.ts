@@ -1,15 +1,14 @@
-import type {CacheEntry, GitHubRepoContent} from '../types.ts'
+import type {FileInfo} from '../types.ts'
 
-const repoCache = new Map<string, CacheEntry>()
+const repoCache = new Map<string, FileInfo>()
 
 /**
- * Gets the cache key for a repository
- * @param owner - Repository owner
- * @param repo - Repository name
- * @returns Cache key
+ * Stores file in cache
+ * @param file - File to cache
  */
-function getCacheKey(owner: string, repo: string): string {
-  return `${owner}/${repo}`
+export function storeInCache(file: FileInfo): void {
+  repoCache.set(file.sourcePath, file)
+  console.log(`Cached file ${file.sourcePath} with SHA ${file.sha}`)
 }
 
 /**
@@ -18,50 +17,12 @@ function getCacheKey(owner: string, repo: string): string {
  * @param currentSha - Current repository SHA
  * @returns Whether cache is valid
  */
-export function isCacheValid(
-  cacheEntry: CacheEntry,
-  currentSha: string
-): boolean {
-  return cacheEntry.content.repoSha === currentSha
-}
-
-/**
- * Stores content in cache
- * @param owner - Repository owner
- * @param repo - Repository name
- * @param content - Content to cache
- */
-export function storeInCache(
-  owner: string,
-  repo: string,
-  content: GitHubRepoContent
-): void {
-  const cacheKey = getCacheKey(owner, repo)
-  repoCache.set(cacheKey, {
-    content,
-    timestamp: Date.now()
-  })
-  console.log(`Cached content for ${cacheKey} with SHA ${content.repoSha}`)
-}
-
-/**
- * Retrieves content from cache
- * @param owner - Repository owner
- * @param repo - Repository name
- * @returns Cached content or null
- */
-export function getFromCache(
-  owner: string,
-  repo: string
-): GitHubRepoContent | null {
-  const cacheKey = getCacheKey(owner, repo)
-  const cacheEntry = repoCache.get(cacheKey)
-
-  if (!cacheEntry) {
-    return null
+export function isCacheValid(sha: string, path: string): boolean {
+  const cachedFile = repoCache.get(path)
+  if (cachedFile) {
+    return sha === cachedFile.sha
   }
-
-  return cacheEntry.content
+  return false
 }
 
 /**
@@ -69,10 +30,9 @@ export function getFromCache(
  * @param owner - Repository owner
  * @param repo - Repository name
  */
-export function invalidateCache(owner: string, repo: string): void {
-  const cacheKey = getCacheKey(owner, repo)
-  if (repoCache.has(cacheKey)) {
-    repoCache.delete(cacheKey)
-    console.log(`Invalidated cache for ${cacheKey}`)
+export function invalidateCache(path: string): void {
+  if (repoCache.has(path)) {
+    repoCache.delete(path)
+    console.log(`Invalidated cache for ${path}`)
   }
 }

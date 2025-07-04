@@ -4,22 +4,25 @@ export interface ServiceResponse<T, E = Error> {
   data?: T
 }
 
+export type FileType = 'markdown' | 'unsupported'
+
 export interface FileInfo {
-  readonly path: string
-  readonly content: string
-  readonly sha: string
-  readonly size: number
-  readonly lastModified: Date
-  readonly type: 'file' | 'directory'
+  sourcePath: string // Original GitHub path
+  localPath?: string // Local filesystem path
+  content?: string
+  sha: string
+  size: number
+  lastModified: Date
+  type: FileType
 }
 
-export interface GitHubRepoContent {
-  readonly files: Map<string, FileInfo>
+export interface FileCollection {
+  readonly files: FileInfo[]
   readonly lastFetch: Date
   readonly repoSha: string
 }
 
 export interface CacheEntry {
-  content: GitHubRepoContent
-  timestamp: number
+  file: FileInfo
+  sha: number
 }

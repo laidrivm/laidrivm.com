@@ -1,404 +1,273 @@
-import {test, expect, describe, beforeEach, afterEach} from 'bun:test'
+import {describe, it, expect, beforeEach, spyOn, afterEach} from 'bun:test'
 
-import type {GitHubRepoContent, CacheEntry} from '../types.ts'
+import type {FileInfo, FileType} from '../types'
 
-import {
-  isCacheValid,
-  storeInCache,
-  getFromCache,
-  invalidateCache
-} from './cache.ts'
+import {storeInCache, isCacheValid, invalidateCache} from './cache.ts'
 
-// Mock console.log to avoid noise in tests
-const originalConsoleLog = console.log
-let consoleLogs: string[] = []
-
-beforeEach(() => {
-  // Clear any existing cache before each test
-  // Since repoCache is not exported, we'll use the public API to clear it
-  invalidateCache('test', 'repo')
-  invalidateCache('owner', 'repo')
-  invalidateCache('different', 'owner')
-  invalidateCache('github', 'test-repo')
-  invalidateCache('microsoft', 'vscode')
-
-  // Mock console.log to capture logs
-  consoleLogs = []
-  console.log = (...args: unknown[]) => {
-    consoleLogs.push(args.join(' '))
-  }
-})
-
-afterEach(() => {
-  // Restore console.log
-  console.log = originalConsoleLog
-})
-
-// Helper function to create mock GitHubRepoContent
-function createMockRepoContent(repoSha: string): GitHubRepoContent {
-  return {
-    files: new Map([
-      [
-        'README.md',
-        {
-          path: 'README.md',
-          content: '# Test Repository',
-          sha: 'file-sha-123',
-          size: 100,
-          lastModified: new Date('2025-01-01'),
-          type: 'file'
-        }
-      ],
-      [
-        'src/index.ts',
-        {
-          path: 'src/index.ts',
-          content: 'console.log("Hello World")',
-          sha: 'file-sha-456',
-          size: 200,
-          lastModified: new Date('2025-01-02'),
-          type: 'file'
-        }
-      ]
-    ]),
-    lastFetch: new Date('2025-01-03'),
-    repoSha
-  }
+// Mock FileInfo objects for testing
+const mockFileInfo1: FileInfo = {
+  sourcePath: '/src/components/Button.tsx',
+  localPath: '/tmp/repo/src/components/Button.tsx',
+  content:
+    'import React from "react";\n\nexport const Button = () => <button>Click me</button>;',
+  sha: 'abc123def456',
+  size: 1024,
+  lastModified: new Date('2024-01-15T10:30:00Z'),
+  type: 'file' as FileType
 }
 
-// Helper function to create mock CacheEntry
-function createMockCacheEntry(repoSha: string, timestamp?: number): CacheEntry {
-  return {
-    content: createMockRepoContent(repoSha),
-    timestamp: timestamp ?? Date.now()
-  }
+const mockFileInfo2: FileInfo = {
+  sourcePath: '/src/utils/helpers.ts',
+  localPath: '/tmp/repo/src/utils/helpers.ts',
+  content:
+    'export function formatDate(date: Date): string {\n  return date.toISOString();\n}',
+  sha: '789xyz012abc',
+  size: 512,
+  lastModified: new Date('2024-01-20T14:45:00Z'),
+  type: 'file' as FileType
 }
 
-describe('isCacheValid', () => {
-  test('should return true when cache SHA matches current SHA', () => {
-    const cacheEntry = createMockCacheEntry('abc123')
-    const currentSha = 'abc123'
+const mockFileInfo3: FileInfo = {
+  sourcePath: '/src/components/Modal.tsx',
+  localPath: '/tmp/repo/src/components/Modal.tsx',
+  content:
+    'import React from "react";\n\nexport const Modal = ({ children }: { children: React.ReactNode }) => (\n  <div className="modal">{children}</div>\n);',
+  sha: 'def456ghi789',
+  size: 2048,
+  lastModified: new Date('2024-01-25T09:15:00Z'),
+  type: 'file' as FileType
+}
 
-    const result = isCacheValid(cacheEntry, currentSha)
+describe('Cache Module', () => {
+  let consoleSpy: any
 
-    expect(result).toBe(true)
+  beforeEach(() => {
+    // Clear the cache before each test by invalidating all known paths
+    invalidateCache(mockFileInfo1.sourcePath)
+    invalidateCache(mockFileInfo2.sourcePath)
+    invalidateCache(mockFileInfo3.sourcePath)
+
+    // Spy on console.log to test logging behavior
+    consoleSpy = spyOn(console, 'log').mockImplementation(() => {})
   })
 
-  test('should return false when cache SHA does not match current SHA', () => {
-    const cacheEntry = createMockCacheEntry('abc123')
-    const currentSha = 'def456'
-
-    const result = isCacheValid(cacheEntry, currentSha)
-
-    expect(result).toBe(false)
+  afterEach(() => {
+    consoleSpy.mockRestore()
   })
 
-  test('should handle empty SHA strings', () => {
-    const cacheEntry = createMockCacheEntry('')
-    const currentSha = ''
+  describe('storeInCache', () => {
+    it('should store a file in the cache', () => {
+      storeInCache(mockFileInfo1)
 
-    const result = isCacheValid(cacheEntry, currentSha)
-
-    expect(result).toBe(true)
-  })
-
-  test('should be case sensitive', () => {
-    const cacheEntry = createMockCacheEntry('ABC123')
-    const currentSha = 'abc123'
-
-    const result = isCacheValid(cacheEntry, currentSha)
-
-    expect(result).toBe(false)
-  })
-
-  test('should handle long SHA strings', () => {
-    const longSha = 'a'.repeat(40) // Git SHA-1 length
-    const cacheEntry = createMockCacheEntry(longSha)
-
-    const result = isCacheValid(cacheEntry, longSha)
-
-    expect(result).toBe(true)
-  })
-})
-
-describe('storeInCache', () => {
-  test('should store content in cache and log message', () => {
-    const content = createMockRepoContent('test-sha-123')
-
-    storeInCache('owner', 'repo', content)
-
-    // Verify content was stored
-    const retrieved = getFromCache('owner', 'repo')
-    expect(retrieved).toEqual(content)
-
-    // Verify console log
-    expect(consoleLogs).toContain(
-      'Cached content for owner/repo with SHA test-sha-123'
-    )
-  })
-
-  test('should generate correct cache key format', () => {
-    const content = createMockRepoContent('sha-456')
-
-    storeInCache('github', 'test-repo', content)
-
-    const retrieved = getFromCache('github', 'test-repo')
-    expect(retrieved).toEqual(content)
-
-    expect(consoleLogs).toContain(
-      'Cached content for github/test-repo with SHA sha-456'
-    )
-  })
-
-  test('should overwrite existing cache entry', () => {
-    const oldContent = createMockRepoContent('old-sha')
-    const newContent = createMockRepoContent('new-sha')
-
-    // Store initial content
-    storeInCache('owner', 'repo', oldContent)
-    let retrieved = getFromCache('owner', 'repo')
-    expect(retrieved?.repoSha).toBe('old-sha')
-
-    // Overwrite with new content
-    storeInCache('owner', 'repo', newContent)
-    retrieved = getFromCache('owner', 'repo')
-    expect(retrieved?.repoSha).toBe('new-sha')
-
-    // Should have logged both operations
-    expect(consoleLogs).toContain(
-      'Cached content for owner/repo with SHA old-sha'
-    )
-    expect(consoleLogs).toContain(
-      'Cached content for owner/repo with SHA new-sha'
-    )
-  })
-
-  test('should handle special characters in owner and repo names', () => {
-    const content = createMockRepoContent('special-sha')
-
-    storeInCache('owner-with-dash', 'repo.with.dots', content)
-
-    const retrieved = getFromCache('owner-with-dash', 'repo.with.dots')
-    expect(retrieved).toEqual(content)
-
-    expect(consoleLogs).toContain(
-      'Cached content for owner-with-dash/repo.with.dots with SHA special-sha'
-    )
-  })
-
-  test('should store timestamp with cache entry', () => {
-    const content = createMockRepoContent('timestamp-test')
-
-    storeInCache('owner', 'repo', content)
-
-    // Since we can't access repoCache directly, we'll verify by checking
-    // that the content is retrievable (indicating timestamp was set correctly)
-    const retrieved = getFromCache('owner', 'repo')
-    expect(retrieved).toEqual(content)
-
-    // Verify the cache entry persists (indicating timestamp was stored)
-    // Store a second entry to ensure the first one remains
-    storeInCache('different', 'repo', createMockRepoContent('other-sha'))
-    expect(getFromCache('owner', 'repo')).toEqual(content)
-  })
-})
-
-describe('getFromCache', () => {
-  test('should return null when cache is empty', () => {
-    const result = getFromCache('nonexistent', 'repo')
-
-    expect(result).toBe(null)
-  })
-
-  test('should return cached content when it exists', () => {
-    const content = createMockRepoContent('cached-sha')
-
-    storeInCache('owner', 'repo', content)
-    const retrieved = getFromCache('owner', 'repo')
-
-    expect(retrieved).toEqual(content)
-  })
-
-  test('should return correct content for different repositories', () => {
-    const content1 = createMockRepoContent('sha-1')
-    const content2 = createMockRepoContent('sha-2')
-
-    storeInCache('owner1', 'repo1', content1)
-    storeInCache('owner2', 'repo2', content2)
-
-    const retrieved1 = getFromCache('owner1', 'repo1')
-    const retrieved2 = getFromCache('owner2', 'repo2')
-
-    expect(retrieved1?.repoSha).toBe('sha-1')
-    expect(retrieved2?.repoSha).toBe('sha-2')
-  })
-
-  test('should return null after cache invalidation', () => {
-    const content = createMockRepoContent('temp-sha')
-
-    storeInCache('owner', 'repo', content)
-    expect(getFromCache('owner', 'repo')).toEqual(content)
-
-    invalidateCache('owner', 'repo')
-    expect(getFromCache('owner', 'repo')).toBe(null)
-  })
-
-  test('should handle case-sensitive repository names', () => {
-    const content = createMockRepoContent('case-test')
-
-    storeInCache('Owner', 'Repo', content)
-
-    expect(getFromCache('Owner', 'Repo')).toEqual(content)
-    expect(getFromCache('owner', 'repo')).toBe(null)
-    expect(getFromCache('OWNER', 'REPO')).toBe(null)
-  })
-
-  test('should preserve object references', () => {
-    const content = createMockRepoContent('reference-test')
-
-    storeInCache('owner', 'repo', content)
-    const retrieved = getFromCache('owner', 'repo')
-
-    // Should be the same object reference
-    expect(retrieved).toBe(content)
-    expect(retrieved?.files).toBe(content.files)
-  })
-})
-
-describe('invalidateCache', () => {
-  test('should remove existing cache entry and log message', () => {
-    const content = createMockRepoContent('to-be-invalidated')
-
-    storeInCache('owner', 'repo', content)
-    expect(getFromCache('owner', 'repo')).toEqual(content)
-
-    invalidateCache('owner', 'repo')
-    expect(getFromCache('owner', 'repo')).toBe(null)
-
-    expect(consoleLogs).toContain('Invalidated cache for owner/repo')
-  })
-
-  test('should handle invalidation of non-existent cache entry', () => {
-    // Should not throw error or log when cache entry doesn't exist
-    invalidateCache('nonexistent', 'repo')
-
-    // Should not log anything since cache entry didn't exist
-    expect(consoleLogs.filter(log => log.includes('Invalidated'))).toHaveLength(
-      0
-    )
-  })
-
-  test('should only invalidate specific repository', () => {
-    const content1 = createMockRepoContent('keep-this')
-    const content2 = createMockRepoContent('remove-this')
-
-    storeInCache('owner1', 'repo1', content1)
-    storeInCache('owner2', 'repo2', content2)
-
-    invalidateCache('owner2', 'repo2')
-
-    expect(getFromCache('owner1', 'repo1')).toEqual(content1)
-    expect(getFromCache('owner2', 'repo2')).toBe(null)
-  })
-
-  test('should handle multiple invalidations of same repository', () => {
-    const content = createMockRepoContent('multi-invalidate')
-
-    storeInCache('owner', 'repo', content)
-
-    invalidateCache('owner', 'repo')
-    expect(
-      consoleLogs.filter(log =>
-        log.includes('Invalidated cache for owner/repo')
+      // Verify the file was cached by checking if cache is valid
+      expect(isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)).toBe(
+        true
       )
-    ).toHaveLength(1)
-
-    // Second invalidation should not log since entry doesn't exist
-    invalidateCache('owner', 'repo')
-    expect(
-      consoleLogs.filter(log =>
-        log.includes('Invalidated cache for owner/repo')
-      )
-    ).toHaveLength(1)
-  })
-})
-
-describe('Cache integration', () => {
-  test('should support complete cache lifecycle', () => {
-    const initialContent = createMockRepoContent('initial-sha')
-    const updatedContent = createMockRepoContent('updated-sha')
-
-    // 1. Store initial content
-    storeInCache('owner', 'repo', initialContent)
-    expect(getFromCache('owner', 'repo')).toEqual(initialContent)
-
-    // 2. Check cache validity
-    expect(
-      isCacheValid(createMockCacheEntry('initial-sha'), 'initial-sha')
-    ).toBe(true)
-    expect(
-      isCacheValid(createMockCacheEntry('initial-sha'), 'updated-sha')
-    ).toBe(false)
-
-    // 3. Update cache with new content
-    storeInCache('owner', 'repo', updatedContent)
-    expect(getFromCache('owner', 'repo')).toEqual(updatedContent)
-
-    // 4. Invalidate cache
-    invalidateCache('owner', 'repo')
-    expect(getFromCache('owner', 'repo')).toBe(null)
-  })
-
-  test('should handle concurrent access to different repositories', () => {
-    const repos = [
-      {owner: 'microsoft', repo: 'vscode', sha: 'ms-sha'},
-      {owner: 'facebook', repo: 'react', sha: 'fb-sha'},
-      {owner: 'vercel', repo: 'next.js', sha: 'vercel-sha'}
-    ]
-
-    // Store multiple repositories
-    repos.forEach(({owner, repo, sha}) => {
-      const content = createMockRepoContent(sha)
-      storeInCache(owner, repo, content)
     })
 
-    // Verify all are cached correctly
-    repos.forEach(({owner, repo, sha}) => {
-      const retrieved = getFromCache(owner, repo)
-      expect(retrieved?.repoSha).toBe(sha)
+    it('should log when storing a file', () => {
+      storeInCache(mockFileInfo1)
+
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Cached file ${mockFileInfo1.sourcePath} with SHA ${mockFileInfo1.sha}`
+      )
     })
 
-    // Invalidate one repository
-    invalidateCache('facebook', 'react')
+    it('should overwrite existing cache entries', () => {
+      // Store initial file
+      storeInCache(mockFileInfo1)
+      expect(isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)).toBe(
+        true
+      )
 
-    // Verify only one was invalidated
-    expect(getFromCache('microsoft', 'vscode')?.repoSha).toBe('ms-sha')
-    expect(getFromCache('facebook', 'react')).toBe(null)
-    expect(getFromCache('vercel', 'next.js')?.repoSha).toBe('vercel-sha')
+      // Create updated version with same path but different SHA
+      const updatedFile: FileInfo = {
+        ...mockFileInfo1,
+        sha: 'updated123sha456',
+        lastModified: new Date('2024-02-01T12:00:00Z')
+      }
+
+      storeInCache(updatedFile)
+
+      // Old SHA should no longer be valid
+      expect(isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)).toBe(
+        false
+      )
+      // New SHA should be valid
+      expect(isCacheValid(updatedFile.sha, mockFileInfo1.sourcePath)).toBe(true)
+    })
+
+    it('should handle multiple files with different paths', () => {
+      storeInCache(mockFileInfo1)
+      storeInCache(mockFileInfo2)
+
+      expect(isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)).toBe(
+        true
+      )
+      expect(isCacheValid(mockFileInfo2.sha, mockFileInfo2.sourcePath)).toBe(
+        true
+      )
+    })
   })
 
-  test('should handle cache validation workflow', () => {
-    const content = createMockRepoContent('workflow-sha')
-    const cacheEntry = createMockCacheEntry('workflow-sha')
+  describe('isCacheValid', () => {
+    it('should return true when SHA matches cached file', () => {
+      storeInCache(mockFileInfo1)
 
-    // Store content
-    storeInCache('owner', 'repo', content)
+      const isValid = isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)
+      expect(isValid).toBe(true)
+    })
 
-    // Simulate checking if cache is valid for current commit
-    expect(isCacheValid(cacheEntry, 'workflow-sha')).toBe(true)
+    it('should return false when SHA does not match cached file', () => {
+      storeInCache(mockFileInfo1)
 
-    // Simulate new commit - cache should be invalid
-    expect(isCacheValid(cacheEntry, 'new-commit-sha')).toBe(false)
+      const isValid = isCacheValid('different-sha', mockFileInfo1.sourcePath)
+      expect(isValid).toBe(false)
+    })
 
-    // Simulate cache invalidation and refresh
-    invalidateCache('owner', 'repo')
-    expect(getFromCache('owner', 'repo')).toBe(null)
+    it('should return false when file is not in cache', () => {
+      const isValid = isCacheValid('any-sha', '/non/existent/path.ts')
+      expect(isValid).toBe(false)
+    })
 
-    // Store new content with updated SHA
-    const newContent = createMockRepoContent('new-commit-sha')
-    storeInCache('owner', 'repo', newContent)
+    it('should return false when file was invalidated', () => {
+      storeInCache(mockFileInfo1)
+      expect(isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)).toBe(
+        true
+      )
 
-    const newCacheEntry = createMockCacheEntry('new-commit-sha')
-    expect(isCacheValid(newCacheEntry, 'new-commit-sha')).toBe(true)
+      invalidateCache(mockFileInfo1.sourcePath)
+      expect(isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)).toBe(
+        false
+      )
+    })
+
+    it('should handle empty strings', () => {
+      expect(isCacheValid('', '')).toBe(false)
+      expect(isCacheValid('some-sha', '')).toBe(false)
+      expect(isCacheValid('', '/some/path.ts')).toBe(false)
+    })
+  })
+
+  describe('invalidateCache', () => {
+    it('should invalidate cached file and log', () => {
+      storeInCache(mockFileInfo1)
+      expect(isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)).toBe(
+        true
+      )
+
+      invalidateCache(mockFileInfo1.sourcePath)
+
+      expect(isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)).toBe(
+        false
+      )
+      expect(consoleSpy).toHaveBeenCalledWith(
+        `Invalidated cache for ${mockFileInfo1.sourcePath}`
+      )
+    })
+
+    it('should not log when invalidating non-existent cache entry', () => {
+      // Clear previous console calls
+      consoleSpy.mockClear()
+
+      invalidateCache('/non/existent/path.ts')
+
+      expect(consoleSpy).not.toHaveBeenCalled()
+    })
+
+    it('should only invalidate the specified path', () => {
+      storeInCache(mockFileInfo1)
+      storeInCache(mockFileInfo2)
+
+      invalidateCache(mockFileInfo1.sourcePath)
+
+      expect(isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)).toBe(
+        false
+      )
+      expect(isCacheValid(mockFileInfo2.sha, mockFileInfo2.sourcePath)).toBe(
+        true
+      )
+    })
+
+    it('should handle empty path', () => {
+      expect(() => invalidateCache('')).not.toThrow()
+    })
+  })
+
+  describe('Integration scenarios', () => {
+    it('should handle complete cache lifecycle', () => {
+      // Store multiple files
+      storeInCache(mockFileInfo1)
+      storeInCache(mockFileInfo2)
+      storeInCache(mockFileInfo3)
+
+      // Verify all are cached
+      expect(isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)).toBe(
+        true
+      )
+      expect(isCacheValid(mockFileInfo2.sha, mockFileInfo2.sourcePath)).toBe(
+        true
+      )
+      expect(isCacheValid(mockFileInfo3.sha, mockFileInfo3.sourcePath)).toBe(
+        true
+      )
+
+      // Invalidate one
+      invalidateCache(mockFileInfo2.sourcePath)
+
+      // Verify selective invalidation
+      expect(isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)).toBe(
+        true
+      )
+      expect(isCacheValid(mockFileInfo2.sha, mockFileInfo2.sourcePath)).toBe(
+        false
+      )
+      expect(isCacheValid(mockFileInfo3.sha, mockFileInfo3.sourcePath)).toBe(
+        true
+      )
+
+      // Update one with new SHA
+      const updatedFile: FileInfo = {
+        ...mockFileInfo1,
+        sha: 'brand-new-sha',
+        lastModified: new Date('2024-02-10T16:30:00Z')
+      }
+      storeInCache(updatedFile)
+
+      // Verify update worked
+      expect(isCacheValid(mockFileInfo1.sha, mockFileInfo1.sourcePath)).toBe(
+        false
+      )
+      expect(isCacheValid(updatedFile.sha, mockFileInfo1.sourcePath)).toBe(true)
+    })
+
+    it('should handle rapid cache operations', () => {
+      const testFile: FileInfo = {
+        sourcePath: '/test/rapid.ts',
+        localPath: '/tmp/repo/test/rapid.ts',
+        content: 'export const test = "initial";',
+        sha: 'initial-sha',
+        size: 256,
+        lastModified: new Date('2024-01-01T00:00:00Z'),
+        type: 'file' as FileType
+      }
+
+      // Rapid store/invalidate/store cycle
+      storeInCache(testFile)
+      expect(isCacheValid(testFile.sha, testFile.sourcePath)).toBe(true)
+
+      invalidateCache(testFile.sourcePath)
+      expect(isCacheValid(testFile.sha, testFile.sourcePath)).toBe(false)
+
+      const updatedFile: FileInfo = {
+        ...testFile,
+        sha: 'updated-sha',
+        content: 'export const test = "updated";',
+        lastModified: new Date('2024-01-02T12:00:00Z')
+      }
+      storeInCache(updatedFile)
+      expect(isCacheValid(updatedFile.sha, testFile.sourcePath)).toBe(true)
+      expect(isCacheValid(testFile.sha, testFile.sourcePath)).toBe(false)
+    })
   })
 })

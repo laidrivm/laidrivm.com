@@ -1,286 +1,189 @@
-import {test, expect, describe, beforeEach, afterEach, mock} from 'bun:test'
+import {
+  describe,
+  it,
+  expect,
+  beforeEach,
+  afterEach,
+  mock,
+  spyOn
+} from 'bun:test'
 
-import {generate} from './generator.ts'
+import {ok, err} from '../utils.ts'
+import type {ServiceResponse, FileCollection} from '../types.ts'
 
-// Mock the utils module
-const mockAsyncPipe = mock()
-
-// Mock the github-fetcher module
+// Mock dependencies
 const mockFetchGitHubContent = mock()
+const mockProcessFilesContent = mock()
+const mockConsoleLog = mock()
 
-// Mock console methods
-const originalConsole = {
-  log: console.log
-}
-
-let consoleLogs: string[] = []
-
-beforeEach(() => {
-  // Reset all mocks
-  mockAsyncPipe.mockReset()
-  mockFetchGitHubContent.mockReset()
-
-  // Reset console captures
-  consoleLogs = []
-
-  // Mock console methods
-  console.log = (...args: any[]) => {
-    consoleLogs.push(args.join(' '))
-  }
-
-  // Set up default mock implementations
-  mockAsyncPipe.mockImplementation(fn => {
-    return async (input: any) => {
-      return await fn(input)
-    }
-  })
-})
-
-afterEach(() => {
-  // Restore console methods
-  console.log = originalConsole.log
-})
-
-// Mock modules at the top level
-mock.module('../utils.ts', () => ({
-  asyncPipe: mockAsyncPipe
-}))
-
+// Mock the imported modules
 mock.module('./github-fetcher.ts', () => ({
   fetchGitHubContent: mockFetchGitHubContent
 }))
 
-describe('generate', () => {
-  test('should successfully complete generation process', async () => {
-    const mockResult = {
-      success: true,
-      data: {files: new Map(), lastFetch: new Date(), repoSha: 'test-sha'}
-    }
-    mockFetchGitHubContent.mockResolvedValue(mockResult)
+mock.module('./file-scanner.ts', () => ({
+  processFilesContent: mockProcessFilesContent
+}))
 
-    const result = await generate()
+describe('generator', () => {
+  const originalConsole = {log: console.log}
+  let dateNowSpy: any
 
-    expect(result.success).toBe(true)
-    expect(result.data).toEqual(mockResult)
-    expect(consoleLogs).toContain('Starting site generation...')
-    expect(
-      consoleLogs.some(
-        log =>
-          log.includes('Site generation completed in') && log.includes('ms')
-      )
-    ).toBe(true)
+  beforeEach(() => {
+    // Reset mocks
+    mockFetchGitHubContent.mockClear()
+    mockProcessFilesContent.mockClear()
+    mockConsoleLog.mockClear()
+
+    // Mock console.log
+    console.log = mockConsoleLog
+
+    // Mock Date.now for timing tests
+    dateNowSpy = spyOn(Date, 'now')
+      .mockReturnValueOnce(1000) // Start time
+      .mockReturnValueOnce(1500) // End time (500ms later)
   })
 
-  test('should handle errors and return failure response', async () => {
-    const mockError = new Error('Pipeline failed')
-    mockFetchGitHubContent.mockRejectedValue(mockError)
-
-    const result = await generate()
-
-    expect(result.success).toBe(false)
-    expect(result.error).toBe(mockError)
-    expect(consoleLogs).toContain('Starting site generation...')
-    expect(
-      consoleLogs.some(log => log.includes('Site generation completed'))
-    ).toBe(false)
-  })
-
-  test('should measure and log build time accurately', async () => {
-    const mockResult = {success: true, data: {}}
-
-    // Add controlled delay to measure timing
-    mockFetchGitHubContent.mockImplementation(async () => {
-      await new Promise(resolve => setTimeout(resolve, 100))
-      return mockResult
-    })
-
-    const startTime = Date.now()
-    await generate()
-    const endTime = Date.now()
-
-    const completionLog = consoleLogs.find(
-      log => log.includes('Site generation completed in') && log.includes('ms')
-    )
-    expect(completionLog).toBeDefined()
-
-    const timeMatch = completionLog?.match(/completed in (\d+)ms/)
-    expect(timeMatch).toBeTruthy()
-
-    if (timeMatch) {
-      const reportedTime = parseInt(timeMatch[1])
-      const actualTime = endTime - startTime
-
-      // Reported time should be close to actual time (within 20ms tolerance)
-      expect(Math.abs(reportedTime - actualTime)).toBeLessThan(20)
-      expect(reportedTime).toBeGreaterThan(90) // At least 90ms due to delay
-    }
-  })
-
-  test('should call asyncPipe with correct parameters', async () => {
-    const mockResult = {success: true, data: {}}
-    mockFetchGitHubContent.mockResolvedValue(mockResult)
-
-    await generate()
-
-    expect(mockAsyncPipe).toHaveBeenCalledWith(mockFetchGitHubContent)
-    expect(mockAsyncPipe).toHaveBeenCalledTimes(1)
-  })
-
-  test('should pass undefined to pipeline', async () => {
-    const mockResult = {success: true, data: {}}
-    mockFetchGitHubContent.mockResolvedValue(mockResult)
-
-    await generate()
-
-    expect(mockFetchGitHubContent).toHaveBeenCalledWith(undefined)
-    expect(mockFetchGitHubContent).toHaveBeenCalledTimes(1)
-  })
-
-  test('should handle asyncPipe creation errors', async () => {
-    const mockError = new Error('AsyncPipe creation failed')
-    mockAsyncPipe.mockImplementation(() => {
-      throw mockError
-    })
-
-    const result = await generate()
-
-    expect(result.success).toBe(false)
-    expect(result.error).toBe(mockError)
-    expect(consoleLogs).toContain('Starting site generation...')
-    expect(
-      consoleLogs.some(log => log.includes('Site generation completed'))
-    ).toBe(false)
-  })
-
-  test('should handle different return value types', async () => {
-    const mockResult = {
-      success: true,
-      data: {
-        files: new Map([['test.md', {path: 'test.md', content: 'test'}]]),
-        lastFetch: new Date(),
-        repoSha: 'abc123'
-      }
-    }
-    mockFetchGitHubContent.mockResolvedValue(mockResult)
-
-    const result = await generate()
-
-    expect(result.success).toBe(true)
-    expect(result.data).toEqual(mockResult)
-    expect(typeof result.data).toBe('object')
-  })
-
-  test('should handle null/undefined return values', async () => {
-    mockFetchGitHubContent.mockResolvedValue(null)
-
-    const result = await generate()
-
-    expect(result.success).toBe(true)
-    expect(result.data).toBe(null)
-  })
-
-  test('should handle zero build time', async () => {
-    const mockResult = {success: true, data: {}}
-    mockFetchGitHubContent.mockResolvedValue(mockResult)
-
-    // Mock Date.now to return same value (zero build time)
-    const originalDateNow = Date.now
-    const fixedTime = 1000000
-
-    Date.now = mock(() => fixedTime)
-
-    const result = await generate()
-
-    expect(result.success).toBe(true)
-    expect(
-      consoleLogs.some(log => log.includes('Site generation completed in 0ms'))
-    ).toBe(true)
+  afterEach(() => {
+    // Restore console
+    console.log = originalConsole.log
 
     // Restore Date.now
-    Date.now = originalDateNow
+    dateNowSpy.mockRestore()
   })
 
-  test('should maintain proper error object structure', async () => {
-    const mockError = new Error('Test error')
-    mockError.stack = 'Error stack trace'
-    mockFetchGitHubContent.mockRejectedValue(mockError)
+  describe('generate', () => {
+    it('should complete successful generation pipeline', async () => {
+      const {generate} = await import('./generator.ts')
 
-    const result = await generate()
+      const mockGitHubResponse: ServiceResponse<FileCollection> = ok({
+        files: [
+          {
+            sourcePath: 'test.md',
+            sha: 'abc123',
+            size: 100,
+            lastModified: new Date(),
+            type: 'file' as const
+          }
+        ],
+        lastFetch: new Date(),
+        repoSha: 'repo-sha-123'
+      })
 
-    expect(result.success).toBe(false)
-    expect(result.error).toBe(mockError)
-    expect(result.error.message).toBe('Test error')
-    expect(result.error.stack).toBe('Error stack trace')
-    expect('data' in result).toBe(false)
-  })
+      const mockProcessedResponse: ServiceResponse<FileCollection> = ok({
+        files: [
+          {
+            sourcePath: 'test.md',
+            localPath: '/tmp/test.md',
+            sha: 'abc123',
+            size: 100,
+            lastModified: new Date(),
+            type: 'markdown' as const
+          }
+        ],
+        lastFetch: new Date(),
+        repoSha: 'repo-sha-123'
+      })
 
-  test('should handle async pipeline correctly', async () => {
-    const mockResult = {success: true, data: {processed: true}}
+      mockFetchGitHubContent.mockResolvedValue(mockGitHubResponse)
+      mockProcessFilesContent.mockResolvedValue(mockProcessedResponse)
 
-    // Verify async behavior
-    let asyncCallCompleted = false
-    mockFetchGitHubContent.mockImplementation(async () => {
-      await new Promise(resolve => setTimeout(resolve, 10))
-      asyncCallCompleted = true
-      return mockResult
+      const result = await generate()
+
+      expect(result.success).toBe(true)
+      expect(mockFetchGitHubContent).toHaveBeenCalledWith(undefined)
+      expect(mockProcessFilesContent).toHaveBeenCalledWith(mockGitHubResponse)
+
+      expect(mockConsoleLog).toHaveBeenCalledWith('Starting site generation...')
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        'Site generation completed in 500ms'
+      )
     })
 
-    expect(asyncCallCompleted).toBe(false)
+    it('should handle GitHub fetcher failure', async () => {
+      const {generate} = await import('./generator.ts')
 
-    const result = await generate()
+      const fetchError = new Error('GitHub API failed')
+      const mockErrorResponse: ServiceResponse<FileCollection> = err(fetchError)
 
-    expect(asyncCallCompleted).toBe(true)
-    expect(result.success).toBe(true)
-    expect(result.data).toEqual(mockResult)
-  })
+      mockFetchGitHubContent.mockResolvedValue(mockErrorResponse)
 
-  test('should handle synchronous errors in pipeline', async () => {
-    const mockError = new Error('Sync error')
-    mockAsyncPipe.mockImplementation(() => {
-      return () => {
-        throw mockError
+      const result = await generate()
+
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBe(fetchError)
       }
+
+      expect(mockFetchGitHubContent).toHaveBeenCalledWith(undefined)
+      expect(mockProcessFilesContent).not.toHaveBeenCalled()
+
+      expect(mockConsoleLog).toHaveBeenCalledWith('Starting site generation...')
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        'Site generation failed after 500ms'
+      )
     })
 
-    const result = await generate()
+    it('should handle file processing failure', async () => {
+      const {generate} = await import('./generator.ts')
 
-    expect(result.success).toBe(false)
-    expect(result.error).toBe(mockError)
-  })
+      const mockGitHubResponse: ServiceResponse<FileCollection> = ok({
+        files: [
+          {
+            sourcePath: 'test.md',
+            sha: 'abc123',
+            size: 100,
+            lastModified: new Date(),
+            type: 'file' as const
+          }
+        ],
+        lastFetch: new Date(),
+        repoSha: 'repo-sha-123'
+      })
 
-  test('should log messages in correct order', async () => {
-    const mockResult = {success: true, data: {}}
-    mockFetchGitHubContent.mockResolvedValue(mockResult)
+      const processingError = new Error('File processing failed')
+      const mockErrorResponse: ServiceResponse<FileCollection> =
+        err(processingError)
 
-    await generate()
+      mockFetchGitHubContent.mockResolvedValue(mockGitHubResponse)
+      mockProcessFilesContent.mockResolvedValue(mockErrorResponse)
 
-    expect(consoleLogs[0]).toBe('Starting site generation...')
-    expect(consoleLogs[1]).toMatch(/Site generation completed in \d+ms/)
-    expect(consoleLogs).toHaveLength(2)
-  })
+      const result = await generate()
 
-  test('should handle large build times correctly', async () => {
-    const mockResult = {success: true, data: {}}
+      expect(result.success).toBe(false)
+      if (!result.success) {
+        expect(result.error).toBe(processingError)
+      }
 
-    // Mock a longer delay
-    mockFetchGitHubContent.mockImplementation(async () => {
-      await new Promise(resolve => setTimeout(resolve, 200))
-      return mockResult
+      expect(mockConsoleLog).toHaveBeenCalledWith('Starting site generation...')
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        'Site generation failed after 500ms'
+      )
     })
 
-    const result = await generate()
+    it('should measure execution time correctly', async () => {
+      const {generate} = await import('./generator.ts')
 
-    expect(result.success).toBe(true)
+      // Set up different timing
+      dateNowSpy.mockRestore()
+      dateNowSpy = spyOn(Date, 'now')
+        .mockReturnValueOnce(2000) // Start time
+        .mockReturnValueOnce(4250) // End time (2250ms later)
 
-    const completionLog = consoleLogs.find(
-      log => log.includes('Site generation completed in') && log.includes('ms')
-    )
-    const timeMatch = completionLog?.match(/completed in (\d+)ms/)
+      const mockResponse: ServiceResponse<FileCollection> = ok({
+        files: [],
+        lastFetch: new Date(),
+        repoSha: 'repo-sha-123'
+      })
 
-    if (timeMatch) {
-      const reportedTime = parseInt(timeMatch[1])
-      expect(reportedTime).toBeGreaterThan(190) // Should be at least 190ms
-      expect(reportedTime).toBeLessThan(300) // But not too much more
-    }
+      mockFetchGitHubContent.mockResolvedValue(mockResponse)
+      mockProcessFilesContent.mockResolvedValue(mockResponse)
+
+      await generate()
+
+      expect(mockConsoleLog).toHaveBeenCalledWith(
+        'Site generation completed in 2250ms'
+      )
+    })
   })
 })

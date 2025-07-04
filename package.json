@@ -46,7 +46,7 @@
     "new_test": "bun test --verbose --coverage",
     "new_ts": "tsc src2/*.ts",
     "new_server_dev": "bun --env-file=.env.development2 --watch src2/server.ts",
-    "new_dev": "bun new_format && bun new_lint && bun new_test && bun new_server_dev",
+    "new_dev": "bun new_format && bun new_lint && bun new_server_dev",
     "generate": "bun run out/generate.js",
     "server": "bun run out/index.js",
     "prod": "NODE_ENV=production bun run generate && bun run server",

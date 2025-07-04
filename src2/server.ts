@@ -28,6 +28,7 @@ if (!buildResult.success) {
   process.exit(1)
 }
 console.log(`Initial build completed`)
+console.log(buildResult)
 
 const app = new Elysia()
   .get('/api/v1/health', () => ({

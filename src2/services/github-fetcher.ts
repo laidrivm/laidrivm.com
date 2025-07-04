@@ -1,14 +1,9 @@
 import {Octokit} from 'octokit'
 
 import {ok, err} from '../utils.ts'
-import type {FileInfo, ServiceResponse, GitHubRepoContent} from '../types.ts'
+import type {FileInfo, ServiceResponse, FileCollection} from '../types.ts'
 
-import {
-  getFromCache,
-  isCacheValid,
-  invalidateCache,
-  storeInCache
-} from './cache.ts'
+import {isCacheValid, invalidateCache, storeInCache} from './cache.ts'
 
 /**
  * Creates Octokit instance with proper configuration
@@ -17,28 +12,7 @@ import {
 function createOctokit(): Octokit {
   console.log('Creating Octokit instance')
   return new Octokit({
-    auth: process.env.GITHUB_TOKEN,
-    throttle: {
-      onRateLimit: (retryAfter, options) => {
-        console.warn(
-          `GitHub rate limit hit. Retrying after ${retryAfter} seconds`
-        )
-        if (options.request.retryCount < 3) {
-          return true
-        }
-      },
-      onSecondaryRateLimit: (retryAfter, options) => {
-        console.warn(
-          `GitHub secondary rate limit hit. Retrying after ${retryAfter} seconds`
-        )
-        if (options.request.retryCount === 0) {
-          return true
-        }
-      }
-    },
-    retry: {
-      doNotRetry: ['429'] // Handle rate limiting with throttle plugin
-    }
+    auth: process.env.GITHUB_TOKEN
   })
 }
 
@@ -74,14 +48,6 @@ async function fetchFileContent(
       repo,
       path
     })
-
-    if (Array.isArray(fileInfo) || fileInfo.type !== 'file') {
-      return err(
-        new Error(
-          `Expected file, got ${Array.isArray(fileInfo) ? 'directory' : fileInfo.type}`
-        )
-      )
-    }
 
     return ok({
       content: data,
@@ -134,6 +100,45 @@ async function getFileLastModified(
 }
 
 /**
+ * Gets the latest commit SHA for the repository
+ * @param octokit - Octokit instance
+ * @param owner - Repository owner
+ * @param repo - Repository name
+ * @param path - Optional specific path
+ * @returns Latest commit SHA or null
+ */
+async function getLastCommitSha(
+  octokit: Octokit,
+  owner: string,
+  repo: string,
+  path?: string
+): Promise<string | null> {
+  try {
+    if (path) {
+      const {data: commits} = await octokit.rest.repos.listCommits({
+        owner,
+        repo,
+        path,
+        sha: 'main',
+        per_page: 1 // only need the latest commit
+      })
+      return commits[0]?.sha || null
+    } else {
+      const {data: commits} = await octokit.rest.repos.listCommits({
+        owner,
+        repo,
+        sha: 'main',
+        per_page: 1 // only need the latest commit
+      })
+      return commits[0]?.sha || null
+    }
+  } catch (error) {
+    console.error(`Error getting last commit: ${error}`)
+    return null
+  }
+}
+
+/**
  * Recursively fetches repository file tree
  * @param octokit - Octokit instance
  * @param owner - Repository owner
@@ -146,72 +151,69 @@ async function fetchRepositoryContent(
   owner: string,
   repo: string,
   path = ''
-): Promise<ServiceResponse<GitHubRepoContent>> {
-  try {
-    const files = new Map<string, FileInfo>()
+): Promise<ServiceResponse<FileInfo[]>> {
+  const files: FileInfo[] = []
 
-    const {data: contents} = await octokit.rest.repos.getContent({
-      owner,
-      repo,
-      path
-      // ref, The name of the commit/branch/tag. Defaults to the repository’s default branch if not specified.
-    })
+  const {data: contents} = await octokit.rest.repos.getContent({
+    owner,
+    repo,
+    path
+    // ref, The name of the commit/branch/tag. Defaults to the repository’s default branch if not specified.
+  })
 
-    const items = Array.isArray(contents) ? contents : [contents]
+  const items = Array.isArray(contents) ? contents : [contents]
 
-    for (const item of items) {
-      if (item.type === 'file') {
-        const fileResult = await fetchFileContent(
-          octokit,
-          owner,
-          repo,
-          item.path
-        )
-        if (!fileResult.success) {
-          console.error(
-            `Failed to fetch ${item.path}:`,
-            fileResult.error.message
-          )
-          continue
-        }
+  for (const item of items) {
+    if (item.type === 'file') {
+      const fileSha = await getLastCommitSha(octokit, owner, repo, item.path)
+      if (isCacheValid(fileSha, item.path)) {
+        console.log(`Content for ${item.path} is cached)`)
+        continue
+      }
+      invalidateCache(item.path)
 
-        const lastModified = await getFileLastModified(
-          octokit,
-          owner,
-          repo,
-          item.path
-        )
+      const fileResult = await fetchFileContent(octokit, owner, repo, item.path)
+      if (!fileResult.success) {
+        console.error(`Failed to fetch ${item.path}:`, fileResult.error.message)
+        continue
+      }
 
-        const fileInfo: FileInfo = {
-          path: item.path,
-          content: fileResult.data.content,
-          sha: fileResult.data.sha,
-          size: fileResult.data.size,
-          lastModified,
-          type: 'file'
-        }
+      const lastModified = await getFileLastModified(
+        octokit,
+        owner,
+        repo,
+        item.path
+      )
 
-        files.set(item.path, fileInfo)
-      } else if (item.type === 'dir') {
-        const subdirResult = await fetchRepositoryContent(
-          octokit,
-          owner,
-          repo,
-          item.path
-        )
+      const fileInfo: FileInfo = {
+        sourcePath: item.path,
+        content: fileResult.data.content,
+        sha: fileResult.data.sha,
+        size: fileResult.data.size,
+        lastModified,
+        type: 'file'
+      }
 
-        if (subdirResult.success) {
-          for (const [filePath, fileInfo] of subdirResult.data) {
-            files.set(filePath, fileInfo)
-          }
-        }
+      files.push(fileInfo)
+      storeInCache(fileInfo)
+    } else if (item.type === 'dir') {
+      const subdirResult = await fetchRepositoryContent(
+        octokit,
+        owner,
+        repo,
+        item.path
+      )
+
+      if (subdirResult.success) {
+        files.push(...subdirResult.data)
       }
     }
-
-    return ok(files)
-  } catch (error) {
-    return err(error)
   }
+
+  if (files.length > 0) {
+    return ok(files)
+  }
+  return err(new Error(`No files fetched`))
 }
 
 /**
@@ -219,72 +221,37 @@ async function fetchRepositoryContent(
  * @returns Repository content result
  */
 export async function fetchGitHubContent(): Promise<
-  ServiceResponse<GitHubRepoContent>
+  ServiceResponse<FileCollection>
 > {
-  try {
-    const octokit = createOctokit()
+  const octokit = createOctokit()
 
-    const repoUrl = new URL(process.env.GITHUB_REPO)
-    const [owner, repo] = repoUrl.pathname.split('/').filter(Boolean)
+  const repoUrl = new URL(process.env.GITHUB_REPO)
+  const [owner, repo] = repoUrl.pathname.split('/').filter(Boolean)
+  console.log(
+    `Trying to fetch repository content for owner: ${owner} and repo: ${repo}`
+  )
 
-    console.log(
-      `Trying to fetch repository content for owner: ${owner} and repo: ${repo}`
-    )
-
-    // Get latest commit SHA for cache invalidation - use the correct endpoint
-    const {data: latestCommit} = await octokit.rest.repos.listCommits({
-      owner,
-      repo,
-      per_page: 1 // Only get the most recent commit
-    })
-
-    if (latestCommit.length === 0) {
-      return err(new Error('No commits found in repository'))
-    }
-
-    const currentSha = latestCommit[0].sha
-    console.log(`Latest commit SHA: ${currentSha}`)
-
-    // Check cache first
-    const cachedContent = getFromCache(owner, repo)
-    if (
-      cachedContent &&
-      isCacheValid({content: cachedContent, timestamp: Date.now()}, currentSha)
-    ) {
-      console.log(
-        `Using cached content for ${owner}/${repo} (SHA: ${currentSha})`
-      )
-      return ok(cachedContent)
-    }
-
-    // Invalidate old cache if it exists
-    if (cachedContent) {
-      invalidateCache(owner, repo)
-    }
-
-    // Fetch fresh content
-    console.log(`Fetching fresh content for ${owner}/${repo}`)
-    const filesResult = await fetchRepositoryContent(octokit, owner, repo, '')
-
-    if (!filesResult.success) {
-      return filesResult
-    }
-
-    const repoContent: GitHubRepoContent = {
-      files: filesResult.data,
-      lastFetch: new Date(),
-      repoSha: currentSha
-    }
-
-    // Store in cache
-    storeInCache(owner, repo, repoContent)
-
-    console.log(
-      `Content fetched for SHA ${repoContent.repoSha} at ${repoContent.lastFetch}`
-    )
-
-    return ok(repoContent)
-  } catch (error) {
-    return err(error)
+  const latestSha = await getLastCommitSha(octokit, owner, repo)
+  if (!latestSha) {
+    return err(new Error('No commits found in repository'))
   }
+  console.log(`Latest commit SHA: ${latestSha}`)
+
+  const filesResult = await fetchRepositoryContent(octokit, owner, repo, '')
+
+  if (!filesResult.success) {
+    return filesResult
+  }
+
+  const repoContent = {
+    files: filesResult.data,
+    lastFetch: new Date(),
+    repoSha: latestSha
+  }
+
+  console.log(
+    `Content fetched for SHA ${repoContent.repoSha} at ${repoContent.lastFetch}`
+  )
+
+  return ok(repoContent)
 }
