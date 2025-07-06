@@ -1,7 +1,12 @@
 import {Octokit} from 'octokit'
 
 import {ok, err, isIgnored} from '../utils.ts'
-import type {FileInfo, ServiceResponse, FileCollection} from '../types.ts'
+import type {
+  FileInfo,
+  ServiceResponse,
+  FileCollection,
+  GenerateType
+} from '../types.ts'
 
 import {isCacheValid, invalidateCache, storeInCache} from './cache.ts'
 
@@ -214,19 +219,16 @@ async function fetchRepositoryContent(
     }
   }
 
-  if (files.length > 0) {
-    return ok(files)
-  }
-  return err(new Error(`No files fetched`))
+  return ok(files)
 }
 
 /**
  * Fetches complete repository content with caching
  * @returns Repository content result
  */
-export async function fetchGitHubContent(): Promise<
-  ServiceResponse<FileCollection>
-> {
+export async function fetchGitHubContent(
+  mode: GenerateType
+): Promise<ServiceResponse<FileCollection>> {
   const octokit = createOctokit()
 
   const repoUrl = new URL(process.env.GITHUB_REPO)
@@ -243,14 +245,11 @@ export async function fetchGitHubContent(): Promise<
 
   const filesResult = await fetchRepositoryContent(octokit, owner, repo, '')
 
-  if (!filesResult.success) {
-    return fileResult
-  }
-
   const repoContent = {
     files: filesResult.data,
     lastFetch: new Date(),
-    repoSha: latestSha
+    repoSha: latestSha,
+    mode
   }
 
   console.log(

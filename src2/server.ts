@@ -1,7 +1,13 @@
 import {Elysia} from 'elysia'
 
+import packageJson from '../package.json'
+
 import {initializeCache} from './services/cache.ts'
 import {generate} from './services/generator.ts'
+
+process.env.VERSION = process.env.VERSION || packageJson.version
+
+console.log(`Server version: ${process.env.VERSION}`)
 
 /**
  * Loads TLS certificates for secure server
@@ -25,32 +31,21 @@ console.log('Initializing cache from local files...')
 await initializeCache()
 
 console.log('Triggering initial site generation...')
-const buildResult = await generate()
+const buildResult = await generate('initial')
 
 if (!buildResult.success) {
   console.error('Initial build failed:', buildResult.error)
   process.exit(1)
 }
 console.log(`Initial build completed`)
-console.log(buildResult)
 
 const app = new Elysia()
   .get('/api/v1/health', () => ({
-    status: 'ok',
-    lastBuild: new Date().toISOString()
+    status: 'ok'
   }))
   .post('/api/v1/regenerate', async () => {
-    const regenerateResult = await generate()
-    if (!regenerateResult.success) {
-      return {
-        success: false,
-        error: regenerateResult.error
-      }
-    }
-    return {
-      success: true,
-      data: regenerateResult.data
-    }
+    const regenerateResult = await generate('new')
+    return regenerateResult
   })
   .listen({
     port: process.env.PORT,

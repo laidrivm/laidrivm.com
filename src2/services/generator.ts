@@ -1,6 +1,7 @@
 import {asyncPipe, ok} from '../utils.ts'
-import type {ServiceResponse} from '../types.ts'
+import type {ServiceResponse, GenerateType} from '../types.ts'
 
+import {loadMetaVersion, createMetaFile} from './metafile.ts'
 import {fetchGitHubContent} from './github-fetcher.ts'
 import {processFilesContent} from './file-scanner.ts'
 
@@ -8,9 +9,20 @@ import {processFilesContent} from './file-scanner.ts'
  * Triggers the complete site generation process
  * @returns Build result
  */
-export async function generate(): Promise<ServiceResponse> {
+export async function generate(
+  mode: GenerateType
+): Promise<ServiceResponse<Date>> {
   const startTime = Date.now()
-  console.log('Starting site generation...')
+  console.log(`Starting site generation in the ${mode} mode`)
+
+  const metaVersion = await loadMetaVersion()
+  if (mode === 'initial') {
+    if (process.env.VERSION > metaVersion) {
+      mode = 'all'
+    } else {
+      mode = 'new'
+    }
+  }
 
   const pipelineResult = await asyncPipe(
     fetchGitHubContent,
@@ -21,13 +33,14 @@ export async function generate(): Promise<ServiceResponse> {
     // optimizeOutput,
     // processAssets,
     // uploadToCloudflare
-  )(undefined)
+  )(mode)
 
   const buildTime = Date.now() - startTime
 
   if (pipelineResult.success) {
     console.log(`Site generation completed in ${buildTime}ms`)
-    return ok(pipelineResult.data)
+    const date = await createMetaFile()
+    return ok(date)
   }
 
   console.log(`Site generation failed after ${buildTime}ms`)

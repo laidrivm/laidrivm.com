@@ -6,6 +6,8 @@ export interface ServiceResponse<T, E = Error> {
 
 export type FileType = 'markdown' | 'unsupported'
 
+export type GenerateType = 'new' | 'all' | 'initial' | 'skip'
+
 export interface FileInfo {
   sourcePath: string // Original GitHub path
   localPath?: string // Local filesystem path
@@ -20,9 +22,15 @@ export interface FileCollection {
   readonly files: FileInfo[]
   readonly lastFetch: Date
   readonly repoSha: string
+  readonly mode: GenerateType
 }
 
 export interface CacheEntry {
   file: FileInfo
   sha: number
+}
+
+export interface MetaFile {
+  version: string
+  builtAt: Date
 }

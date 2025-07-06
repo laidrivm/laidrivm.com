@@ -92,6 +92,20 @@ export async function processFilesContent(
   const githubFiles = githubContent.data.files
   console.log(`Processing ${githubFiles.length} files from repository...`)
 
+  switch (githubContent.data.mode) {
+    case 'new':
+      if (githubFiles.length === 0) {
+        console.log('Nothing to process, skipping next steps')
+      }
+      return ok({
+        mode: 'skip'
+      })
+    case 'all':
+      break
+    default:
+      return err(new Error('Unknown generation mode'))
+  }
+
   const contentFiles: FileInfo[] = []
 
   for (const rawFile of githubFiles) {
