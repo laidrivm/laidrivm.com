@@ -31,7 +31,7 @@ console.log('Initializing cache from local files...')
 await initializeCache()
 
 console.log('Triggering initial site generation...')
-const buildResult = await generate('initial')
+const buildResult = await generate('all')
 
 if (!buildResult.success) {
   console.error('Initial build failed:', buildResult.error)

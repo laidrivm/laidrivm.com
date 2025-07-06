@@ -1,7 +1,7 @@
 import {readdir, mkdir} from 'node:fs/promises'
 
-import {isIgnored, ok, err} from '../utils.ts'
-import type {FileInfo, ServiceResult} from '../types.ts'
+import {isIgnored, ok, err, getFileType} from '../utils.ts'
+import type {FileInfo, ServiceResult, FileMeta} from '../types.ts'
 
 const repoCache = new Map<string, FileInfo>()
 
@@ -23,27 +23,28 @@ async function createDir(fullPath) {
  */
 export async function storeInCache(file: FileInfo): Promise<void> {
   try {
-    const fullPath = `${process.env.ARTICLES_DIR}/${file.sourcePath}`
+    const localPath = `${process.env.ARTICLES_DIR}/${file.sourcePath}`
 
     // Save file content
-    await createDir(fullPath)
-    await Bun.write(fullPath, file.content)
+    await createDir(localPath)
+    await Bun.write(localPath, file.content)
 
     // Save metadata with GitHub SHA
-    const metadataPath = `${fullPath}.meta`
+    const metadataPath = `${localPath}.meta`
     const metadata = {
       sha: file.sha,
       size: file.size,
       lastModified: file.lastModified
     }
     await Bun.write(metadataPath, JSON.stringify(metadata, null, 2))
+
     console.log(
       `Saved file ${file.sourcePath} and it's metadata ${metadataPath} to local directory`
     )
 
     repoCache.set(file.sourcePath, file)
     console.log(`Cached file ${file.sourcePath} with SHA ${file.sha}`)
-    return ok(fullPath)
+    return ok(localPath)
   } catch (error) {
     console.error(`Failed to save file ${file.sourcePath}:`, error)
     return err(error instanceof Error ? error : new Error('Unknown error'))
@@ -119,17 +120,15 @@ async function scanDirectoryRecursive(
  * @param content - File content for fallback SHA calculation
  * @returns GitHub SHA or null
  */
-async function getFileGitHubSha(filePath: string): Promise<string | null> {
+export async function getFileMeta(filePath: string): Promise<FileMeta | null> {
   const metadataPath = `${filePath}.meta`
-  console.log(`Trying to get metadata from ${metadataPath}`)
 
   try {
     const metadataFile = Bun.file(metadataPath)
     if (await metadataFile.exists()) {
       const metadata = await metadataFile.json()
-      if (metadata.sha) {
-        return metadata.sha
-      }
+      console.log(`Metada retrieved: ${JSON.stringify(metadata)}`)
+      return metadata
     }
   } catch (error) {
     console.warn(`Failed to read metadata for ${filePath}:`, error)
@@ -158,17 +157,17 @@ async function processFileForCache(
     const sourcePath = filePath.replace(articlesDir, '').replace(/^\//, '')
 
     // Get GitHub SHA from metadata
-    const sha = await getFileGitHubSha(filePath)
+    const meta = await getFileMeta(filePath)
 
-    if (sha) {
+    if (meta) {
       console.log(`File ${sourcePath} was added to cache`)
       return {
         sourcePath,
         content,
-        sha,
-        size: stats.size,
-        lastModified: stats.mtime,
-        type: 'file'
+        sha: meta?.sha || null,
+        size: meta?.size || stats.size,
+        lastModified: new Date(meta?.lastModified),
+        type: getFileType(sourcePath)
       }
     } else {
       console.log(`File ${sourcePath} skipped for cache: no GitHub SHA`)

@@ -1,4 +1,6 @@
-import type {ServiceResult} from './types.ts'
+import {extname} from 'path'
+
+import type {ServiceResult, FileType} from './types.ts'
 
 /**
  * List of files to ignore when processing repositories
@@ -25,6 +27,23 @@ export function isIgnored(path: string, name: string): boolean {
     IGNORE_LIST.includes(name) ||
     IGNORE_LIST.some(ignored => path.includes(ignored))
   )
+}
+
+/**
+ * Determines if file is a supported content type
+ * @param path - File path
+ * @returns Content file type
+ */
+export function getFileType(path: string): FileType {
+  const extension = extname(path).toLowerCase()
+
+  switch (extension) {
+    case '.md':
+    case '.markdown':
+      return 'markdown'
+    default:
+      return 'unsupported'
+  }
 }
 
 export function asyncPipe<T>(...functions: Function[]): ServiceResult {

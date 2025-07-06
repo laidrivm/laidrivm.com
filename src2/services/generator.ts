@@ -37,6 +37,8 @@ export async function generate(
 
   const buildTime = Date.now() - startTime
 
+  console.log(pipelineResult)
+
   if (pipelineResult.success) {
     console.log(`Site generation completed in ${buildTime}ms`)
     const date = await createMetaFile()

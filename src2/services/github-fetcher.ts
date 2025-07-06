@@ -1,6 +1,6 @@
 import {Octokit} from 'octokit'
 
-import {ok, err, isIgnored} from '../utils.ts'
+import {ok, err, isIgnored, getFileType} from '../utils.ts'
 import type {
   FileInfo,
   ServiceResponse,
@@ -200,11 +200,12 @@ async function fetchRepositoryContent(
         sha: fileSha,
         size: fileResult.data.size,
         lastModified,
-        type: 'file'
+        type: getFileType(item.path)
       }
 
       files.push(fileInfo)
-      await storeInCache(fileInfo)
+      const cachingResult = await storeInCache(fileInfo)
+      fileInfo.localPath = cachingResult.data
     } else if (item.type === 'dir') {
       const subdirResult = await fetchRepositoryContent(
         octokit,
@@ -229,6 +230,16 @@ async function fetchRepositoryContent(
 export async function fetchGitHubContent(
   mode: GenerateType
 ): Promise<ServiceResponse<FileCollection>> {
+  if (mode === 'local') {
+    console.log(`Generating files in local mode, no need to fetch repository`)
+    return ok({
+      files: [],
+      lastFetch: null,
+      repoSha: null,
+      mode
+    })
+  }
+
   const octokit = createOctokit()
 
   const repoUrl = new URL(process.env.GITHUB_REPO)
@@ -239,7 +250,7 @@ export async function fetchGitHubContent(
 
   const latestSha = await getLastCommitSha(octokit, owner, repo)
   if (!latestSha) {
-    return err(new Error('No commits found in repository'))
+    return err(new Error('No commits found in the repository'))
   }
   console.log(`Latest commit SHA: ${latestSha}`)
 

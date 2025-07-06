@@ -6,13 +6,13 @@ export interface ServiceResponse<T, E = Error> {
 
 export type FileType = 'markdown' | 'unsupported'
 
-export type GenerateType = 'new' | 'all' | 'initial' | 'skip'
+export type GenerateType = 'new' | 'all' | 'initial' | 'skip' | 'local'
 
 export interface FileInfo {
   sourcePath: string // Original GitHub path
   localPath?: string // Local filesystem path
   content?: string
-  sha: string
+  sha: string | null
   size: number
   lastModified: Date
   type: FileType
@@ -30,7 +30,8 @@ export interface CacheEntry {
   sha: number
 }
 
-export interface MetaFile {
-  version: string
-  builtAt: Date
+export interface FileMeta {
+  sha: string
+  size: number
+  lastModified: Date
 }

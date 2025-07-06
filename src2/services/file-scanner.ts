@@ -1,80 +1,84 @@
-import {mkdir} from 'node:fs/promises'
-import {dirname, join, extname} from 'path'
+import {readdir, stat} from 'node:fs/promises'
+import {join} from 'path'
 
-import {ok, err} from '../utils.ts'
-import type {
-  ServiceResponse,
-  FileInfo,
-  FileCollection,
-  FileType
-} from '../types.ts'
+import {ok, err, isIgnored, getFileType} from '../utils.ts'
+import type {ServiceResponse, FileInfo, FileCollection} from '../types.ts'
+
+import {getFileMeta} from './cache.ts'
 
 /**
- * Determines if file is a supported content type
- * @param path - File path
- * @returns Content file type
+ * Recursively scans a directory and returns FileInfo objects
+ * @param currentPath - Current directory being scanned
+ * @param basePath - Base directory path for relative path calculation
+ * @returns Array of FileInfo objects
  */
-function getContentFileType(path: string): FileType {
-  const extension = extname(path).toLowerCase()
+async function scanDirectoryRecursive(
+  currentPath: string,
+  basePath: string
+): Promise<ServiceResponse<FileInfo[]>> {
+  const files: FileInfo[] = []
 
-  switch (extension) {
-    case '.md':
-    case '.markdown':
-      return 'markdown'
-    default:
-      return 'unsupported'
-  }
-}
-
-/**
- * Saves file content to local filesystem
- * @param content - File content
- * @param localPath - Local path to save to
- * @returns Success/failure result
- */
-async function saveFileToLocal(
-  content: string,
-  localPath: string
-): Promise<ServiceResponse<void>> {
   try {
-    // Ensure directory exists
-    const directory = dirname(localPath)
-    await mkdir(directory, {recursive: true})
+    const entries = await readdir(currentPath)
 
-    // Write file
-    await Bun.write(localPath, content)
+    for (const entry of entries) {
+      const fullPath = join(currentPath, entry)
+      const relativePath = fullPath.replace(basePath, '').replace(/^\//, '')
 
-    return ok(undefined)
+      if (isIgnored(relativePath, entry)) {
+        continue
+      }
+
+      try {
+        const stats = await stat(fullPath)
+
+        if (stats.isDirectory()) {
+          // Recursively scan subdirectories
+          const subFiles = await scanDirectoryRecursive(fullPath, basePath)
+          files.push(...subFiles.data)
+        } else if (stats.isFile()) {
+          const meta = await getFileMeta(fullPath)
+          const fileInfo: FileInfo = {
+            sourcePath: relativePath,
+            localPath: fullPath,
+            sha: meta?.sha || null,
+            size: meta?.size || stats.size,
+            lastModified: (meta && new Date(meta?.lastModified)) || stats.mtime,
+            type: getFileType(fullPath)
+          }
+          files.push(fileInfo)
+        }
+      } catch (statError) {
+        // Skip files that can't be accessed (permissions, etc.)
+        console.warn(`Cannot access ${fullPath}:`, statError)
+        continue
+      }
+    }
   } catch (error) {
+    console.error(`Failed to read directory ${currentPath}: ${error}`)
     return err(error)
   }
+
+  return ok(files)
 }
 
 /**
- * Processes a single raw file
- * @param rawFile - Raw file from GitHub (FileInfo)
- * @returns Processed content file
+ * Scans a directory recursively and returns file information
+ * @param dirPath - Directory path to scan
+ * @returns ServiceResponse with array of FileInfo objects
  */
-async function processFile(
-  rawFile: FileInfo
-): Promise<ServiceResponse<FileInfo>> {
-  const localPath = join(process.env.ARTICLES_DIR, rawFile.sourcePath)
+async function scanLocalContent(dirPath?: string): Promise<FileInfo[]> {
+  const articlesDir = dirPath || process.env.ARTICLES_DIR
 
-  if (rawFile.content.trim().length === 0) {
-    return err(new Error('File is empty'))
+  if (!articlesDir) {
+    return err(new Error('ARTICLES_DIR environment variable is not set'))
   }
 
-  const saveResult = await saveFileToLocal(rawFile.content, localPath)
-
-  if (saveResult.success) {
-    return ok({
-      ...rawFile,
-      localPath,
-      type: getContentFileType(rawFile.sourcePath)
-    })
+  const files = await scanDirectoryRecursive(articlesDir, articlesDir)
+  if (!files.success) {
+    return files
   }
-
-  return err(saveResult.error)
+  return files.data
 }
 
 /**
@@ -89,42 +93,32 @@ export async function processFilesContent(
     return githubContent
   }
 
-  const githubFiles = githubContent.data.files
-  console.log(`Processing ${githubFiles.length} files from repository...`)
+  let files = githubContent.data.files
+  console.log(`Processing ${files.length} files from repository`)
 
   switch (githubContent.data.mode) {
     case 'new':
-      if (githubFiles.length === 0) {
-        console.log('Nothing to process, skipping next steps')
-      }
-      return ok({
-        mode: 'skip'
-      })
+      console.log(`Need to generate only new files, passing them by`)
+      break
+    case 'local':
     case 'all':
+      console.log(`Need to generate all the files, scanning for them`)
+      files = await scanLocalContent()
       break
     default:
       return err(new Error('Unknown generation mode'))
   }
 
-  const contentFiles: FileInfo[] = []
-
-  for (const rawFile of githubFiles) {
-    const processed = await processFile(rawFile)
-    if (processed.success) {
-      contentFiles.push(processed.data)
-      console.log(
-        `Saved: ${processed.data.sourcePath} -> ${processed.data.localPath}`
-      )
-    } else {
-      console.error(`Failed to save file ${rawFile.path}:`, processed.error)
-    }
-  }
-  if (contentFiles.length > 0) {
+  if (files.length > 0) {
     return ok({
-      files: contentFiles,
+      files,
       lastFetch: githubContent.data.lastFetch,
-      repoSha: githubContent.data.repoSha
+      repoSha: githubContent.data.repoSha,
+      mode: githubContent.data.mode
     })
   }
-  return err(new Error(`No files to process`))
+  console.log('No files to process, skipping next steps')
+  return ok({
+    mode: 'skip'
+  })
 }
