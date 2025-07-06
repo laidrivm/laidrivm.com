@@ -1,5 +1,32 @@
 import type {ServiceResult} from './types.ts'
 
+/**
+ * List of files to ignore when processing repositories
+ */
+export const IGNORE_LIST = [
+  'README.md',
+  '.git',
+  '.gitignore',
+  'LICENSE',
+  '.github',
+  '.meta',
+  'node_modules',
+  '.DS_Store'
+]
+
+/**
+ * Check if a path should be ignored
+ * @param path - File path
+ * @param name - File name
+ * @returns Whether the path should be ignored
+ */
+export function isIgnored(path: string, name: string): boolean {
+  return (
+    IGNORE_LIST.includes(name) ||
+    IGNORE_LIST.some(ignored => path.includes(ignored))
+  )
+}
+
 export function asyncPipe<T>(...functions: Function[]): ServiceResult {
   return async (initialValue: T) => {
     let currentValue = initialValue

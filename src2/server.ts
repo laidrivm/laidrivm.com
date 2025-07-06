@@ -1,5 +1,6 @@
 import {Elysia} from 'elysia'
 
+import {initializeCache} from './services/cache.ts'
 import {generate} from './services/generator.ts'
 
 /**
@@ -19,6 +20,9 @@ async function loadTlsCertificates(): Promise<{key: string; cert: string}> {
 
 console.log('Loading certificates...')
 const {key, cert} = await loadTlsCertificates()
+
+console.log('Initializing cache from local files...')
+await initializeCache()
 
 console.log('Triggering initial site generation...')
 const buildResult = await generate()

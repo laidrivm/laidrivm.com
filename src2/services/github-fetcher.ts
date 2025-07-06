@@ -1,27 +1,9 @@
 import {Octokit} from 'octokit'
 
-import {ok, err} from '../utils.ts'
+import {ok, err, isIgnored} from '../utils.ts'
 import type {FileInfo, ServiceResponse, FileCollection} from '../types.ts'
 
 import {isCacheValid, invalidateCache, storeInCache} from './cache.ts'
-
-/**
- * List of files to ignore when processing repositories
- */
-const IGNORE_LIST = ['README.md', '.git', '.gitignore', 'LICENSE', '.github']
-
-/**
- * Check if a path should be ignored
- * @param path - File path
- * @param name - File name
- * @returns Whether the path should be ignored
- */
-function isIgnored(path: string, name: string): boolean {
-  return (
-    IGNORE_LIST.includes(name) ||
-    IGNORE_LIST.some(ignored => path.includes(`/${ignored}`))
-  )
-}
 
 /**
  * Creates Octokit instance with proper configuration
@@ -131,21 +113,20 @@ async function getLastCommitSha(
   repo: string,
   path?: string
 ): Promise<string | null> {
+  console.log(`getLastCommitSha is called for ${owner}, ${repo} and ${path}`)
   try {
     if (path) {
-      const {data: commits} = await octokit.rest.repos.listCommits({
+      const {data: commits} = await octokit.rest.repos.getCommit({
         owner,
         repo,
         path,
-        sha: 'main',
         per_page: 1 // only need the latest commit
       })
       return commits[0]?.sha || null
     } else {
-      const {data: commits} = await octokit.rest.repos.listCommits({
+      const {data: commits} = await octokit.rest.repos.getCommit({
         owner,
         repo,
-        sha: 'main',
         per_page: 1 // only need the latest commit
       })
       return commits[0]?.sha || null
@@ -189,8 +170,8 @@ async function fetchRepositoryContent(
       }
 
       const fileSha = await getLastCommitSha(octokit, owner, repo, item.path)
-      if (isCacheValid(fileSha, item.path)) {
-        console.log(`Content for ${item.path} is cached)`)
+      if (isCacheValid(item.path, fileSha)) {
+        console.log(`Content for ${item.path} is cached`)
         continue
       }
       invalidateCache(item.path)
@@ -211,14 +192,14 @@ async function fetchRepositoryContent(
       const fileInfo: FileInfo = {
         sourcePath: item.path,
         content: fileResult.data.content,
-        sha: fileResult.data.sha,
+        sha: fileSha,
         size: fileResult.data.size,
         lastModified,
         type: 'file'
       }
 
       files.push(fileInfo)
-      storeInCache(fileInfo)
+      await storeInCache(fileInfo)
     } else if (item.type === 'dir') {
       const subdirResult = await fetchRepositoryContent(
         octokit,
@@ -263,7 +244,7 @@ export async function fetchGitHubContent(): Promise<
   const filesResult = await fetchRepositoryContent(octokit, owner, repo, '')
 
   if (!filesResult.success) {
-    return filesResult
+    return fileResult
   }
 
   const repoContent = {
