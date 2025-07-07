@@ -6,7 +6,7 @@ export interface ServiceResponse<T, E = Error> {
   data?: T
 }
 
-export type FileType = 'markdown' | 'unsupported'
+export type FileType = 'markdown' | 'unsupported' | 'jsx' | 'html'
 
 export type GenerateType = 'new' | 'all' | 'initial' | 'skip' | 'local'
 

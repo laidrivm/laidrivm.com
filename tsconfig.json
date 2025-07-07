@@ -7,15 +7,8 @@
     "moduleDetection": "force",
     "allowJs": true,
     "jsx": "react-jsx",
-
-    //setting up preact
-    "jsxImportSource": "preact",
-    "baseUrl": "./",
-    "paths": {
-      "react": ["node_modules/preact/compat"],
-      "react-dom": ["./node_modules/preact/compat/"]
-    },
-    "typeRoots": ["src2/types", "./node_modules/@types"],
+    "jsxImportSource": "@kitajs/html",
+    "plugins": [{ "name": "@kitajs/ts-html-plugin" }],
 
     // Bundler mode
     "moduleResolution": "bundler",
