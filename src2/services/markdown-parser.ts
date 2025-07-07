@@ -85,9 +85,7 @@ export async function parseMarkdown(
   }
 
   return ok({
-    files: processedFiles,
-    lastFetch: scannerContent.data.lastFetch,
-    repoSha: scannerContent.data.repoSha,
-    mode: scannerContent.data.mode
+    ...scannerContent.data,
+    files: processedFiles
   })
 }

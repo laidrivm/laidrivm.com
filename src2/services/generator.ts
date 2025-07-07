@@ -5,6 +5,7 @@ import {loadMetaVersion, createMetaFile} from './metafile.ts'
 import {fetchGitHubContent} from './github-fetcher.ts'
 import {processFilesContent} from './file-scanner.ts'
 import {parseMarkdown} from './markdown-parser.ts'
+import {markdownToJSX} from './renderer.tsx'
 
 /**
  * Triggers the complete site generation process
@@ -28,8 +29,8 @@ export async function generate(
   const pipelineResult = await asyncPipe(
     fetchGitHubContent,
     processFilesContent,
-    parseMarkdown
-    // extractMetadata
+    parseMarkdown,
+    markdownToJSX
     // renderFromTemplate
     // optimizeOutput
     // processAssets

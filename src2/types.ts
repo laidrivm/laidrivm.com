@@ -1,4 +1,4 @@
-import type {TokensList} from 'marked'
+import type {TokensList, Token} from 'marked'
 
 export interface ServiceResponse<T, E = Error> {
   success: boolean
@@ -13,7 +13,7 @@ export type GenerateType = 'new' | 'all' | 'initial' | 'skip' | 'local'
 export interface FileInfo {
   sourcePath: string // Original GitHub path
   localPath?: string // Local filesystem path
-  content?: string | TokensList
+  content?: string | TokensList | JSX.Element
   frontmatter?: Object
   sha: string | null
   size: number
@@ -43,3 +43,123 @@ export interface MarkdownContent {
   frontmatter: Object
   tokens: TokensList
 }
+
+export interface HeadingProps {
+  depth: number
+  raw: string
+  children: JSX.Element
+}
+
+export interface ParagraphProps {
+  raw: string
+  children: JSX.Element
+}
+
+export interface ListProps {
+  ordered: boolean
+  start?: number
+  loose: boolean
+  raw: string
+  children: JSX.Element
+}
+
+export interface ListItemProps {
+  task: boolean
+  loose: boolean
+  raw: string
+  children: JSX.Element
+}
+
+export interface CheckboxProps {
+  checked: boolean
+}
+
+export interface CodeProps {
+  text: string
+  lang?: string
+  escaped?: boolean
+  raw: string
+}
+
+export interface CodeSpanProps {
+  text: string
+  raw: string
+}
+
+export interface BlockquoteProps {
+  raw: string
+  children: JSX.Element
+}
+
+export interface LinkProps {
+  href: string
+  title?: string
+  raw: string
+  children: JSX.Element
+}
+
+export interface ImageProps {
+  href: string
+  title?: string
+  text: string
+  raw: string
+}
+
+export interface StrongProps {
+  raw: string
+  children: JSX.Element
+}
+
+export interface EmProps {
+  raw: string
+  children: JSX.Element
+}
+
+export interface DelProps {
+  raw: string
+  children: JSX.Element
+}
+
+export interface HrProps {
+  raw: string
+}
+
+export interface BrProps {
+  raw: string
+}
+
+export interface TableProps {
+  raw: string
+  children: JSX.Element
+}
+
+export interface TableRowProps {
+  header?: boolean
+  children: JSX.Element
+}
+
+export interface TableCellProps {
+  header: boolean
+  align?: 'left' | 'center' | 'right'
+  raw: string
+  children: JSX.Element
+}
+
+export interface HtmlProps {
+  text: string
+  raw: string
+  pre?: boolean
+  block?: boolean
+}
+
+export interface SpaceProps {
+  raw: string
+}
+
+export interface TextProps {
+  raw: string
+  escaped?: boolean
+  children: JSX.Element
+}
+
+export type {TokensList, Token}
