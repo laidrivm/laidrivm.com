@@ -37,10 +37,13 @@ async function scanDirectoryRecursive(
           const subFiles = await scanDirectoryRecursive(fullPath, basePath)
           files.push(...subFiles.data)
         } else if (stats.isFile()) {
+          const file = Bun.file(fullPath)
+          const content = await file.text()
           const meta = await getFileMeta(fullPath)
           const fileInfo: FileInfo = {
             sourcePath: relativePath,
             localPath: fullPath,
+            content,
             sha: meta?.sha || null,
             size: meta?.size || stats.size,
             lastModified: (meta && new Date(meta?.lastModified)) || stats.mtime,

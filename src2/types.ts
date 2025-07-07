@@ -1,3 +1,5 @@
+import type {TokensList} from 'marked'
+
 export interface ServiceResponse<T, E = Error> {
   success: boolean
   error?: E
@@ -11,7 +13,8 @@ export type GenerateType = 'new' | 'all' | 'initial' | 'skip' | 'local'
 export interface FileInfo {
   sourcePath: string // Original GitHub path
   localPath?: string // Local filesystem path
-  content?: string
+  content?: string | TokensList
+  frontmatter?: Object
   sha: string | null
   size: number
   lastModified: Date
@@ -34,4 +37,9 @@ export interface FileMeta {
   sha: string
   size: number
   lastModified: Date
+}
+
+export interface MarkdownContent {
+  frontmatter: Object
+  tokens: TokensList
 }
