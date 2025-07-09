@@ -6,7 +6,7 @@ export interface ServiceResponse<T, E = Error> {
   data?: T
 }
 
-export type FileType = 'markdown' | 'unsupported' | 'jsx' | 'html'
+export type FileType = 'markdown' | 'unsupported' | 'html'
 
 export type GenerateType = 'new' | 'all' | 'initial' | 'skip' | 'local'
 
@@ -19,6 +19,7 @@ export interface FileInfo {
   size: number
   lastModified: Date
   type: FileType
+  lang?: SupportedLanguage
 }
 
 export interface FileCollection {
@@ -47,12 +48,12 @@ export interface MarkdownContent {
 export interface HeadingProps {
   depth: number
   raw: string
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export interface ParagraphProps {
   raw: string
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export interface ListProps {
@@ -60,14 +61,14 @@ export interface ListProps {
   start?: number
   loose: boolean
   raw: string
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export interface ListItemProps {
   task: boolean
   loose: boolean
   raw: string
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export interface CheckboxProps {
@@ -76,7 +77,8 @@ export interface CheckboxProps {
 
 export interface CodeProps {
   text: string
-  lang?: string
+  codeLanguage?: string
+  siteLanguage?: SupportedLanguage
   escaped?: boolean
   raw: string
 }
@@ -88,14 +90,14 @@ export interface CodeSpanProps {
 
 export interface BlockquoteProps {
   raw: string
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export interface LinkProps {
   href: string
   title?: string
   raw: string
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export interface ImageProps {
@@ -107,17 +109,17 @@ export interface ImageProps {
 
 export interface StrongProps {
   raw: string
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export interface EmProps {
   raw: string
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export interface DelProps {
   raw: string
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export interface HrProps {
@@ -130,19 +132,19 @@ export interface BrProps {
 
 export interface TableProps {
   raw: string
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export interface TableRowProps {
   header?: boolean
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export interface TableCellProps {
   header: boolean
   align?: 'left' | 'center' | 'right'
   raw: string
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
 }
 
 export interface HtmlProps {
@@ -159,7 +161,25 @@ export interface SpaceProps {
 export interface TextProps {
   raw: string
   escaped?: boolean
-  children: JSX.Element
+  children: JSX.Element | JSX.Element[]
+}
+
+export interface PageTemplateProps {
+  title: string
+  children: JSX.Element | JSX.Element[]
+  lang: string
+  title: string
+  description: string
+  date: Date
+  image: string
+  url: string
+  includeArrow: boolean
+}
+
+export type SupportedLanguage = 'en' | 'ru'
+
+export interface LocalizedProps {
+  lang: SupportedLanguage
 }
 
 export type {TokensList, Token}

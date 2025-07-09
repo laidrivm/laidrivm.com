@@ -4,12 +4,33 @@ import {ok, err} from '../utils.ts'
 import type {
   ServiceResponse,
   FileCollection,
-  MarkdownContent
+  MarkdownContent,
+  SupportedLanguage
 } from '../types.ts'
 
 let wasPrintedOnce = false
 
-function extractFrontmatter(content) {
+const SUPPORTED_LANGUAGES = new Set<SupportedLanguage>(['en', 'ru'])
+
+function defineLanguage(frontmatter: Object, path: string): SupportedLanguage {
+  if (frontmatter?.language) {
+    return frontmatter.language
+  }
+  const segments = path.replace(/^\//, '').split('/')
+  if (segments.length > 0) {
+    const firstSegment = segments[0].toLowerCase() as SupportedLanguage
+
+    if (SUPPORTED_LANGUAGES.has(firstSegment)) {
+      return firstSegment
+    }
+  }
+  return 'en'
+}
+
+function extractFrontmatter(content: string): {
+  frontmatter: Object
+  markdown: string
+} {
   const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)/)
   if (match) {
     const frontmatter = {}
@@ -76,7 +97,8 @@ export async function parseMarkdown(
         processedFiles.push({
           ...file,
           content: parsedFile.data.tokens,
-          frontmatter: parsedFile.data.frontmatter
+          frontmatter: parsedFile.data.frontmatter,
+          lang: defineLanguage(parsedFile.data.frontmatter, file.sourcePath)
         })
       }
     } else {

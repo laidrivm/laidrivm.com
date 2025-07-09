@@ -26,10 +26,9 @@ import type {
   Token,
   TokensList,
   ServiceResponse,
-  FileCollection
+  FileCollection,
+  SupportedLanguage
 } from '../types.ts'
-
-let wasPrintedOnce = false
 
 // Handle list rendering
 function renderList(token: Token, key: number): JSX.Element {
@@ -121,7 +120,11 @@ function renderTable(token: Token, key: number): JSX.Element {
 }
 
 // Render individual token
-function renderToken(token: Token, key: number): JSX.Element {
+function renderToken(
+  token: Token,
+  key: number,
+  lang: SupportedLanguage
+): JSX.Element {
   switch (token.type) {
     // Block-level tokens
     case 'space':
@@ -132,7 +135,8 @@ function renderToken(token: Token, key: number): JSX.Element {
         <Code
           key={key}
           text={token.text || ''}
-          lang={token.lang}
+          codeLanguage={token.lang}
+          siteLanguage={lang}
           escaped={token.escaped}
           raw={token.raw}
         />
@@ -244,18 +248,21 @@ function renderToken(token: Token, key: number): JSX.Element {
   }
 }
 
-function renderTokens(tokens: TokensList): JSX.Element {
-  return tokens.map((token, index) => renderToken(token, index))
+function renderTokens(
+  tokens: TokensList,
+  lang: SupportedLanguage
+): JSX.Element {
+  return tokens.map((token, index) => renderToken(token, index, lang))
 }
 
-export function markdownToJSX(
+export async function renderMarkdown(
   markdownContent: ServiceResponse<FileCollection>
 ): Promise<ServiceResponse<FileCollection>> {
   if (!markdownContent.success) {
     return markdownContent
   }
   if (markdownContent.data.mode === 'skip') {
-    console.log(`Skipping converting markdown into JSX`)
+    console.log(`Skipping rendering markdown`)
     return ok({
       mode: 'skip'
     })
@@ -264,19 +271,13 @@ export function markdownToJSX(
   const processedFiles = []
   for (const file of files) {
     if (file.type === 'markdown') {
-      console.log(
-        `Trying to convert markdown tokens from ${file.localPath} into JSX`
-      )
-      const jsxContent = <>{renderTokens(file.content)}</>
+      console.log(`Rendering markdown tokens from ${file.localPath}`)
+      const htmlContent = <>{renderTokens(file.content, file.lang)}</>
       processedFiles.push({
         ...file,
-        content: jsxContent,
-        type: 'jsx'
+        content: htmlContent,
+        type: 'html'
       })
-      if (!wasPrintedOnce) {
-        wasPrintedOnce = true
-        console.log(jsxContent.props.children[0])
-      }
     } else {
       processedFiles.push(file)
     }

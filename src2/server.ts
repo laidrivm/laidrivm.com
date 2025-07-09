@@ -1,4 +1,5 @@
 import {Elysia} from 'elysia'
+import {staticPlugin} from '@elysiajs/static'
 
 import packageJson from '../package.json'
 
@@ -40,6 +41,14 @@ if (!buildResult.success) {
 console.log(`Initial build completed`)
 
 const app = new Elysia()
+  .use(
+    staticPlugin({
+      prefix: '/',
+      assets: process.env.PUBLIC_DIR,
+      indexHTML: true,
+      noCache: false
+    })
+  )
   .get('/api/v1/health', () => ({
     status: 'ok'
   }))

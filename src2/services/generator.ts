@@ -5,8 +5,8 @@ import {loadMetaVersion, createMetaFile} from './metafile.ts'
 import {fetchGitHubContent} from './github-fetcher.ts'
 import {processFilesContent} from './file-scanner.ts'
 import {parseMarkdown} from './markdown-parser.ts'
-import {markdownToJSX} from './content-converter.tsx'
-import {renderTemplate} from './renderer.tsx'
+import {renderMarkdown} from './markdown-renderer.tsx'
+import {renderPages} from './template-renderer.tsx'
 
 /**
  * Triggers the complete site generation process
@@ -31,8 +31,8 @@ export async function generate(
     fetchGitHubContent,
     processFilesContent,
     parseMarkdown,
-    markdownToJSX,
-    renderTemplate
+    renderMarkdown,
+    renderPages
     // optimizeOutput
     // processAssets
     // uploadToCloudflare

@@ -1,6 +1,7 @@
 import {extname} from 'path'
 
-import type {ServiceResult, FileType} from './types.ts'
+import LOCALIZED_TEXT from './localization.json'
+import type {ServiceResult, FileType, SupportedLanguage} from './types.ts'
 
 /**
  * List of files to ignore when processing repositories
@@ -81,4 +82,53 @@ export function err<E extends Error>(error: E): ServiceResult<never, E> {
     success: false,
     error
   }
+}
+
+/**
+ * Formats an ISO date string into a human-readable localized date
+ *
+ * @param isoDate - ISO date string to format
+ * @param lang - Language code for formatting
+ * @returns Formatted date string
+ */
+export function formatDate(isoDate: string, lang: SupportedLanguage): string {
+  if (
+    !isoDate ||
+    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d{3})?Z$/.test(isoDate)
+  ) {
+    console.warn('Invalid date format provided:', isoDate)
+    return ''
+  }
+
+  try {
+    const date = new Date(isoDate)
+
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date')
+    }
+
+    const formatter = new Intl.DateTimeFormat(lang, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+
+    return formatter.format(date)
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return ''
+  }
+}
+
+/**
+ * Gets localized text based on the current language
+ *
+ * @param key - Text key to retrieve
+ * @param lang - Current language
+ * @returns Localized text string
+ */
+export function getLocalizedText(lang: SupportedLanguage, key: string): string {
+  return LOCALIZED_TEXT[lang][key]
 }
