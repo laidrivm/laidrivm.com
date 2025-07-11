@@ -46,7 +46,7 @@ export default [
       "sonarjs/cognitive-complexity": "off",
       "sonarjs/no-all-duplicated-branches": "off",
       "react/react-in-jsx-scope": "off", // Not needed for Preact
-      "react/no-unknown-property": "warn",
+      "react/no-unknown-property": ["error", { "ignore": ["onclick", "onsubmit", "onchange"] }],
       "import/no-unresolved": ["error", { "ignore": ["octokit"] }], // Ignore 'octokit' module because of https://github.com/octokit/octokit.js?tab=readme-ov-file#usage
       "import/order": ["warn", { "newlines-between": "always" }],
       "jsdoc/check-alignment": "warn",

@@ -1,12 +1,18 @@
 import type {ImageProps} from '../types.ts'
 
-export function Image({href, title, text}: ImageProps): JSX.Element {
+export function Image({
+  href,
+  title,
+  text,
+  caption = null
+}: ImageProps): JSX.Element {
   return (
-    <img
-      src={href}
-      alt={text}
-      title={title}
-      className="max-w-full h-auto my-4"
-    />
+    <div className="image-container">
+      <div className="image-zoom-wrapper">
+        <img src={href} alt={title} />
+      </div>
+      {text}
+      {caption && <em>{caption}</em>}
+    </div>
   )
 }

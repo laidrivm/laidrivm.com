@@ -87,8 +87,7 @@ export function PageTemplate({
               </p>
             </div>
           </main>
-
-          <script src="/interactive.js" defer></script>
+          <script src="/copyCode.js" defer></script>
         </body>
       </html>
     </>

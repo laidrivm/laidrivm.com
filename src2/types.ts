@@ -103,6 +103,7 @@ export interface LinkProps {
 export interface ImageProps {
   href: string
   title?: string
+  caption?: string
   text: string
   raw: string
 }

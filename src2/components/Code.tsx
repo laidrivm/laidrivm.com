@@ -28,13 +28,19 @@ export function Code({
     validLang
   )
 
-  const copyText = getLocalizedText(siteLanguage, 'copyCode')
+  const copyCodeText = getLocalizedText(siteLanguage, 'copyCode')
+  const copiedText = getLocalizedText(siteLanguage, 'copied')
 
   return (
     <div className="code-snippet">
       <div className="code-panel">
         <p>{codeLanguage}</p>
-        <button className="copy-code">{copyText}</button>
+        <button
+          className="copy-code"
+          onclick={`copyCode(this, '${copiedText}', '${copyCodeText}')`}
+        >
+          {copyCodeText}
+        </button>
       </div>
       <pre>
         <code className={`language-${codeLanguage}`}>{highlightedCode}</code>
