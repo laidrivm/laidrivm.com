@@ -14,6 +14,7 @@
     "eslint-plugin-react": "^7.37.5",
     "eslint-plugin-sonarjs": "^3.0.4",
     "globals": "^16.3.0",
+    "husky": "^9.1.7",
     "prettier": "^3.6.2",
     "typescript": "^5.8.3",
     "typescript-eslint": "^8.36.0"
@@ -54,6 +55,7 @@
     "generate": "bun run out/generate.js",
     "server": "bun run out/index.js",
     "prod": "NODE_ENV=production bun run generate && bun run server",
-    "clean": "bun public-clean-up.ts"
+    "clean": "bun public-clean-up.ts",
+    "prepare": "husky"
   }
 }
