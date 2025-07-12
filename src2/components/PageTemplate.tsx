@@ -1,9 +1,11 @@
 import type {PageTemplateProps} from '../types.ts'
 
 import {Arrow} from './Arrow.tsx'
+import {LanguageSwitch} from './LanguageSwitch.tsx'
+import {Social} from './Social.tsx'
 
 export function PageTemplate({
-  lang = 'en',
+  lang,
   title,
   description,
   date,
@@ -12,12 +14,6 @@ export function PageTemplate({
   includeArrow = true,
   children
 }: PageTemplateProps): JSX.Element {
-  //const updateText = getLocalizedText('updated', validLang)
-  //const formattedDate = formatDate(time, validLang)
-  const formattedDate = date
-  //const copyScript = createCopyScript(validLang)
-  //const scrollScript = createScrollScript()
-  //const zoomScript = createZoomScript()
   return (
     <>
       {'<!doctype html>'}
@@ -74,20 +70,21 @@ export function PageTemplate({
         </head>
         <body>
           {includeArrow && <Arrow lang={lang} />}
-          {/* <LanguageSwitch lang={lang} /> */}
+          <LanguageSwitch lang={lang} />
 
           <main className="content">
             {children}
-            <div className="social">
-              {/* <SharingLinks lang={lang} url={url} text={description} /> */}
-              <p>
-                {/* {updateText} */}
-                Updated at:
-                <time dateTime={date}>{formattedDate}</time>
-              </p>
-            </div>
+            <Social
+              lang={lang}
+              date={date}
+              url={url}
+              description={description}
+            />
           </main>
-          <script src="/copyCode.js" defer></script>
+          <script src="/scripts/copyCode.js" defer></script>
+          <script src="/scripts/copyHeading.js" defer></script>
+          <script src="/scripts/scrollToHeading.js" defer></script>
+          <script src="/scripts/zoomImage.js" defer></script>
         </body>
       </html>
     </>

@@ -1,12 +1,12 @@
-  function copyCode(button, copyCodeText, copiedText) {
-    const snippet = button.closest('.code-snippet')
-    const codeElement = snippet.querySelector('code')
+function copyCode(button, copyCodeText, copiedText) {
+  const snippet = button.closest('.code-snippet')
+  const code = snippet.querySelector('code').textContent
 
-    if (codeElement) {
-      navigator.clipboard.writeText(codeElement.textContent || '')
-      button.textContent = copiedText
-      setTimeout(() => {
-        button.textContent = copyCodeText
-      }, 2000)
-    }
+  if (code) {
+    navigator.clipboard.writeText(code || '')
+    button.textContent = copiedText
+    setTimeout(() => {
+      button.textContent = copyCodeText
+    }, 2000)
   }
+}

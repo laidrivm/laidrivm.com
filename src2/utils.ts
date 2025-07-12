@@ -85,44 +85,6 @@ export function err<E extends Error>(error: E): ServiceResult<never, E> {
 }
 
 /**
- * Formats an ISO date string into a human-readable localized date
- *
- * @param isoDate - ISO date string to format
- * @param lang - Language code for formatting
- * @returns Formatted date string
- */
-export function formatDate(isoDate: string, lang: SupportedLanguage): string {
-  if (
-    !isoDate ||
-    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d{3})?Z$/.test(isoDate)
-  ) {
-    console.warn('Invalid date format provided:', isoDate)
-    return ''
-  }
-
-  try {
-    const date = new Date(isoDate)
-
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      throw new Error('Invalid date')
-    }
-
-    const formatter = new Intl.DateTimeFormat(lang, {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-
-    return formatter.format(date)
-  } catch (error) {
-    console.error('Error formatting date:', error)
-    return ''
-  }
-}
-
-/**
  * Gets localized text based on the current language
  *
  * @param key - Text key to retrieve

@@ -3,12 +3,41 @@ import {mkdir} from 'node:fs/promises'
 
 import {PageTemplate} from '../components/PageTemplate.tsx'
 import {ok} from '../utils.ts'
-import type {ServiceResponse, FileCollection} from '../types.ts'
+import type {
+  ServiceResponse,
+  FileCollection,
+  SupportedLanguage
+} from '../types.ts'
 
 let wasPrintedOnce = false
 
-function getOutputName(sourcePath: string): string {
+const DEFAULT_LANGUAGE: SupportedLanguage = 'en'
+const VALID_LANGUAGES: SupportedLanguage[] = ['en', 'ru']
+
+function getOutputPath(sourcePath: string): string {
   return join(process.env.PUBLIC_DIR, sourcePath.replace('.md', '.html'))
+}
+
+function getPageLang(path: string): SupportedLanguage {
+  console.log(`getPageLang: ${path}`)
+
+  if (!path || typeof path !== 'string') {
+    console.warn(`Invalid path provided: ${path}`)
+    return DEFAULT_LANGUAGE
+  }
+
+  const parts = path.replace(/\/+$/, '').split('/').filter(Boolean)
+
+  // Default language for root and single-level paths
+  if (parts.length <= 1) return DEFAULT_LANGUAGE
+
+  // Check if second path segment is a valid language code
+  const language = parts[1]
+  console.log(`Language candidate: ${language}`)
+
+  return VALID_LANGUAGES.includes(language as SupportedLanguage)
+    ? (language as SupportedLanguage)
+    : DEFAULT_LANGUAGE
 }
 
 export async function renderPages(
@@ -27,12 +56,12 @@ export async function renderPages(
   const processedFiles = []
   for (const file of files) {
     if (file.type === 'html') {
-      const outputPath = getOutputName(file.sourcePath)
+      const outputPath = getOutputPath(file.sourcePath)
       console.log(`Rendering page ${outputPath}`)
 
       const page = (
         <PageTemplate
-          lang=""
+          lang={file?.lang || getPageLang(outputPath)}
           title=""
           description=""
           time=""

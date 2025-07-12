@@ -165,6 +165,23 @@ export interface TextProps {
   children: JSX.Element | JSX.Element[]
 }
 
+export interface LocalizedProps {
+  lang: SupportedLanguage
+}
+
+export interface SocialProps {
+  lang: SupportedLanguage
+  date: Date
+  url: string
+  description: string
+}
+
+export interface SharingLinksProps {
+  lang: SupportedLanguage
+  url: string
+  text: string
+}
+
 export interface PageTemplateProps {
   title: string
   children: JSX.Element | JSX.Element[]
@@ -179,8 +196,10 @@ export interface PageTemplateProps {
 
 export type SupportedLanguage = 'en' | 'ru'
 
-export interface LocalizedProps {
-  lang: SupportedLanguage
+export type ShareButtonConfig = {
+  baseUrl: string
+  urlParam?: string
+  textParam?: string
 }
 
 export type {TokensList, Token}

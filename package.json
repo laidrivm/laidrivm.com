@@ -54,6 +54,6 @@
     "generate": "bun run out/generate.js",
     "server": "bun run out/index.js",
     "prod": "NODE_ENV=production bun run generate && bun run server",
-    "clean": "bun run src/public-clean-up.ts"
+    "clean": "bun src/public-clean-up.ts"
   }
 }

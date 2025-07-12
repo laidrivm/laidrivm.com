@@ -14,7 +14,7 @@ function generateId(text: string): string {
 
 export function Heading({depth, children, raw}: HeadingProps): JSX.Element {
   if (depth === 1) {
-    return <h1 className="heading-content">{children}</h1>
+    return <h1>{children}</h1>
   }
 
   const Tag = `h${depth}` as keyof JSX.IntrinsicElements
@@ -23,7 +23,9 @@ export function Heading({depth, children, raw}: HeadingProps): JSX.Element {
   return (
     <Tag id={id} className="heading-content">
       <a href={`#${id}`}>{children}</a>
-      <button className="copy-heading">🔗</button>
+      <button className="copy-heading" onclick={`copyHeading(this)`}>
+        🔗
+      </button>
     </Tag>
   )
 }
