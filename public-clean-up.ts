@@ -2,43 +2,53 @@ import {existsSync, statSync, rmdirSync} from 'node:fs'
 import {readdir} from 'node:fs/promises'
 import path from 'path'
 
-import * as EnvUtils from './utils/envutils.ts'
-
 /**
- * List of files to preserve during cleanup
+ * List of files to preserve during cleanup in the root directory
  */
 const PRESERVED_FILES = [
-  'favicon.png',
-  'mellon-for-incubators.pdf',
   'cv-vladimir-lazarev-engineering-director.pdf',
+  'mellon-for-incubators.pdf',
   'mellon-prototype.pdf',
   'og_image-min.jpg',
-  'robots.txt',
-  'telegram.svg',
-  'bluesky.svg',
-  'minds.svg',
-  'reddit.svg',
-  'link.svg'
+  'robots.txt'
 ]
 
 /**
- * Recursively deletes directory contents, preserving specified files
+ * List of directories to preserve during cleanup
+ */
+const PRESERVED_DIRS = ['icons']
+
+/**
+ * Default public directory if not specified via environment
+ */
+const DEFAULT_PUBLIC_DIR = 'public'
+
+/**
+ * Recursively deletes directory contents, preserving specified files and directories
  * @param dirPath - Directory path to clean
+ * @param isRootPublic - Whether this is the root public directory
  * @returns Promise resolving when deletion is complete
  */
-async function deleteRecursively(dirPath: string): Promise<void> {
+async function deleteRecursively(dirPath: string, isRootPublic: boolean = false): Promise<void> {
   if (!existsSync(dirPath)) return
-
+  
   const items = await readdir(dirPath)
-  const publicDir = process.env.PUBLIC
-
+  const publicDir = process.env.PUBLIC || DEFAULT_PUBLIC_DIR
+  
   for (const item of items) {
     const itemPath = path.join(dirPath, item)
     const isDirectory = statSync(itemPath).isDirectory()
-
+    
     // Handle directories
     if (isDirectory) {
-      await deleteRecursively(itemPath)
+      // Skip preserved directories in root public
+      if (isRootPublic && PRESERVED_DIRS.includes(item)) {
+        console.log(`Keeping preserved directory: ${item}/`)
+        continue
+      }
+      
+      // Delete non-preserved directories
+      await deleteRecursively(itemPath, false)
       try {
         rmdirSync(itemPath)
         console.log(`Deleted directory: ${itemPath}`)
@@ -47,13 +57,13 @@ async function deleteRecursively(dirPath: string): Promise<void> {
       }
       continue
     }
-
-    // Preserve excepted files in root public directory
-    if (dirPath === publicDir && PRESERVED_FILES.includes(item)) {
-      console.log(`Keeping excepted file: ${item}`)
+    
+    // Preserve specified files in root public directory
+    if (isRootPublic && PRESERVED_FILES.includes(item)) {
+      console.log(`Keeping preserved file: ${item}`)
       continue
     }
-
+    
     // Delete other files
     try {
       const file = Bun.file(itemPath)
@@ -66,24 +76,31 @@ async function deleteRecursively(dirPath: string): Promise<void> {
 }
 
 /**
- * Cleans up the public directory, preserving specified files
+ * Cleans up the public directory, preserving specified files and directories
  */
 async function cleanupPublicDirectory(): Promise<void> {
-  // Initialize environment variables
-  EnvUtils.initDefaults()
-  const publicDir = process.env.PUBLIC
-
+  // Get public directory from environment or use default
+  const publicDir = process.env.PUBLIC || DEFAULT_PUBLIC_DIR
+  
+  // Set default if not already set
+  if (!process.env.PUBLIC) {
+    process.env.PUBLIC = DEFAULT_PUBLIC_DIR
+    console.log(`Using default PUBLIC: ${DEFAULT_PUBLIC_DIR}`)
+  }
+  
   // Validate public directory
   if (!existsSync(publicDir)) {
     console.error(`Directory does not exist: ${publicDir}`)
     process.exit(1)
   }
-
+  
   console.log(`Starting cleanup of ${publicDir}`)
-  console.log(`Preserving the following files: ${PRESERVED_FILES.join(', ')}`)
-
+  console.log(`Preserving files: ${PRESERVED_FILES.join(', ')}`)
+  console.log(`Preserving directories: ${PRESERVED_DIRS.join(', ')}`)
+  
   // Perform cleanup
-  await deleteRecursively(publicDir)
+  await deleteRecursively(publicDir, true)
+  
   console.log('Public directory cleanup completed')
 }
 
