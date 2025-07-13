@@ -19,7 +19,7 @@ export interface FileInfo {
   size: number
   lastModified: Date
   type: FileType
-  lang?: SupportedLanguage
+  PageTemplateProps: PageTemplateProps
 }
 
 export interface FileCollection {
@@ -186,9 +186,8 @@ export interface PageTemplateProps {
   title: string
   children: JSX.Element | JSX.Element[]
   lang: string
-  title: string
   description: string
-  date: Date
+  updatedAt: Date
   image: string
   url: string
   includeArrow: boolean

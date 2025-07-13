@@ -272,7 +272,9 @@ export async function renderMarkdown(
   for (const file of files) {
     if (file.type === 'markdown') {
       console.log(`Rendering markdown tokens from ${file.localPath}`)
-      const htmlContent = <>{renderTokens(file.content, file.lang)}</>
+      const htmlContent = (
+        <>{renderTokens(file.content, file.pageTemplateProps.lang)}</>
+      )
       processedFiles.push({
         ...file,
         content: htmlContent,

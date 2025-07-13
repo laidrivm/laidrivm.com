@@ -8,12 +8,13 @@ export function PageTemplate({
   lang,
   title,
   description,
-  date,
+  updatedAt,
   image,
   url,
   includeArrow = true,
   children
 }: PageTemplateProps): JSX.Element {
+  console.log(`Rendering ${title}, updatedAt: ${updatedAt}`)
   return (
     <>
       {'<!doctype html>'}
@@ -27,7 +28,7 @@ export function PageTemplate({
           <title>{title}</title>
           <meta name="author" content="Vladimir Lazarev" />
           <meta name="description" content={description} />
-          <meta name="last-modified" content={date} />
+          <meta name="last-modified" content={updatedAt} />
           <meta property="og:image" content={image} />
           <meta property="og:title" content={title} />
           <meta property="og:description" content={description} />
@@ -36,7 +37,7 @@ export function PageTemplate({
           <meta property="og:type" content="website" />
           <link rel="canonical" href={url} />
           <link rel="stylesheet" href="/main.css" />
-          <link rel="icon" type="image/png" href="/favicon.png" />
+          <link rel="icon" type="image/png" href="icons/favicon.png" />
           <link rel="alternate" href="https://laidrivm.com/" hrefLang="en" />
           <link rel="alternate" href="https://laidrivm.com/ru/" hrefLang="ru" />
           <link
@@ -76,7 +77,7 @@ export function PageTemplate({
             {children}
             <Social
               lang={lang}
-              date={date}
+              date={updatedAt}
               url={url}
               description={description}
             />

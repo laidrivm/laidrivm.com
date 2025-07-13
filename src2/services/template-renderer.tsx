@@ -3,41 +3,20 @@ import {mkdir} from 'node:fs/promises'
 
 import {PageTemplate} from '../components/PageTemplate.tsx'
 import {ok} from '../utils.ts'
-import type {
-  ServiceResponse,
-  FileCollection,
-  SupportedLanguage
-} from '../types.ts'
+import type {ServiceResponse, FileCollection} from '../types.ts'
 
 let wasPrintedOnce = false
 
-const DEFAULT_LANGUAGE: SupportedLanguage = 'en'
-const VALID_LANGUAGES: SupportedLanguage[] = ['en', 'ru']
+function isIndex(sourcePath: string): bool {
+  return sourcePath.includes('index.md')
+}
+
+function getUrl(sourcePath: string): string {
+  return `https://${process.env.BASE_URL}/${sourcePath.replace('.md', '').replace('index', '')}`
+}
 
 function getOutputPath(sourcePath: string): string {
   return join(process.env.PUBLIC_DIR, sourcePath.replace('.md', '.html'))
-}
-
-function getPageLang(path: string): SupportedLanguage {
-  console.log(`getPageLang: ${path}`)
-
-  if (!path || typeof path !== 'string') {
-    console.warn(`Invalid path provided: ${path}`)
-    return DEFAULT_LANGUAGE
-  }
-
-  const parts = path.replace(/\/+$/, '').split('/').filter(Boolean)
-
-  // Default language for root and single-level paths
-  if (parts.length <= 1) return DEFAULT_LANGUAGE
-
-  // Check if second path segment is a valid language code
-  const language = parts[1]
-  console.log(`Language candidate: ${language}`)
-
-  return VALID_LANGUAGES.includes(language as SupportedLanguage)
-    ? (language as SupportedLanguage)
-    : DEFAULT_LANGUAGE
 }
 
 export async function renderPages(
@@ -61,12 +40,13 @@ export async function renderPages(
 
       const page = (
         <PageTemplate
-          lang={file?.lang || getPageLang(outputPath)}
-          title=""
-          description=""
-          time=""
-          image=""
-          address=""
+          lang={file.pageTemplateProps.lang}
+          title={file.pageTemplateProps.title}
+          description={file.pageTemplateProps.description}
+          image={file.pageTemplateProps.image}
+          updatedAt={file.lastModified}
+          url={getUrl(file.sourcePath)}
+          includeArrow={!isIndex(file.sourcePath)}
         >
           {file.content}
         </PageTemplate>

@@ -27,18 +27,8 @@ const SHARE_CONFIGS: Record<string, ShareButtonConfig> = {
   }
 }
 
-function formatDate(lang: SupportedLanguage, isoDate: string): string {
-  if (
-    !isoDate ||
-    !/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(.\d{3})?Z$/.test(isoDate)
-  ) {
-    console.warn('Invalid date format provided:', isoDate)
-    return ''
-  }
-
+function formatDate(lang: SupportedLanguage, date: Date): string {
   try {
-    const date = new Date(isoDate)
-
     // Check if date is valid
     if (isNaN(date.getTime())) {
       throw new Error('Invalid date')
