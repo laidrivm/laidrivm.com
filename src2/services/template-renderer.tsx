@@ -2,14 +2,11 @@ import {join, dirname} from 'path'
 import {mkdir} from 'node:fs/promises'
 
 import {PageTemplate} from '../components/PageTemplate.tsx'
-import {ok} from '../utils.ts'
+import {ArticlesFeed} from '../components/ArticlesFeed.tsx'
+import {ok, isIndex} from '../utils.ts'
 import type {ServiceResponse, FileCollection} from '../types.ts'
 
 let wasPrintedOnce = false
-
-function isIndex(sourcePath: string): bool {
-  return sourcePath.includes('index.md')
-}
 
 function getUrl(sourcePath: string): string {
   return `https://${process.env.BASE_URL}/${sourcePath.replace('.md', '').replace('index', '')}`
@@ -49,6 +46,12 @@ export async function renderPages(
           includeArrow={!isIndex(file.sourcePath)}
         >
           {file.content}
+          {isIndex(file.sourcePath) && (
+            <ArticlesFeed
+              lang={file.pageTemplateProps.lang}
+              links={file.articleLinks}
+            />
+          )}
         </PageTemplate>
       )
 

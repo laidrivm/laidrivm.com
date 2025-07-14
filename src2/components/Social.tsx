@@ -1,6 +1,5 @@
-import {getLocalizedText} from '../utils.ts'
+import {getLocalizedText, formatDate} from '../utils.ts'
 import type {
-  SupportedLanguage,
   SocialProps,
   SharingLinksProps,
   ShareButtonConfig
@@ -24,27 +23,6 @@ const SHARE_CONFIGS: Record<string, ShareButtonConfig> = {
   minds: {
     baseUrl: 'https://www.minds.com/newsfeed/subscriptions/latest',
     urlParam: 'intentUrl'
-  }
-}
-
-function formatDate(lang: SupportedLanguage, date: Date): string {
-  try {
-    // Check if date is valid
-    if (isNaN(date.getTime())) {
-      throw new Error('Invalid date')
-    }
-
-    const formatter = new Intl.DateTimeFormat(lang, {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    })
-
-    return formatter.format(date)
-  } catch (error) {
-    console.error('Error formatting date:', error)
-    return ''
   }
 }
 

@@ -7,7 +7,9 @@ import type {
   MarkdownContent,
   SupportedLanguage,
   TokensList,
-  PageTemplateProps
+  PageTemplateProps,
+  ArticleLink,
+  FileInfo
 } from '../types.ts'
 
 let wasPrintedOnce = false
@@ -160,6 +162,117 @@ async function parseContent(
   }
 }
 
+/**
+ * Parses a single markdown file
+ */
+async function parseMarkdownFile(file: FileInfo): Promise<FileInfo> {
+  if (file.type !== 'markdown') {
+    return file
+  }
+
+  console.log(`Trying to parse ${file.localPath}`)
+  const parsedFile = await parseContent(file.content)
+
+  if (!parsedFile.success) {
+    console.error(`Failed to parse ${file.localPath}`)
+    return file
+  }
+
+  return {
+    ...file,
+    content: parsedFile.data.tokens,
+    frontmatter: parsedFile.data.frontmatter,
+    pageTemplateProps: {
+      ...parsedFile.data.pageTemplateProps,
+      lang: defineLanguage(parsedFile.data.frontmatter, file.sourcePath)
+    }
+  }
+}
+
+/**
+ * Parses all markdown files in parallel
+ */
+async function parseAllMarkdownFiles(files: FileInfo[]): Promise<FileInfo[]> {
+  return Promise.all(files.map(parseMarkdownFile))
+}
+
+/**
+ * Creates a lookup map of files by their source path
+ */
+function createFileMap(files: FileInfo[]): Map<string, FileInfo> {
+  const fileMap = new Map<string, FileInfo>()
+  files.forEach(file => {
+    fileMap.set(file.sourcePath, file)
+  })
+  return fileMap
+}
+
+/**
+ * Enriches a single article link with metadata from the parsed file
+ */
+function enrichArticleLink(
+  link: ArticleLink,
+  fileMap: Map<string, FileInfo>
+): ArticleLink {
+  const articleFile = fileMap.get(link.sourcePath)
+
+  if (!articleFile?.pageTemplateProps) {
+    return link
+  }
+
+  return {
+    ...link,
+    title: articleFile.pageTemplateProps.title,
+    description: articleFile.pageTemplateProps.description,
+    image: articleFile.pageTemplateProps.image,
+    lang: articleFile.pageTemplateProps.lang
+  }
+}
+
+/**
+ * Sorts article links by date (newest first)
+ */
+function sortArticleLinksByDate(links: ArticleLink[]): ArticleLink[] {
+  return [...links].sort((a, b) => {
+    const dateA = a.date || new Date(0)
+    const dateB = b.date || new Date(0)
+    return dateB.getTime() - dateA.getTime()
+  })
+}
+
+/**
+ * Enriches article links for a single file
+ */
+function enrichFileArticleLinks(
+  file: FileInfo,
+  fileMap: Map<string, FileInfo>
+): FileInfo {
+  if (!file.articleLinks || file.articleLinks.length === 0) {
+    return file
+  }
+
+  const enrichedLinks = file.articleLinks.map(link =>
+    enrichArticleLink(link, fileMap)
+  )
+
+  const sortedLinks = sortArticleLinksByDate(enrichedLinks)
+
+  return {
+    ...file,
+    articleLinks: sortedLinks
+  }
+}
+
+/**
+ * Enriches all files that have article links
+ */
+function enrichAllArticleLinks(
+  files: FileInfo[],
+  fileMap: Map<string, FileInfo>
+): FileInfo[] {
+  return files.map(file => enrichFileArticleLinks(file, fileMap))
+}
+
 export async function parseMarkdown(
   scannerContent: ServiceResponse<FileCollection>
 ): Promise<ServiceResponse<FileCollection>> {
@@ -181,30 +294,19 @@ export async function parseMarkdown(
       return err(new Error('Unknown generation mode'))
   }
 
-  const files = scannerContent.data.files
-  const processedFiles = []
-  for (const file of files) {
-    if (file.type === 'markdown') {
-      console.log(`Trying to parse ${file.localPath}`)
-      const parsedFile = await parseContent(file.content)
-      if (parsedFile.success) {
-        processedFiles.push({
-          ...file,
-          content: parsedFile.data.tokens,
-          frontmatter: parsedFile.data.frontmatter,
-          pageTemplateProps: {
-            ...parsedFile.data.pageTemplateProps,
-            lang: defineLanguage(parsedFile.data.frontmatter, file.sourcePath)
-          }
-        })
-      }
-    } else {
-      processedFiles.push(file)
-    }
-  }
+  const {files} = scannerContent.data
+
+  // First pass: parse all markdown files
+  const parsedFiles = await parseAllMarkdownFiles(files)
+
+  // Create a map for quick lookup
+  const fileMap = createFileMap(parsedFiles)
+
+  // Second pass: enrich article links with parsed data
+  const enrichedFiles = enrichAllArticleLinks(parsedFiles, fileMap)
 
   return ok({
     ...scannerContent.data,
-    files: processedFiles
+    files: enrichedFiles
   })
 }

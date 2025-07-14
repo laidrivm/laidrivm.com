@@ -20,6 +20,7 @@ export interface FileInfo {
   lastModified: Date
   type: FileType
   PageTemplateProps: PageTemplateProps
+  articleLinks?: ArticleLink[]
 }
 
 export interface FileCollection {
@@ -199,6 +200,21 @@ export type ShareButtonConfig = {
   baseUrl: string
   urlParam?: string
   textParam?: string
+}
+
+export interface ArticleLink {
+  sourcePath: string
+  slug: string
+  title?: string
+  description?: string
+  image?: string
+  date?: Date
+  lang?: SupportedLanguage
+}
+
+export interface ArticleListProps {
+  lang: SupportedLanguage
+  links: ArticleLink[]
 }
 
 export type {TokensList, Token}

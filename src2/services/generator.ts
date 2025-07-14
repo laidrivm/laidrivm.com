@@ -7,6 +7,7 @@ import {processFilesContent} from './file-scanner.ts'
 import {parseMarkdown} from './markdown-parser.ts'
 import {renderMarkdown} from './markdown-renderer.tsx'
 import {renderPages} from './template-renderer.tsx'
+import {processAssets} from './assets-manager.ts'
 
 /**
  * Triggers the complete site generation process
@@ -32,9 +33,9 @@ export async function generate(
     processFilesContent,
     parseMarkdown,
     renderMarkdown,
-    renderPages
+    renderPages,
     // optimizeOutput
-    // processAssets
+    processAssets
     // uploadToCloudflare
   )(mode)
 

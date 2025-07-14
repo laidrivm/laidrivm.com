@@ -1,5 +1,6 @@
 {
   "en": {
+    "articles": "Articles",
     "arrow": "Back to main page",
     "updated": "Updated: ",
     "copyCode": "Copy code",
@@ -11,6 +12,7 @@
     "share": "Share"
   },
   "ru": {
+    "articles": "Статьи",
     "arrow": "Назад на главную",
     "updated": "Обновлено: ",
     "copyCode": "Копировать код",

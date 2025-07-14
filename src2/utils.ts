@@ -94,3 +94,27 @@ export function err<E extends Error>(error: E): ServiceResult<never, E> {
 export function getLocalizedText(lang: SupportedLanguage, key: string): string {
   return LOCALIZED_TEXT[lang][key]
 }
+
+export function isIndex(sourcePath: string): boolean {
+  return sourcePath.endsWith('index.md')
+}
+
+export function formatDate(lang: SupportedLanguage, date: Date): string {
+  try {
+    if (isNaN(date.getTime())) {
+      throw new Error('Invalid date')
+    }
+
+    const formatter = new Intl.DateTimeFormat(lang, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    })
+
+    return formatter.format(date)
+  } catch (error) {
+    console.error('Error formatting date:', error)
+    return ''
+  }
+}
