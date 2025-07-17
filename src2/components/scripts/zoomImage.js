@@ -1,6 +1,8 @@
 function zoomImage(img) {
+  const wrapper = img.closest('.image-zoom-wrapper')
+
   // Toggle zoomed state
-  img.classList.toggle('zoomed');
+  wrapper.classList.toggle('zoomed');
           
   // Prevent page scrolling when zoomed
   if (img.classList.contains('zoomed')) {

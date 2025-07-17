@@ -37,7 +37,7 @@ export function PageTemplate({
           <meta property="og:type" content="website" />
           <link rel="canonical" href={url} />
           <link rel="stylesheet" href="/main.css" />
-          <link rel="icon" type="image/png" href="icons/favicon.png" />
+          <link rel="icon" type="image/png" href="/icons/favicon.png" />
           <link rel="alternate" href="https://laidrivm.com/" hrefLang="en" />
           <link rel="alternate" href="https://laidrivm.com/ru/" hrefLang="ru" />
           <link
