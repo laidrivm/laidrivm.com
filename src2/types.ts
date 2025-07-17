@@ -1,4 +1,5 @@
 import type {TokensList, Token} from 'marked'
+import type {Buffer} from 'buffer/'
 
 export interface ServiceResponse<T, E = Error> {
   success: boolean
@@ -13,7 +14,8 @@ export type GenerateType = 'new' | 'all' | 'initial' | 'skip' | 'local'
 export interface FileInfo {
   sourcePath: string // Original GitHub path
   localPath?: string // Local filesystem path
-  content?: string | TokensList | JSX.Element
+  content?: string | TokensList | JSX.Element | Buffer
+  isBinary?: boolean
   frontmatter?: Object
   sha: string | null
   size: number

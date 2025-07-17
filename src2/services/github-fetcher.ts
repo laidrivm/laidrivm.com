@@ -1,4 +1,5 @@
 import {Octokit} from 'octokit'
+import {Buffer} from 'buffer/'
 
 import {ok, err, isIgnored, getFileType} from '../utils.ts'
 import type {
@@ -21,6 +22,43 @@ function createOctokit(): Octokit {
   })
 }
 
+function isBinaryFile(path: string): boolean {
+  const binaryExtensions = [
+    '.jpg',
+    '.jpeg',
+    '.png',
+    '.gif',
+    '.bmp',
+    '.webp',
+    '.ico',
+    '.svg',
+    '.pdf',
+    '.zip',
+    '.tar',
+    '.gz',
+    '.7z',
+    '.rar',
+    '.mp3',
+    '.mp4',
+    '.avi',
+    '.mov',
+    '.wmv',
+    '.ttf',
+    '.otf',
+    '.woff',
+    '.woff2',
+    '.eot',
+    '.exe',
+    '.dmg',
+    '.pkg',
+    '.deb',
+    '.rpm'
+  ]
+
+  const ext = path.toLowerCase().substring(path.lastIndexOf('.'))
+  return binaryExtensions.includes(ext)
+}
+
 /**
  * Fetches single file content from GitHub
  * @param octokit - Octokit instance
@@ -36,29 +74,56 @@ async function fetchFileContent(
   path: string
 ): Promise<ServiceResponse<FileInfo>> {
   try {
-    const {data} = await octokit.rest.repos.getContent({
-      owner,
-      repo,
-      path,
-      mediaType: {format: 'raw'}
-    })
-
-    if (typeof data !== 'string') {
-      return err(new Error(`Expected file content, got ${typeof data}`))
-    }
-
-    // Get file info for SHA and size
     const {data: fileInfo} = await octokit.rest.repos.getContent({
       owner,
       repo,
       path
     })
 
-    return ok({
-      content: data,
-      sha: fileInfo.sha,
-      size: fileInfo.size
-    })
+    // Ensure it's a file, not a directory
+    if (!('type' in fileInfo) || fileInfo.type !== 'file') {
+      return err(new Error(`Path ${path} is not a file`))
+    }
+
+    if (isBinaryFile(path)) {
+      // Binary files are returned as base64 in the content field
+      if (!fileInfo.content) {
+        return err(new Error(`No content found for binary file ${path}`))
+      }
+
+      // Decode base64 to Buffer
+      const buffer = Buffer.from(fileInfo.content, 'base64')
+
+      return ok({
+        sourcePath: path,
+        content: buffer,
+        sha: fileInfo.sha,
+        size: fileInfo.size,
+        type: getFileType(path),
+        isBinary: true
+      })
+    } else {
+      // For text files, fetch raw content
+      const {data: content} = await octokit.rest.repos.getContent({
+        owner,
+        repo,
+        path,
+        mediaType: {format: 'raw'}
+      })
+
+      if (typeof content !== 'string') {
+        return err(new Error(`Expected string content for text file ${path}`))
+      }
+
+      return ok({
+        sourcePath: path,
+        content: content,
+        sha: fileInfo.sha,
+        size: fileInfo.size,
+        type: getFileType(path),
+        isBinary: false
+      })
+    }
   } catch (error) {
     return err(error)
   }
@@ -197,6 +262,7 @@ async function fetchRepositoryContent(
       const fileInfo: FileInfo = {
         sourcePath: item.path,
         content: fileResult.data.content,
+        isBinary: fileResult.data.isBinary,
         sha: fileSha,
         size: fileResult.data.size,
         lastModified,
