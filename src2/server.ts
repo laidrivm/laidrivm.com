@@ -25,6 +25,15 @@ async function loadTlsCertificates(): Promise<{key: string; cert: string}> {
   }
 }
 
+/**
+ * Handle .html extension redirects
+ */
+const redirectHTML = new Elysia().onRequest(({path, redirect}) => {
+  if (path.includes('.html')) {
+    return redirect(path.replace('.html', ''), 302)
+  }
+})
+
 console.log('Loading certificates...')
 const {key, cert} = await loadTlsCertificates()
 
@@ -41,6 +50,7 @@ if (!buildResult.success) {
 console.log(`Initial build completed`)
 
 const app = new Elysia()
+  .use(redirectHTML)
   .use(
     staticPlugin({
       prefix: '/',
@@ -49,6 +59,7 @@ const app = new Elysia()
       noCache: false
     })
   )
+  .route('HEAD', '/', '') // uptimerobot
   .get('/api/v1/health', () => ({
     status: 'ok'
   }))
