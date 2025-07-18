@@ -74,11 +74,10 @@ body {
 .social {
   margin-top: 3rem;
   margin-bottom: 3rem;
-  margin-left: 5rem;
-  margin-right: 9rem;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
+  align-items: center;
 }
 
 .social p {
@@ -310,9 +309,13 @@ a.arrow-container {
 .sharing-links {
   display: flex;
   flex-direction: row;
+  align-items: center;
   gap: 12px;
-  margin-top: 0;
-  margin-left: 0;
+  margin: 0;
+}
+
+.sharing-links p {
+  margin: 0;
   margin-right: 0;
 }
 
@@ -338,6 +341,7 @@ a.arrow-container {
 
 .social-share-link:hover {
   opacity: 0.7;
+  background: transparent;
 }
 
 .image-container {
@@ -372,6 +376,24 @@ a.arrow-container {
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+@media (max-width: 940px) {
+  .social {
+    margin-top: 2rem;
+    margin-bottom: 2rem;
+    flex-direction: column;
+    align-items: flex-start;
+    row-gap: 1rem;
+  }
+
+  .sharing-links {
+    order: -1;
+  }
+
+  .sharing-links p {
+    margin-right: 8px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -445,29 +467,17 @@ a.arrow-container {
     font-size: 12px;
   }
 
-  .social {
-    margin-left: 2rem;
-    margin-right: 2rem;
-    margin-top: 2rem;
-    flex-direction: column;
-    row-gap: 1rem;
-  }
-
-  .social p {
+  .image-container em {
+    font-size: 14px;
   }
 
   .sharing-links {
-    gap: 8px 1rem;
-    order: 1;
+    gap: 8px;
   }
 
   .social-share-link {
-    width: 20px;
-    height: 20px;
-  }
-
-  .image-container em {
-    font-size: 14px;
+    width: 24px;
+    height: 24px;
   }
 }
 
