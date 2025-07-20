@@ -79,7 +79,6 @@ function SharingLinks({lang, url, text}: SharingLinksProps): JSX.Element {
       <p>{getLocalizedText(lang, 'share')}: </p>
       {platforms.map(platform => (
         <SocialShareLink
-          key={platform}
           platform={platform}
           lang={lang}
           url={url}
@@ -104,7 +103,7 @@ export function Social({
       <SharingLinks lang={lang} url={url} text={description} />
       <p>
         {updateText}
-        <time dateTime={date.toISOString()}>{formattedDate}</time>
+        <time datetime={date.toISOString()}>{formattedDate}</time>
       </p>
     </div>
   )

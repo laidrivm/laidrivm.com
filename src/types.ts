@@ -17,7 +17,7 @@ export interface FileInfo {
   outputPath?: string
   content?: string | TokensList | JSX.Element | Buffer
   isBinary?: boolean
-  frontmatter?: Object
+  frontmatter?: Record<string, any>
   sha: string | null
   size: number
   lastModified: Date
@@ -45,7 +45,7 @@ export interface FileMeta {
 }
 
 export interface MarkdownContent {
-  frontmatter: Object
+  frontmatter: Record<string, any>
   tokens: TokensList
   pageTemplateProps?: PageTemplateProps
 }
@@ -148,7 +148,7 @@ export interface TableRowProps {
 
 export interface TableCellProps {
   header: boolean
-  align?: 'left' | 'center' | 'right'
+  align?: 'left' | 'center' | 'right' | null
   raw: string
   children: JSX.Element | JSX.Element[]
 }

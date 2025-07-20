@@ -212,7 +212,7 @@ export async function processFilesContent(
   }
 
   let files = githubContent.data.files
-  let localFiles = [] as FileInfo[]
+  let localFiles: ServiceResponse<FileInfo[]> | null = null
   console.log(`Processing ${files.length} files from repository`)
 
   switch (githubContent.data.mode) {

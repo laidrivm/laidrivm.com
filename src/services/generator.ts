@@ -20,8 +20,10 @@ export async function generate(
   console.log(`Starting site generation in the ${mode} mode`)
 
   const metaVersion = await loadMetaVersion()
-  if (mode === 'initial') {
-    if (process.env['VERSION'] > metaVersion) {
+  const currentVersion = process.env['VERSION']
+
+  if (mode === 'initial' && currentVersion && metaVersion) {
+    if (currentVersion > metaVersion) {
       mode = 'all'
     } else {
       mode = 'new'
@@ -45,10 +47,13 @@ export async function generate(
 
   if (pipelineResult.success) {
     console.log(`Site generation completed in ${buildTime}ms`)
-    const date = await createMetaFile()
-    return ok(date)
+    const dateResult = await createMetaFile()
+    if (dateResult.success && dateResult.data) {
+      return ok(dateResult.data)
+    }
+    return dateResult
   }
 
   console.log(`Site generation failed after ${buildTime}ms`)
-  return pipelineResult
+  return pipelineResult as ServiceResponse<Date>
 }

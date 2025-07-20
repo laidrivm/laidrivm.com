@@ -159,7 +159,7 @@ export async function processAssets(
   // Skip if mode is 'skip'
   if (renderedContent.data.mode === 'skip') {
     console.log('Skipping asset processing')
-    return ok({mode: 'skip'})
+    return renderedContent
   }
 
   const {files} = renderedContent.data
@@ -177,11 +177,11 @@ export async function processAssets(
   // Copy all assets
   const copyResult = await copyAllAssets(assetFiles)
 
-  if (!copyResult.success) {
-    return copyResult
+  if (!copyResult.success || !copyResult.data) {
+    return copyResult as ServiceResponse<FileCollection>
   }
 
-  const processedAssets = copyResult.data || []
+  const processedAssets = copyResult.data
 
   // Log summary
   logAssetSummary(assetFiles, processedAssets)

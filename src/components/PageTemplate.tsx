@@ -44,35 +44,35 @@ export function PageTemplate({
           <link rel="canonical" href={url} />
           <link rel="stylesheet" href="/main.css" />
           <link rel="icon" type="image/png" href="/icons/favicon.png" />
-          <link rel="alternate" href="https://laidrivm.com/" hrefLang="en" />
-          <link rel="alternate" href="https://laidrivm.com/ru/" hrefLang="ru" />
+          <link rel="alternate" href="https://laidrivm.com/" hreflang="en" />
+          <link rel="alternate" href="https://laidrivm.com/ru/" hreflang="ru" />
           <link
             rel="preload"
             href="/fonts/SourceCodePro-Regular.ttf.woff2"
             as="font"
             type="font/woff2"
-            crossOrigin="anonymous"
+            crossorigin="anonymous"
           />
           <link
             rel="preload"
             href="/fonts/SourceSerif4-Regular.ttf.woff2"
             as="font"
             type="font/woff2"
-            crossOrigin="anonymous"
+            crossorigin="anonymous"
           />
           <link
             rel="preload"
             href="/fonts/SourceSerif4-Semibold.ttf.woff2"
             as="font"
             type="font/woff2"
-            crossOrigin="anonymous"
+            crossorigin="anonymous"
           />
           <link
             rel="preload"
             href="/fonts/SourceSerif4-It.ttf.woff2"
             as="font"
             type="font/woff2"
-            crossOrigin="anonymous"
+            crossorigin="anonymous"
           />
         </head>
         <body>

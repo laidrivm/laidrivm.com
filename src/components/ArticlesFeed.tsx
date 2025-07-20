@@ -14,8 +14,8 @@ export function ArticlesFeed({lang, links}: ArticleListProps): JSX.Element {
     <section className="articles-section">
       <h2>{getLocalizedText(lang, 'articles')}</h2>
       <ul className="article-list">
-        {links.map((link, index) => (
-          <li key={`article-${index}`} className="article-item">
+        {links.map(link => (
+          <li className="article-item">
             <a href={link.slug} className="article-link">
               {link.title || ''}
             </a>

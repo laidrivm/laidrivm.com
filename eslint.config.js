@@ -43,7 +43,7 @@ export default [
       "no-extra-semi": "off",
       "sonarjs/cognitive-complexity": "off",
       "sonarjs/no-all-duplicated-branches": "off",
-      "react/no-unknown-property": ["error", { "ignore": ["onclick", "onsubmit", "onchange"] }],
+      "react/no-unknown-property": ["error", { "ignore": ["onclick", "onsubmit", "onchange", "readonly", "hreflang", "crossorigin", "datetime"] }],
       "import/no-unresolved": ["error", { "ignore": ["octokit"] }], // Ignore 'octokit' module because of https://github.com/octokit/octokit.js?tab=readme-ov-file#usage
       "import/order": ["warn", { "newlines-between": "always" }],
       "jsdoc/check-alignment": "warn",

@@ -85,6 +85,13 @@ async function fetchFileContent(
       return err(new Error(`Path ${path} is not a file`))
     }
 
+    // TypeScript narrowing - fileInfo is now of type 'file'
+    if (!('sha' in fileInfo) || !('size' in fileInfo)) {
+      return err(new Error(`Invalid file data for ${path}`))
+    }
+
+    const lastModified = await getFileLastModified(octokit, owner, repo, path)
+
     if (isBinaryFile(path)) {
       // Binary files are returned as base64 in the content field
       if (!fileInfo.content) {
@@ -100,16 +107,17 @@ async function fetchFileContent(
         sha: fileInfo.sha,
         size: fileInfo.size,
         type: getFileType(path),
-        isBinary: true
+        isBinary: true,
+        lastModified
       })
     } else {
       // For text files, fetch raw content
-      const {data: content} = await octokit.rest.repos.getContent({
+      const {data: content} = (await octokit.rest.repos.getContent({
         owner,
         repo,
         path,
         mediaType: {format: 'raw'}
-      })
+      })) as {data: string}
 
       if (typeof content !== 'string') {
         return err(new Error(`Expected string content for text file ${path}`))
@@ -121,11 +129,12 @@ async function fetchFileContent(
         sha: fileInfo.sha,
         size: fileInfo.size,
         type: getFileType(path),
-        isBinary: false
+        isBinary: false,
+        lastModified
       })
     }
   } catch (error) {
-    return err(error)
+    return err(error as Error)
   }
 }
 
@@ -156,12 +165,12 @@ async function getFileLastModified(
 
     if (commits.length > 0) {
       const lastCommit = commits[0]
-      console.log(
-        `Last modified date for ${path} found: ${lastCommit.commit.author?.date}${lastCommit.commit.committer?.date}`
-      )
-      return new Date(
+      const dateStr =
         lastCommit.commit.author?.date || lastCommit.commit.committer?.date
-      )
+      console.log(`Last modified date for ${path} found: ${dateStr}`)
+      if (dateStr) {
+        return new Date(dateStr)
+      }
     }
   } catch (error) {
     console.warn(`Failed to get last modified date for ${path}:`, error)
@@ -247,8 +256,11 @@ async function fetchRepositoryContent(
       invalidateCache(item.path)
 
       const fileResult = await fetchFileContent(octokit, owner, repo, item.path)
-      if (!fileResult.success) {
-        console.error(`Failed to fetch ${item.path}:`, fileResult.error.message)
+      if (!fileResult.success || !fileResult.data) {
+        console.error(
+          `Failed to fetch ${item.path}:`,
+          fileResult.error?.message
+        )
         continue
       }
 
@@ -260,18 +272,16 @@ async function fetchRepositoryContent(
       )
 
       const fileInfo: FileInfo = {
-        sourcePath: item.path,
-        content: fileResult.data.content,
-        isBinary: fileResult.data.isBinary,
+        ...fileResult.data,
         sha: fileSha,
-        size: fileResult.data.size,
-        lastModified,
-        type: getFileType(item.path)
+        lastModified
       }
 
       files.push(fileInfo)
       const cachingResult = await storeInCache(fileInfo)
-      fileInfo.localPath = cachingResult.data
+      if (cachingResult.success && cachingResult.data) {
+        fileInfo.localPath = cachingResult.data
+      }
     } else if (item.type === 'dir') {
       const subdirResult = await fetchRepositoryContent(
         octokit,
@@ -280,7 +290,7 @@ async function fetchRepositoryContent(
         item.path
       )
 
-      if (subdirResult.success) {
+      if (subdirResult.success && subdirResult.data) {
         files.push(...subdirResult.data)
       }
     }
@@ -308,8 +318,13 @@ export async function fetchGitHubContent(
 
   const octokit = createOctokit()
 
-  const repoUrl = new URL(process.env['GITHUB_REPO'])
-  const [owner, repo] = repoUrl.pathname.split('/').filter(Boolean)
+  const repoUrl = process.env['GITHUB_REPO']
+  if (!repoUrl) {
+    return err(new Error('GITHUB_REPO environment variable is not set'))
+  }
+
+  const url = new URL(repoUrl)
+  const [owner, repo] = url.pathname.split('/').filter(Boolean)
   console.log(
     `Trying to fetch repository content for owner: ${owner} and repo: ${repo}`
   )
@@ -321,8 +336,11 @@ export async function fetchGitHubContent(
   console.log(`Latest commit SHA: ${latestSha}`)
 
   const filesResult = await fetchRepositoryContent(octokit, owner, repo, '')
+  if (!filesResult.success || !filesResult.data) {
+    return err(new Error('Failed to fetch repository content'))
+  }
 
-  const repoContent = {
+  const repoContent: FileCollection = {
     files: filesResult.data,
     lastFetch: new Date(),
     repoSha: latestSha,

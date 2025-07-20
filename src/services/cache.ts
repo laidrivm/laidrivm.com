@@ -1,5 +1,7 @@
 import {readdir, mkdir} from 'node:fs/promises'
 
+import Buffer from 'buffer/'
+
 import {isIgnored, ok, err, getFileType} from '../utils.ts'
 import type {FileInfo, ServiceResponse, FileMeta} from '../types.ts'
 
@@ -29,7 +31,19 @@ export async function storeInCache(
 
     // Save file content
     await createDir(localPath)
-    await Bun.write(localPath, file.content || '')
+
+    // Convert content to string or Buffer for writing
+    let contentToWrite: string | Buffer = ''
+    if (file.content) {
+      if (typeof file.content === 'string' || Buffer.isBuffer(file.content)) {
+        contentToWrite = file.content
+      } else {
+        // For TokensList or JSX.Element, convert to string
+        contentToWrite = JSON.stringify(file.content)
+      }
+    }
+
+    await Bun.write(localPath, contentToWrite)
 
     // Save metadata with GitHub SHA
     const metadataPath = `${localPath}.meta`
@@ -59,7 +73,7 @@ export async function storeInCache(
  * @param currentSha - Current repository SHA
  * @returns Whether cache is valid
  */
-export function isCacheValid(path: string, sha: string): boolean {
+export function isCacheValid(path: string, sha: string | null): boolean {
   const cachedFile = repoCache.get(path)
   console.log(`Checking cache validity for ${path}`)
   console.log(`SHA: ${sha}`)
@@ -98,7 +112,7 @@ async function scanDirectoryRecursive(
     for (const item of items) {
       const fullPath = `${dirPath}/${item.name}`
 
-      if (isIgnored(fullPath)) {
+      if (isIgnored(fullPath, item.name)) {
         continue
       }
 
@@ -208,6 +222,6 @@ export async function initializeCache(): Promise<ServiceResponse<number>> {
     return ok(cachedCount)
   } catch (error) {
     console.error(`Failed to initialize cache from local directory:`, error)
-    return err(error)
+    return err(error as Error)
   }
 }
