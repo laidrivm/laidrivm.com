@@ -1,7 +1,7 @@
 import {extname} from 'path'
 
 import LOCALIZED_TEXT from './localization.json'
-import type {ServiceResult, FileType, SupportedLanguage} from './types.ts'
+import type {ServiceResponse, FileType, SupportedLanguage} from './types.ts'
 
 /**
  * List of files to ignore when processing repositories
@@ -47,12 +47,12 @@ export function getFileType(path: string): FileType {
   }
 }
 
-export function asyncPipe<T>(...functions: Function[]): ServiceResult {
+export function asyncPipe<T>(...functions: Function[]): ServiceResponse {
   return async (initialValue: T) => {
     let currentValue = initialValue
     for (const currentFunction of functions) {
       currentValue = await currentFunction(currentValue)
-      if (!currentValue.success) {
+      if (currentValue && !currentValue.success) {
         return currentValue
       }
     }
@@ -65,7 +65,7 @@ export function asyncPipe<T>(...functions: Function[]): ServiceResult {
  * @param data - The success data
  * @returns Success result
  */
-export function ok<T>(data: T): ServiceResult<T> {
+export function ok<T>(data: T): ServiceResponse<T> {
   return {
     success: true,
     data
@@ -77,7 +77,7 @@ export function ok<T>(data: T): ServiceResult<T> {
  * @param error - The error
  * @returns Error result
  */
-export function err<E extends Error>(error: E): ServiceResult<never, E> {
+export function err<E = Error>(error: E): ServiceResponse<never, E> {
   return {
     success: false,
     error
@@ -92,7 +92,8 @@ export function err<E extends Error>(error: E): ServiceResult<never, E> {
  * @returns Localized text string
  */
 export function getLocalizedText(lang: SupportedLanguage, key: string): string {
-  return LOCALIZED_TEXT[lang][key]
+  const texts = LOCALIZED_TEXT as Record<string, Record<string, string>>
+  return texts[lang]?.[key] || texts['en']?.[key] || key
 }
 
 export function isIndex(sourcePath: string): boolean {

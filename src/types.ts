@@ -14,6 +14,7 @@ export type GenerateType = 'new' | 'all' | 'initial' | 'skip' | 'local'
 export interface FileInfo {
   sourcePath: string // Original GitHub path
   localPath?: string // Local filesystem path
+  outputPath?: string
   content?: string | TokensList | JSX.Element | Buffer
   isBinary?: boolean
   frontmatter?: Object
@@ -21,14 +22,14 @@ export interface FileInfo {
   size: number
   lastModified: Date
   type: FileType
-  PageTemplateProps: PageTemplateProps
+  pageTemplateProps?: PageTemplateProps
   articleLinks?: ArticleLink[]
 }
 
 export interface FileCollection {
   readonly files: FileInfo[]
-  readonly lastFetch: Date
-  readonly repoSha: string
+  readonly lastFetch: Date | null
+  readonly repoSha: string | null
   readonly mode: GenerateType
 }
 
@@ -46,6 +47,7 @@ export interface FileMeta {
 export interface MarkdownContent {
   frontmatter: Object
   tokens: TokensList
+  pageTemplateProps?: PageTemplateProps
 }
 
 export interface HeadingProps {
@@ -185,10 +187,17 @@ export interface SharingLinksProps {
   text: string
 }
 
+export interface ShareLinkProps {
+  platform: string
+  lang: SupportedLanguage
+  url: string
+  text?: string
+}
+
 export interface PageTemplateProps {
   title: string
   children: JSX.Element | JSX.Element[]
-  lang: string
+  lang: SupportedLanguage
   description: string
   updatedAt: Date
   image: string

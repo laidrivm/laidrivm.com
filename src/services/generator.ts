@@ -21,7 +21,7 @@ export async function generate(
 
   const metaVersion = await loadMetaVersion()
   if (mode === 'initial') {
-    if (process.env.VERSION > metaVersion) {
+    if (process.env['VERSION'] > metaVersion) {
       mode = 'all'
     } else {
       mode = 'new'

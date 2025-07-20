@@ -1,4 +1,4 @@
-import type {PageTemplateProps} from '../types.ts'
+import type {PageTemplateProps, SupportedLanguage} from '../types.ts'
 
 import {Arrow} from './Arrow.tsx'
 import {LanguageSwitch} from './LanguageSwitch.tsx'
@@ -15,12 +15,18 @@ export function PageTemplate({
   children
 }: PageTemplateProps): JSX.Element {
   console.log(`Rendering ${title}, updatedAt: ${updatedAt}`)
+
+  const supportedLang =
+    lang === 'en' || lang === 'ru'
+      ? (lang as SupportedLanguage)
+      : ('en' as SupportedLanguage)
+
   return (
     <>
       {'<!doctype html>'}
       <html lang={lang}>
         <head>
-          <meta charSet="UTF-8" />
+          <meta charset="UTF-8" />
           <meta
             name="viewport"
             content="width=device-width, initial-scale=1.0"
@@ -28,7 +34,7 @@ export function PageTemplate({
           <title>{title}</title>
           <meta name="author" content="Vladimir Lazarev" />
           <meta name="description" content={description} />
-          <meta name="last-modified" content={updatedAt} />
+          <meta name="last-modified" content={updatedAt.toISOString()} />
           <meta property="og:image" content={image} />
           <meta property="og:title" content={title} />
           <meta property="og:description" content={description} />
@@ -70,13 +76,13 @@ export function PageTemplate({
           />
         </head>
         <body>
-          {includeArrow && <Arrow lang={lang} />}
-          <LanguageSwitch lang={lang} />
+          {includeArrow && <Arrow lang={supportedLang} />}
+          <LanguageSwitch lang={supportedLang} />
 
           <main className="content">
             {children}
             <Social
-              lang={lang}
+              lang={supportedLang}
               date={updatedAt}
               url={url}
               description={description}

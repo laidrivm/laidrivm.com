@@ -2,7 +2,8 @@ import {getLocalizedText, formatDate} from '../utils.ts'
 import type {
   SocialProps,
   SharingLinksProps,
-  ShareButtonConfig
+  ShareButtonConfig,
+  ShareLinkProps
 } from '../types.ts'
 
 const SHARE_CONFIGS: Record<string, ShareButtonConfig> = {
@@ -26,7 +27,12 @@ const SHARE_CONFIGS: Record<string, ShareButtonConfig> = {
   }
 }
 
-function SocialShareLink({platform, lang, url, text = ''}): JSX.Element {
+function SocialShareLink({
+  platform,
+  lang,
+  url,
+  text = ''
+}: ShareLinkProps): JSX.Element {
   const config = SHARE_CONFIGS[platform]
   if (!config) return null
 
@@ -73,6 +79,7 @@ function SharingLinks({lang, url, text}: SharingLinksProps): JSX.Element {
       <p>{getLocalizedText(lang, 'share')}: </p>
       {platforms.map(platform => (
         <SocialShareLink
+          key={platform}
           platform={platform}
           lang={lang}
           url={url}
@@ -97,7 +104,7 @@ export function Social({
       <SharingLinks lang={lang} url={url} text={description} />
       <p>
         {updateText}
-        <time dateTime={date}>{formattedDate}</time>
+        <time dateTime={date.toISOString()}>{formattedDate}</time>
       </p>
     </div>
   )

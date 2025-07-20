@@ -40,7 +40,9 @@ async function scanDirectoryRecursive(
         if (stats.isDirectory()) {
           // Recursively scan subdirectories
           const subFiles = await scanDirectoryRecursive(fullPath, basePath)
-          files.push(...subFiles.data)
+          if (subFiles.success && subFiles.data) {
+            files.push(...subFiles.data)
+          }
         } else if (stats.isFile()) {
           const file = Bun.file(fullPath)
           const content = await file.text()
@@ -51,7 +53,7 @@ async function scanDirectoryRecursive(
             content,
             sha: meta?.sha || null,
             size: meta?.size || stats.size,
-            lastModified: (meta && new Date(meta?.lastModified)) || stats.mtime,
+            lastModified: (meta && new Date(meta.lastModified)) || stats.mtime,
             type: getFileType(fullPath)
           }
           files.push(fileInfo)
@@ -64,7 +66,7 @@ async function scanDirectoryRecursive(
     }
   } catch (error) {
     console.error(`Failed to read directory ${currentPath}: ${error}`)
-    return err(error)
+    return err(error as Error)
   }
 
   return ok(files)
@@ -75,18 +77,17 @@ async function scanDirectoryRecursive(
  * @param dirPath - Directory path to scan
  * @returns ServiceResponse with array of FileInfo objects
  */
-async function scanLocalContent(dirPath?: string): Promise<FileInfo[]> {
-  const articlesDir = dirPath || process.env.ARTICLES_DIR
+async function scanLocalContent(
+  dirPath?: string
+): Promise<ServiceResponse<FileInfo[]>> {
+  const articlesDir = dirPath || process.env['ARTICLES_DIR']
 
   if (!articlesDir) {
     return err(new Error('ARTICLES_DIR environment variable is not set'))
   }
 
   const files = await scanDirectoryRecursive(articlesDir, articlesDir)
-  if (!files.success) {
-    return files
-  }
-  return files.data
+  return files
 }
 
 /**
@@ -206,7 +207,12 @@ export async function processFilesContent(
     return githubContent
   }
 
-  let {files} = githubContent.data
+  if (!githubContent.data) {
+    return err(new Error('No data in github content'))
+  }
+
+  let files = githubContent.data.files
+  let localFiles = [] as FileInfo[]
   console.log(`Processing ${files.length} files from repository`)
 
   switch (githubContent.data.mode) {
@@ -216,7 +222,11 @@ export async function processFilesContent(
     case 'local':
     case 'all':
       console.log(`Need to generate all the files, scanning for them`)
-      files = await scanLocalContent()
+      localFiles = await scanLocalContent()
+      if (!localFiles.success || !localFiles.data) {
+        return err(new Error('Failed to scan local files'))
+      }
+      files = localFiles.data
       break
     default:
       return err(new Error('Unknown generation mode'))
@@ -225,6 +235,9 @@ export async function processFilesContent(
   if (files.length === 0) {
     console.log('No files to process, skipping next steps')
     return ok({
+      files: [],
+      lastFetch: null,
+      repoSha: null,
       mode: 'skip'
     })
   }

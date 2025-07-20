@@ -3,7 +3,7 @@ import {join} from 'path'
 import {ok, err} from '../utils.ts'
 import type {ServiceResponse} from '../types.ts'
 
-const metaPath = join(process.env.ARTICLES_DIR, '.meta')
+const metaPath = join(process.env['ARTICLES_DIR'], '.meta')
 
 export async function loadMetaVersion(): Promise<string | null> {
   try {
@@ -20,7 +20,7 @@ export async function createMetaFile(): Promise<ServiceResponse<Date>> {
   try {
     const builtAt = new Date()
     const meta = JSON.stringify({
-      version: process.env.VERSION,
+      version: process.env['VERSION'],
       builtAt
     })
     await Bun.write(metaPath, meta)

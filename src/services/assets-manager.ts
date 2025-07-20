@@ -16,7 +16,7 @@ function isAssetFile(file: FileInfo): boolean {
  * Gets the output path for an asset file in the public directory
  */
 function getAssetOutputPath(sourcePath: string): string {
-  const publicDir = process.env.PUBLIC_DIR || 'public'
+  const publicDir = process.env['PUBLIC_DIR'] || 'public'
   return join(publicDir, sourcePath)
 }
 
@@ -152,7 +152,7 @@ export async function processAssets(
   renderedContent: ServiceResponse<FileCollection>
 ): Promise<ServiceResponse<FileCollection>> {
   // Early return if input is not successful
-  if (!renderedContent.success) {
+  if (!renderedContent.success || !renderedContent.data) {
     return renderedContent
   }
 
@@ -181,7 +181,7 @@ export async function processAssets(
     return copyResult
   }
 
-  const processedAssets = copyResult.data
+  const processedAssets = copyResult.data || []
 
   // Log summary
   logAssetSummary(assetFiles, processedAssets)

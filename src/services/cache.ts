@@ -1,18 +1,18 @@
 import {readdir, mkdir} from 'node:fs/promises'
 
 import {isIgnored, ok, err, getFileType} from '../utils.ts'
-import type {FileInfo, ServiceResult, FileMeta} from '../types.ts'
+import type {FileInfo, ServiceResponse, FileMeta} from '../types.ts'
 
 const repoCache = new Map<string, FileInfo>()
 
-async function createDir(fullPath) {
+async function createDir(fullPath: string): Promise<void> {
   try {
     // Create directory if it doesn't exist
     const dir = fullPath.substring(0, fullPath.lastIndexOf('/'))
-    await mkdir(dir)
+    await mkdir(dir, {recursive: true})
   } catch (error) {
     if (error.errno !== -17) {
-      console.log(error)
+      console.error(error)
     }
   }
 }
@@ -21,13 +21,15 @@ async function createDir(fullPath) {
  * Stores file in cache
  * @param file - File to cache
  */
-export async function storeInCache(file: FileInfo): Promise<void> {
+export async function storeInCache(
+  file: FileInfo
+): Promise<ServiceResponse<string>> {
   try {
-    const localPath = `${process.env.ARTICLES_DIR}/${file.sourcePath}`
+    const localPath = `${process.env['ARTICLES_DIR']}/${file.sourcePath}`
 
     // Save file content
     await createDir(localPath)
-    await Bun.write(localPath, file.content)
+    await Bun.write(localPath, file.content || '')
 
     // Save metadata with GitHub SHA
     const metadataPath = `${localPath}.meta`
@@ -59,7 +61,7 @@ export async function storeInCache(file: FileInfo): Promise<void> {
  */
 export function isCacheValid(path: string, sha: string): boolean {
   const cachedFile = repoCache.get(path)
-  console.log(`Checking cache valifity for ${path}`)
+  console.log(`Checking cache validity for ${path}`)
   console.log(`SHA: ${sha}`)
   console.log(`Cached SHA: ${cachedFile?.sha}`)
   if (cachedFile) {
@@ -127,7 +129,7 @@ export async function getFileMeta(filePath: string): Promise<FileMeta | null> {
     const metadataFile = Bun.file(metadataPath)
     if (await metadataFile.exists()) {
       const metadata = await metadataFile.json()
-      console.log(`Metada retrieved: ${JSON.stringify(metadata)}`)
+      console.log(`Metadata retrieved: ${JSON.stringify(metadata)}`)
       return metadata
     }
   } catch (error) {
@@ -184,8 +186,8 @@ async function processFileForCache(
  * @param articlesDir - Directory containing articles
  * @returns Result of cache initialization
  */
-export async function initializeCache(): Promise<ServiceResult<number>> {
-  const articlesDir = process.env.ARTICLES_DIR
+export async function initializeCache(): Promise<ServiceResponse<number>> {
+  const articlesDir = process.env['ARTICLES_DIR'] || 'articles'
   console.log(`Initializing cache from local directory: ${articlesDir}`)
 
   try {

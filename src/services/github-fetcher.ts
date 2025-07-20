@@ -18,7 +18,7 @@ import {isCacheValid, invalidateCache, storeInCache} from './cache.ts'
 function createOctokit(): Octokit {
   console.log('Creating Octokit instance')
   return new Octokit({
-    auth: process.env.GITHUB_TOKEN
+    auth: process.env['GITHUB_TOKEN']
   })
 }
 
@@ -308,7 +308,7 @@ export async function fetchGitHubContent(
 
   const octokit = createOctokit()
 
-  const repoUrl = new URL(process.env.GITHUB_REPO)
+  const repoUrl = new URL(process.env['GITHUB_REPO'])
   const [owner, repo] = repoUrl.pathname.split('/').filter(Boolean)
   console.log(
     `Trying to fetch repository content for owner: ${owner} and repo: ${repo}`

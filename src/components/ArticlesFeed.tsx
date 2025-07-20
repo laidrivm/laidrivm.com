@@ -17,7 +17,7 @@ export function ArticlesFeed({lang, links}: ArticleListProps): JSX.Element {
         {links.map((link, index) => (
           <li key={`article-${index}`} className="article-item">
             <a href={link.slug} className="article-link">
-              {link.title}
+              {link.title || ''}
             </a>
           </li>
         ))}

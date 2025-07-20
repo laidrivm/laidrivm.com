@@ -4,11 +4,9 @@ import {mkdir} from 'node:fs/promises'
 import esbuild from 'esbuild'
 import cssModulesPlugin from 'esbuild-css-modules-plugin'
 
-import * as EnvUtils from './src/utils/envutils.ts'
-
 esbuild
   .build({
-    entryPoints: ['./src/index.ts', './src/generate.tsx'],
+    entryPoints: ['./src/server.ts'],
     bundle: true,
     metafile: true,
     outdir: './out',
@@ -20,8 +18,6 @@ esbuild
     nodePaths: ['node_modules']
   })
   .catch(() => process.exit(1))
-
-EnvUtils.initDefaults()
 
 const pub = Bun.file(process.env.PUBLIC)
 

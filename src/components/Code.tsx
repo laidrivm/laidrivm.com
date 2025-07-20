@@ -19,22 +19,27 @@ export function Code({
   codeLanguage,
   siteLanguage
 }: CodeProps): JSX.Element {
-  const validLang = Prism.languages[codeLanguage] ? codeLanguage : 'plaintext'
-  const safeText = typeof text === 'string' ? text : '' // maybe not the best option to validateInput...
+  const lang = codeLanguage || 'plaintext'
+  const validLang = Prism.languages[lang] ? lang : 'plaintext'
+  const safeText = typeof text === 'string' ? text : ''
 
   const highlightedCode = Prism.highlight(
     safeText,
-    Prism.languages[validLang] || Prism.languages.plaintext,
+    Prism.languages[validLang] || Prism.languages['plaintext'],
     validLang
   )
 
-  const copyCodeText = getLocalizedText(siteLanguage, 'copyCode')
-  const copiedText = getLocalizedText(siteLanguage, 'copied')
+  const copyCodeText = siteLanguage
+    ? getLocalizedText(siteLanguage, 'copyCode')
+    : 'Copy'
+  const copiedText = siteLanguage
+    ? getLocalizedText(siteLanguage, 'copied')
+    : 'Copied!'
 
   return (
     <div className="code-snippet">
       <div className="code-panel">
-        <p>{codeLanguage}</p>
+        <p>{lang}</p>
         <button
           className="copy-code"
           onclick={`copyCode(this, '${copiedText}', '${copyCodeText}')`}
@@ -43,7 +48,7 @@ export function Code({
         </button>
       </div>
       <pre>
-        <code className={`language-${codeLanguage}`}>{highlightedCode}</code>
+        <code className={`language-${lang}`}>{highlightedCode}</code>
       </pre>
     </div>
   )

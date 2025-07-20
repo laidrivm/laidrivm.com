@@ -6,9 +6,9 @@ import packageJson from '../package.json'
 import {initializeCache} from './services/cache.ts'
 import {generate} from './services/generator.ts'
 
-process.env.VERSION = process.env.VERSION || packageJson.version
+process.env['VERSION'] = process.env['VERSION'] || packageJson.version
 
-console.log(`Server version: ${process.env.VERSION}`)
+console.log(`Server version: ${process.env['VERSION']}`)
 
 /**
  * Loads TLS certificates for secure server
@@ -28,9 +28,10 @@ async function loadTlsCertificates(): Promise<{key: string; cert: string}> {
 /**
  * Handle .html extension redirects
  */
-const redirectHTML = new Elysia().onRequest(({path, redirect}) => {
+const redirectHTML = new Elysia().onRequest(context => {
+  const path = context.request.url ? new URL(context.request.url).pathname : ''
   if (path.includes('.html')) {
-    return redirect(path.replace('.html', ''), 302)
+    return context.redirect(path.replace('.html', ''), 302)
   }
 })
 
@@ -54,7 +55,7 @@ const app = new Elysia()
   .use(
     staticPlugin({
       prefix: '/',
-      assets: process.env.PUBLIC_DIR,
+      assets: process.env['PUBLIC_DIR'],
       indexHTML: true,
       noCache: false
     })
@@ -68,7 +69,7 @@ const app = new Elysia()
     return regenerateResult
   })
   .listen({
-    port: process.env.PORT,
+    port: process.env['PORT'],
     tls: {
       key,
       cert

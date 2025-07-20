@@ -12,7 +12,7 @@ let wasPrintedOnce = false
  * Generates the canonical URL for a page
  */
 function generatePageUrl(sourcePath: string): string {
-  const baseUrl = process.env.BASE_URL || 'localhost'
+  const baseUrl = process.env['BASE_URL'] || 'localhost'
   const urlPath = sourcePath
     .replace('.md', '')
     .replace(/\/index$/, '/') // Remove 'index' from URL
@@ -26,7 +26,7 @@ function generatePageUrl(sourcePath: string): string {
  * Creates directory structure for clean URLs
  */
 function determineOutputPath(sourcePath: string): string {
-  const publicDir = process.env.PUBLIC_DIR || 'public'
+  const publicDir = process.env['PUBLIC_DIR'] || 'public'
   const nameWithoutExt = sourcePath.replace('.md', '')
 
   if (nameWithoutExt.endsWith('index') || nameWithoutExt === 'index') {
