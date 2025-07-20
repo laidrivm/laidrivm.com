@@ -1,5 +1,5 @@
-import {Octokit} from 'octokit'
 import {Buffer} from 'buffer/'
+import {Octokit} from 'octokit'
 
 import {ok, err, isIgnored, getFileType} from '../utils.ts'
 import type {

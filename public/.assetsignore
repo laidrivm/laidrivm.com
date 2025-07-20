@@ -1,0 +1,5 @@
+**/.DS_Store
+**/*.map
+**/Thumbs.db
+node_modules/
+.git/

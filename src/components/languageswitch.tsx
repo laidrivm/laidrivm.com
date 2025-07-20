@@ -1,4 +1,4 @@
-import type {LocalizedProps} from '../types'
+import type {LocalizedProps} from '../types.ts'
 
 /**
  * Renders a language switcher that toggles between supported languages
@@ -11,12 +11,14 @@ export function LanguageSwitch({lang}: LocalizedProps): JSX.Element {
   const href = targetLang === 'ru' ? '/ru/' : '/'
 
   return (
-    <a
-      href={href}
-      className="language-link"
-      aria-label={`Switch to ${targetLang} language`}
-    >
-      {targetLang}
-    </a>
+    <div className="language">
+      <a
+        href={href}
+        className="language-link"
+        aria-label={`Switch to ${targetLang} language`}
+      >
+        {targetLang}
+      </a>
+    </div>
   )
 }

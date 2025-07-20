@@ -1,35 +1,31 @@
-import type {HeadingProps} from '../types'
+import unidecode from 'unidecode'
 
-/**
- * Renders a heading element with the specified depth and optional anchor link
- *
- * @param props - Component properties
- * @returns JSX element with appropriate heading level
- */
-export function Heading({depth, text, id}: HeadingProps): JSX.Element {
-  // Validate the depth value
-  const validDepth = (depth >= 1 && depth <= 6 ? depth : 2) as
-    | 1
-    | 2
-    | 3
-    | 4
-    | 5
-    | 6
+import type {HeadingProps} from '../types.ts'
 
-  // For H1, don't include the anchor link
-  if (validDepth === 1) {
-    return <h1>{text}</h1>
+function generateId(text: string): string {
+  const transliterated = unidecode(text)
+
+  return transliterated
+    .toLowerCase()
+    .replace(/[^\w\s-]/g, '')
+    .trim()
+    .replace(/\s+/g, '-')
+}
+
+export function Heading({depth, children, raw}: HeadingProps): JSX.Element {
+  if (depth === 1) {
+    return <h1>{children}</h1>
   }
 
-  // Create the appropriate heading tag
-  const Tag = `h${validDepth}` as keyof JSX.IntrinsicElements
+  const Tag = `h${depth}` as keyof JSX.IntrinsicElements
+  const id = generateId(raw)
 
   return (
-    <Tag id={id}>
-      <div className="heading-content">
-        <a href={`#${id}`}>{text}</a>
-        <button className="copy-heading">🔗</button>
-      </div>
+    <Tag id={id} className="heading-content">
+      <a href={`#${id}`}>{children}</a>
+      <button className="copy-heading" onclick={`copyHeading(this)`}>
+        🔗
+      </button>
     </Tag>
   )
 }

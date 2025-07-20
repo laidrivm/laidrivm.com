@@ -3,7 +3,6 @@ import pluginJs from "@eslint/js";
 import tsparser from "@typescript-eslint/parser";
 import pluginTs from "@typescript-eslint/eslint-plugin";
 import pluginReact from "eslint-plugin-react";
-import pluginPreact from "eslint-plugin-preact";
 import pluginImport from "eslint-plugin-import";
 import pluginJSDoc from "eslint-plugin-jsdoc";
 import pluginSonarJS from "eslint-plugin-sonarjs";
@@ -32,7 +31,6 @@ export default [
     plugins: {
       "@typescript-eslint": pluginTs,
       react: pluginReact,
-      preact: pluginPreact,
       import: pluginImport,
       jsdoc: pluginJSDoc,
       sonarjs: pluginSonarJS,

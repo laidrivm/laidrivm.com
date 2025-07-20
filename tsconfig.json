@@ -33,5 +33,5 @@
   "resolve": {
     "extensions": [".js", ".jsx", ".ts", ".tsx", ".json", ".svg", ".css"]
   },
-  "include": ["src2"]
+  "include": ["src"]
 }

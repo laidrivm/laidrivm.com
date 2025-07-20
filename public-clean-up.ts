@@ -10,7 +10,8 @@ const PRESERVED_FILES = [
   'mellon-for-incubators.pdf',
   'mellon-prototype.pdf',
   'og_image-min.jpg',
-  'robots.txt'
+  'robots.txt',
+  '.assetsignore'
 ]
 
 /**

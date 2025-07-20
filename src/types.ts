@@ -1,152 +1,222 @@
-import type {Token} from 'marked'
+import type {Buffer} from 'buffer/'
+import type {TokensList, Token} from 'marked'
 
-export type SupportedLanguage = 'en' | 'ru' | 'es' | 'fr'
+export interface ServiceResponse<T, E = Error> {
+  success: boolean
+  error?: E
+  data?: T
+}
 
-export interface Link {
+export type FileType = 'markdown' | 'unsupported' | 'html'
+
+export type GenerateType = 'new' | 'all' | 'initial' | 'skip' | 'local'
+
+export interface FileInfo {
+  sourcePath: string // Original GitHub path
+  localPath?: string // Local filesystem path
+  content?: string | TokensList | JSX.Element | Buffer
+  isBinary?: boolean
+  frontmatter?: Object
+  sha: string | null
+  size: number
+  lastModified: Date
+  type: FileType
+  PageTemplateProps: PageTemplateProps
+  articleLinks?: ArticleLink[]
+}
+
+export interface FileCollection {
+  readonly files: FileInfo[]
+  readonly lastFetch: Date
+  readonly repoSha: string
+  readonly mode: GenerateType
+}
+
+export interface CacheEntry {
+  file: FileInfo
+  sha: number
+}
+
+export interface FileMeta {
+  sha: string
+  size: number
+  lastModified: Date
+}
+
+export interface MarkdownContent {
+  frontmatter: Object
+  tokens: TokensList
+}
+
+export interface HeadingProps {
+  depth: number
+  raw: string
+  children: JSX.Element | JSX.Element[]
+}
+
+export interface ParagraphProps {
+  raw: string
+  children: JSX.Element | JSX.Element[]
+}
+
+export interface ListProps {
+  ordered: boolean
+  start?: number
+  loose: boolean
+  raw: string
+  children: JSX.Element | JSX.Element[]
+}
+
+export interface ListItemProps {
+  task: boolean
+  loose: boolean
+  raw: string
+  children: JSX.Element | JSX.Element[]
+}
+
+export interface CheckboxProps {
+  checked: boolean
+}
+
+export interface CodeProps {
   text: string
-  address: string
+  codeLanguage?: string
+  siteLanguage?: SupportedLanguage
+  escaped?: boolean
+  raw: string
 }
 
-export type Links = Link[]
-
-/**
- * File or directory node in the content tree
- */
-export interface FileNode {
-  /** Base name without extension */
-  name: string
-  /** Node type: folder, article or misc asset */
-  type: 'folder' | 'article' | 'misc'
-  /** ISO date string of last modification time */
-  edited: string
-  /** ISO date string of creation time */
-  created: string
-  /** Child nodes for folders */
-  children?: FileNode[]
+export interface CodeSpanProps {
+  text: string
+  raw: string
 }
 
-/**
- * Page metadata for sitemap generation
- */
-export interface PageEntry {
-  /** Full path to the page */
-  path: string
-  /** Last modification date in ISO format */
-  lastmod: string
-  /** Priority value for search engines (0.0-1.0) */
-  priority: number
+export interface BlockquoteProps {
+  raw: string
+  children: JSX.Element | JSX.Element[]
 }
 
-/**
- * Page rendering configuration
- */
-export interface PageRenderOptions {
-  /** Canonical URL for the page */
-  address: string
-  /** Page title */
-  title: string
-  /** Meta description */
-  description: string
-  /** Page HTML content */
-  content: string | JSX.Element
-  /** Page language code */
-  lang: SupportedLanguage
-  /** ISO date string of last modification time */
-  time: string
-  /** Whether to show back arrow navigation */
-  includeArrow?: boolean
-  /** Open Graph image URL */
-  image?: string
+export interface LinkProps {
+  href: string
+  title?: string
+  raw: string
+  children: JSX.Element | JSX.Element[]
 }
 
-export interface RepoConfig {
-  owner: string
-  repo: string
+export interface ImageProps {
+  href: string
+  title?: string
+  caption?: string
+  text: string
+  raw: string
 }
 
-/**
- * Environment configuration
- */
-export interface EnvConfig {
-  /** HTTP server port */
-  PORT: string
-  /** Site domain or address */
-  ADDRESS: string
-  /** Content source (URL or 'local') */
-  SOURCE: string
-  /** GitHub API token */
-  GITHUB_TOKEN: string
-  /** Directory for storing content */
-  ARTICLES: string
-  /** Directory for rendered pages */
-  PUBLIC: string
-  /** Token for regeneration API */
-  REGENERATE_TOKEN?: string
+export interface StrongProps {
+  raw: string
+  children: JSX.Element | JSX.Element[]
 }
 
-/**
- * Base properties for components that support internationalization
- */
+export interface EmProps {
+  raw: string
+  children: JSX.Element | JSX.Element[]
+}
+
+export interface DelProps {
+  raw: string
+  children: JSX.Element | JSX.Element[]
+}
+
+export interface HrProps {
+  raw: string
+}
+
+export interface BrProps {
+  raw: string
+}
+
+export interface TableProps {
+  raw: string
+  children: JSX.Element | JSX.Element[]
+}
+
+export interface TableRowProps {
+  header?: boolean
+  children: JSX.Element | JSX.Element[]
+}
+
+export interface TableCellProps {
+  header: boolean
+  align?: 'left' | 'center' | 'right'
+  raw: string
+  children: JSX.Element | JSX.Element[]
+}
+
+export interface HtmlProps {
+  text: string
+  raw: string
+  pre?: boolean
+  block?: boolean
+}
+
+export interface SpaceProps {
+  raw: string
+}
+
+export interface TextProps {
+  raw: string
+  escaped?: boolean
+  children: JSX.Element | JSX.Element[]
+}
+
 export interface LocalizedProps {
   lang: SupportedLanguage
 }
 
-/**
- * Page content properties
- */
-export interface PageProps extends LocalizedProps {
-  /** Full URL of the page */
-  address: string
-  /** Page title */
-  title: string
-  /** Page meta description */
+export interface SocialProps {
+  lang: SupportedLanguage
+  date: Date
+  url: string
   description: string
-  /** HTML content of the page */
-  content: string
-  /** ISO date string of when the page was last updated */
-  time: string
-  /** URL to the page's featured image */
-  image: string
-  /** Whether to show the back arrow */
-  includeArrow?: boolean
 }
 
-/**
- * Properties for heading components
- */
-export interface HeadingProps {
-  depth: 1 | 2 | 3 | 4 | 5 | 6
-  text: string
-  id: string
-  siteLanguage: SupportedLanguage
-}
-
-/**
- * Properties for code snippet components
- */
-export interface CodeSnippetProps {
-  codeLanguage: string
-  text: string
-  siteLanguage: SupportedLanguage
-}
-
-export interface SocialShareProps {
+export interface SharingLinksProps {
   lang: SupportedLanguage
   url: string
-  text?: string
+  text: string
 }
 
-// Type for share button configurations
+export interface PageTemplateProps {
+  title: string
+  children: JSX.Element | JSX.Element[]
+  lang: string
+  description: string
+  updatedAt: Date
+  image: string
+  url: string
+  includeArrow: boolean
+}
+
+export type SupportedLanguage = 'en' | 'ru'
+
 export type ShareButtonConfig = {
   baseUrl: string
   urlParam?: string
   textParam?: string
 }
 
-export interface ImageProps {
-  src: string
-  alt: string
-  caption?: Token
+export interface ArticleLink {
+  sourcePath: string
+  slug: string
+  title?: string
+  description?: string
+  image?: string
+  date?: Date
+  lang?: SupportedLanguage
 }
 
-export type {Token} from 'marked'
+export interface ArticleListProps {
+  lang: SupportedLanguage
+  links: ArticleLink[]
+}
+
+export type {TokensList, Token}
