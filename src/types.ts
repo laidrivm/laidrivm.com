@@ -1,4 +1,5 @@
 import type {Buffer} from 'buffer/'
+
 import type {TokensList, Token} from 'marked'
 
 export interface ServiceResponse<T, E = Error> {

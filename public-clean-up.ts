@@ -17,7 +17,7 @@ const PRESERVED_FILES = [
 /**
  * List of directories to preserve during cleanup
  */
-const PRESERVED_DIRS = ['icons']
+const PRESERVED_DIRS = ['icons', 'fonts']
 
 /**
  * Default public directory if not specified via environment

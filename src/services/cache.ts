@@ -1,6 +1,5 @@
 import {readdir, mkdir} from 'node:fs/promises'
-
-import {Buffer} from 'buffer/'
+import {Buffer} from 'node:buffer'
 
 import {isIgnored, ok, err, getFileType} from '../utils.ts'
 import type {FileInfo, ServiceResponse, FileMeta} from '../types.ts'

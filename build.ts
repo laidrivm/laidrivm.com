@@ -1,54 +1,47 @@
-import path from 'path'
-import {mkdir} from 'node:fs/promises'
+import { mkdir } from 'node:fs/promises'
+import { join, relative } from 'path'
+import { readdir, cp } from 'node:fs/promises'
 
-import esbuild from 'esbuild'
-import cssModulesPlugin from 'esbuild-css-modules-plugin'
+const PUBLIC_DIR = process.env.PUBLIC ?? './public'
 
-esbuild
-  .build({
-    entryPoints: ['./src/server.ts'],
-    bundle: true,
-    metafile: true,
-    outdir: './out',
-    outbase: 'src',
-    platform: 'node',
-    format: 'esm',
-    target: 'esnext',
-    external: [],
-    nodePaths: ['node_modules']
-  })
-  .catch(() => process.exit(1))
+await Bun.build({
+  entrypoints: ['./src/server.ts'],
+  outdir: './out',
+  target: 'bun',
+  format: 'esm',
+  env: 'disable',
+  splitting: false,
+  minify: false,
+  external: ['node:crypto', 'universal-github-app-jwt'],
+  sourcemap: 'linked',
+  packages: 'bundle'
+})
 
-const pub = Bun.file(process.env.PUBLIC)
+await Bun.build({
+  entrypoints: ['./src/styles/main.css'],
+  outdir: './public',
+  minify: true,
+  target: 'browser'
+})
 
-if (!(await pub.exists())) {
-  await mkdir(process.env.PUBLIC, {recursive: true})
+const srcScriptsDir = './src/components/scripts'
+const publicScriptsDir = join(PUBLIC_DIR, 'scripts')
+
+await mkdir(publicScriptsDir, { recursive: true })
+
+async function moveScripts(dir: string, out: string) {
+  const entries = await readdir(dir, { withFileTypes: true })
+  for (const entry of entries) {
+    const from = join(dir, entry.name)
+    const to = join(out, entry.name)
+
+    if (entry.isDirectory()) {
+      await mkdir(to, { recursive: true })
+      await moveScripts(from, to)
+    } else {
+      await cp(from, to)
+    }
+  }
 }
 
-const fonts = Bun.file(path.join(process.env.PUBLIC, 'fonts'))
-if (!(await fonts.exists('./public/fonts'))) {
-  await mkdir(path.join(process.env.PUBLIC, 'fonts'), {recursive: true})
-}
-
-esbuild
-  .build({
-    entryPoints: ['./src/styles/main.css'],
-    bundle: true,
-    outfile: './public/main.css',
-    minify: true,
-    metafile: true,
-    loader: {
-      '.ttf.woff2': 'file',
-      '.woff2': 'file'
-    },
-    plugins: [
-      cssModulesPlugin({
-        inject: true,
-        minify: true,
-        targets: '>= 0.25%'
-      })
-    ],
-    publicPath: '/', // Set public path for file references
-    assetNames: 'fonts/[name]' // Output assets to the fonts directory
-  })
-  .catch(() => process.exit(1))
+await moveScripts(srcScriptsDir, publicScriptsDir)

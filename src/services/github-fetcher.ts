@@ -1,4 +1,5 @@
-import {Buffer} from 'buffer/'
+import {Buffer} from 'node:buffer'
+
 import {Octokit} from 'octokit'
 
 import {ok, err, isIgnored, getFileType} from '../utils.ts'
