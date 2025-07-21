@@ -19,34 +19,44 @@ const SUPPORTED_LANGUAGES = new Set<SupportedLanguage>(['en', 'ru'])
 function renderPlaintext(markdown: string): string {
   const renderer = new marked.Renderer()
 
-  renderer.text = token => token.text
-  renderer.link = token => token.text
-  renderer.paragraph = token => {
+  renderer.text = (token: any) => token.text || token
+  renderer.link = (token: any) => token.text || ''
+  renderer.paragraph = (token: any) => {
     let result = ''
-    for (const innerToken of token.tokens) {
-      switch (innerToken.type) {
-        case 'link':
-          result += renderer.link(innerToken)
-          break
-        case 'text':
-          result += renderer.text(innerToken)
-          break
-        default:
-          throw new Error(`Unsupported token type: ${innerToken.type}`)
+    if (token.tokens) {
+      for (const innerToken of token.tokens) {
+        switch (innerToken.type) {
+          case 'link':
+            result += renderer.link(innerToken)
+            break
+          case 'text':
+            result += renderer.text(innerToken)
+            break
+          default:
+            result += innerToken.text || ''
+        }
       }
+    } else {
+      result = token.text || ''
     }
     return result
   }
 
-  return marked.parse(markdown, {renderer})
+  return marked.parse(markdown, {renderer}) as string
 }
 
-function defineLanguage(frontmatter: Object, path: string): SupportedLanguage {
-  if (frontmatter?.language) {
-    return frontmatter.language
+function defineLanguage(
+  frontmatter: Record<string, any>,
+  path: string
+): SupportedLanguage {
+  if (
+    frontmatter?.['language'] &&
+    SUPPORTED_LANGUAGES.has(frontmatter['language'])
+  ) {
+    return frontmatter['language']
   }
   const segments = path.replace(/^\//, '').split('/')
-  if (segments.length > 0) {
+  if (segments.length > 0 && segments[0]) {
     const firstSegment = segments[0].toLowerCase() as SupportedLanguage
 
     if (SUPPORTED_LANGUAGES.has(firstSegment)) {
@@ -57,12 +67,12 @@ function defineLanguage(frontmatter: Object, path: string): SupportedLanguage {
 }
 
 function extractFrontmatter(content: string): {
-  frontmatter: Object
+  frontmatter: Record<string, any>
   markdown: string
 } {
   const match = content.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)/)
-  if (match) {
-    const frontmatter = {}
+  if (match && match[1] && match[2]) {
+    const frontmatter: Record<string, any> = {}
     match[1].split('\n').forEach(line => {
       const [key, ...valueParts] = line.split(':')
       if (key) {
@@ -76,7 +86,7 @@ function extractFrontmatter(content: string): {
 
 function getTitle(tokens: TokensList): string {
   for (const token of tokens) {
-    if (token.type === 'heading') {
+    if (token.type === 'heading' && 'text' in token) {
       return renderPlaintext(token.text).trim()
     }
   }
@@ -85,10 +95,10 @@ function getTitle(tokens: TokensList): string {
 
 function getDescription(tokens: TokensList): string {
   for (const token of tokens) {
-    if (token.type === 'paragraph') {
-      if (token.tokens && token.tokens.length > 0) {
+    if (token.type === 'paragraph' && 'text' in token) {
+      if ('tokens' in token && token.tokens && token.tokens.length > 0) {
         const hasNonImageContent = token.tokens.some(
-          innerToken =>
+          (innerToken: any) =>
             innerToken.type !== 'image' &&
             innerToken.type !== 'space' &&
             // Check for non-whitespace text tokens
@@ -111,14 +121,14 @@ function getDescription(tokens: TokensList): string {
 function getImage(tokens: TokensList): string {
   for (const token of tokens) {
     // Direct image token
-    if (token.type === 'image') {
+    if (token.type === 'image' && 'href' in token) {
       return token.href
     }
 
     // Image might be inside a paragraph
-    if (token.type === 'paragraph' && token.tokens) {
+    if (token.type === 'paragraph' && 'tokens' in token && token.tokens) {
       for (const innerToken of token.tokens) {
-        if (innerToken.type === 'image') {
+        if (innerToken.type === 'image' && 'href' in innerToken) {
           return innerToken.href
         }
       }
@@ -129,13 +139,13 @@ function getImage(tokens: TokensList): string {
 }
 
 function getPageTemplateProps(
-  frontmatter: Object,
+  frontmatter: Record<string, any>,
   tokens: TokensList
 ): PageTemplateProps {
   return {
-    title: frontmatter?.title || getTitle(tokens),
-    description: frontmatter?.description || getDescription(tokens),
-    image: frontmatter?.image || getImage(tokens)
+    title: frontmatter?.['title'] || getTitle(tokens) || '',
+    description: frontmatter?.['description'] || getDescription(tokens) || '',
+    image: frontmatter?.['image'] || getImage(tokens) || '/og_image-min.jpg'
   }
 }
 
@@ -158,7 +168,7 @@ async function parseContent(
     })
   } catch (error) {
     console.error(`Error parsing markdown file: ${error}`)
-    return err(error)
+    return err(error as Error)
   }
 }
 
@@ -171,20 +181,33 @@ async function parseMarkdownFile(file: FileInfo): Promise<FileInfo> {
   }
 
   console.log(`Trying to parse ${file.localPath}`)
+  if (!file.content || typeof file.content !== 'string') {
+    console.error(`File ${file.localPath} has no string content`)
+    return file
+  }
+
   const parsedFile = await parseContent(file.content)
 
-  if (!parsedFile.success) {
+  if (!parsedFile.success || !parsedFile.data) {
     console.error(`Failed to parse ${file.localPath}`)
     return file
   }
+
+  const lang = defineLanguage(parsedFile.data.frontmatter, file.sourcePath)
 
   return {
     ...file,
     content: parsedFile.data.tokens,
     frontmatter: parsedFile.data.frontmatter,
     pageTemplateProps: {
-      ...parsedFile.data.pageTemplateProps,
-      lang: defineLanguage(parsedFile.data.frontmatter, file.sourcePath)
+      title: parsedFile.data.pageTemplateProps?.title || '',
+      description: parsedFile.data.pageTemplateProps?.description || '',
+      image: parsedFile.data.pageTemplateProps?.image || '/og_image-min.jpg',
+      lang,
+      children: [] as JSX.Element[],
+      updatedAt: file.lastModified,
+      url: '',
+      includeArrow: false
     }
   }
 }
@@ -276,16 +299,14 @@ function enrichAllArticleLinks(
 export async function parseMarkdown(
   scannerContent: ServiceResponse<FileCollection>
 ): Promise<ServiceResponse<FileCollection>> {
-  if (!scannerContent.success) {
+  if (!scannerContent.success || !scannerContent.data) {
     return scannerContent
   }
 
   switch (scannerContent.data.mode) {
     case 'skip':
       console.log(`Skipping parsing markdown`)
-      return ok({
-        mode: 'skip'
-      })
+      return scannerContent
     case 'new':
     case 'all':
     case 'local':

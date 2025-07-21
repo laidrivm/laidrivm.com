@@ -53,12 +53,12 @@ export interface MarkdownContent {
 export interface HeadingProps {
   depth: number
   raw: string
-  children: JSX.Element | JSX.Element[]
+  children: JSX.Element | JSX.Element[] | string
 }
 
 export interface ParagraphProps {
   raw: string
-  children: JSX.Element | JSX.Element[]
+  children: JSX.Element | JSX.Element[] | string
 }
 
 export interface ListProps {
@@ -66,14 +66,14 @@ export interface ListProps {
   start?: number
   loose: boolean
   raw: string
-  children: JSX.Element | JSX.Element[]
+  children?: JSX.Element | JSX.Element[]
 }
 
 export interface ListItemProps {
   task: boolean
   loose: boolean
   raw: string
-  children: JSX.Element | JSX.Element[]
+  children: JSX.Element | JSX.Element[] | string
 }
 
 export interface CheckboxProps {
@@ -133,7 +133,7 @@ export interface HrProps {
 }
 
 export interface BrProps {
-  raw: string
+  raw?: string
 }
 
 export interface TableProps {
@@ -196,13 +196,13 @@ export interface ShareLinkProps {
 
 export interface PageTemplateProps {
   title: string
-  children: JSX.Element | JSX.Element[]
-  lang: SupportedLanguage
+  children?: JSX.Element | JSX.Element[]
+  lang?: SupportedLanguage
   description: string
-  updatedAt: Date
+  updatedAt?: Date
   image: string
-  url: string
-  includeArrow: boolean
+  url?: string
+  includeArrow?: boolean
 }
 
 export type SupportedLanguage = 'en' | 'ru'

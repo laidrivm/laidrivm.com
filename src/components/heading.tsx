@@ -17,7 +17,7 @@ export function Heading({depth, children, raw}: HeadingProps): JSX.Element {
     return <h1>{children}</h1>
   }
 
-  const Tag = `h${depth}` as keyof JSX.IntrinsicElements
+  const Tag = `h${depth}` as 'h2' | 'h3' | 'h4' | 'h5' | 'h6'
   const id = generateId(raw)
 
   return (

@@ -112,12 +112,13 @@ async function fetchFileContent(
       })
     } else {
       // For text files, fetch raw content
-      const {data: content} = (await octokit.rest.repos.getContent({
+      const response = await octokit.rest.repos.getContent({
         owner,
         repo,
         path,
         mediaType: {format: 'raw'}
-      })) as {data: string}
+      })
+      const content = response.data as unknown as string
 
       if (typeof content !== 'string') {
         return err(new Error(`Expected string content for text file ${path}`))
@@ -166,7 +167,7 @@ async function getFileLastModified(
     if (commits.length > 0) {
       const lastCommit = commits[0]
       const dateStr =
-        lastCommit.commit.author?.date || lastCommit.commit.committer?.date
+        lastCommit?.commit.author?.date || lastCommit?.commit.committer?.date
       console.log(`Last modified date for ${path} found: ${dateStr}`)
       if (dateStr) {
         return new Date(dateStr)
@@ -196,6 +197,7 @@ async function getLastCommitSha(
   try {
     if (path) {
       const {data: commits} = await octokit.rest.repos.getCommit({
+        //listCommits?
         owner,
         repo,
         path,
@@ -204,6 +206,7 @@ async function getLastCommitSha(
       return commits[0]?.sha || null
     } else {
       const {data: commits} = await octokit.rest.repos.getCommit({
+        //listCommits?
         owner,
         repo,
         per_page: 1 // only need the latest commit
@@ -236,7 +239,7 @@ async function fetchRepositoryContent(
     owner,
     repo,
     path
-    // ref, The name of the commit/branch/tag. Defaults to the repository’s default branch if not specified.
+    // ref, The name of the commit/branch/tag. Defaults to the repository's default branch if not specified.
   })
 
   const items = Array.isArray(contents) ? contents : [contents]
@@ -324,7 +327,12 @@ export async function fetchGitHubContent(
   }
 
   const url = new URL(repoUrl)
-  const [owner, repo] = url.pathname.split('/').filter(Boolean)
+  const pathParts = url.pathname.split('/').filter(Boolean)
+  if (pathParts.length < 2) {
+    return err(new Error('Invalid GitHub repository URL'))
+  }
+  const owner = pathParts[0] as string
+  const repo = pathParts[1] as string
   console.log(
     `Trying to fetch repository content for owner: ${owner} and repo: ${repo}`
   )

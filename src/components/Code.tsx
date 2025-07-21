@@ -23,11 +23,10 @@ export function Code({
   const validLang = Prism.languages[lang] ? lang : 'plaintext'
   const safeText = typeof text === 'string' ? text : ''
 
-  const highlightedCode = Prism.highlight(
-    safeText,
-    Prism.languages[validLang] || Prism.languages['plaintext'],
-    validLang
-  )
+  // Fix: Ensure we always have a valid grammar
+  const grammar = Prism.languages[validLang] || Prism.languages['plaintext']!
+
+  const highlightedCode = Prism.highlight(safeText, grammar, validLang)
 
   const copyCodeText = siteLanguage
     ? getLocalizedText(siteLanguage, 'copyCode')

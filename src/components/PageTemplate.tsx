@@ -34,7 +34,12 @@ export function PageTemplate({
           <title>{title}</title>
           <meta name="author" content="Vladimir Lazarev" />
           <meta name="description" content={description} />
-          <meta name="last-modified" content={updatedAt.toISOString()} />
+          <meta
+            name="last-modified"
+            content={
+              (updatedAt && updatedAt.toISOString()) || new Date().toISOString()
+            }
+          />
           <meta property="og:image" content={image} />
           <meta property="og:title" content={title} />
           <meta property="og:description" content={description} />
@@ -83,8 +88,8 @@ export function PageTemplate({
             {children}
             <Social
               lang={supportedLang}
-              date={updatedAt}
-              url={url}
+              date={updatedAt || new Date()}
+              url={url || 'https://laidrivm.com'}
               description={description}
             />
           </main>

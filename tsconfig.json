@@ -34,7 +34,8 @@
     "useUnknownInCatchVariables": false, // This will help with error handling
     
     // Other
-    "maxNodeModuleJsDepth": 0
+    "maxNodeModuleJsDepth": 0,
+    "outDir": "./out"
   },
   "resolve": {
     "extensions": [".js", ".jsx", ".ts", ".tsx", ".json", ".svg", ".css"]

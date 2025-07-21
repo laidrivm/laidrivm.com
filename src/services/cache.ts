@@ -1,6 +1,6 @@
 import {readdir, mkdir} from 'node:fs/promises'
 
-import Buffer from 'buffer/'
+import {Buffer} from 'buffer/'
 
 import {isIgnored, ok, err, getFileType} from '../utils.ts'
 import type {FileInfo, ServiceResponse, FileMeta} from '../types.ts'
@@ -13,7 +13,7 @@ async function createDir(fullPath: string): Promise<void> {
     const dir = fullPath.substring(0, fullPath.lastIndexOf('/'))
     await mkdir(dir, {recursive: true})
   } catch (error) {
-    if (error.errno !== -17) {
+    if ((error as any).errno !== -17) {
       console.error(error)
     }
   }

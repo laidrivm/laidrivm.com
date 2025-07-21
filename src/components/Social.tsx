@@ -32,7 +32,7 @@ function SocialShareLink({
   lang,
   url,
   text = ''
-}: ShareLinkProps): JSX.Element {
+}: ShareLinkProps): JSX.Element | null {
   const config = SHARE_CONFIGS[platform]
   if (!config) return null
 

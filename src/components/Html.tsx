@@ -8,8 +8,8 @@ export function Html({text, block}: HtmlProps): JSX.Element {
 
   // This example uses dangerouslySetInnerHTML - use with caution!
   if (block) {
-    return <div dangerouslySetInnerHTML={{__html: text}} className="my-4" />
+    return <div>{text}</div>
   }
 
-  return <span dangerouslySetInnerHTML={{__html: text}} />
+  return <span>{text}</span>
 }

@@ -44,23 +44,33 @@ function determineOutputPath(sourcePath: string): string {
 function renderPage(file: FileInfo): JSX.Element {
   const isIndexPage = isIndex(file.sourcePath)
 
+  if (!file.pageTemplateProps) {
+    throw new Error(`No page template props for ${file.sourcePath}`)
+  }
+
+  const pageProps = {
+    lang: file.pageTemplateProps.lang,
+    title: file.pageTemplateProps.title,
+    description: file.pageTemplateProps.description,
+    image: file.pageTemplateProps.image,
+    updatedAt: file.lastModified,
+    url: generatePageUrl(file.sourcePath),
+    includeArrow: !isIndex(file.sourcePath)
+  }
+
+  const content = file.content as JSX.Element
+  const articlesFeed =
+    isIndexPage && file.articleLinks ? (
+      <ArticlesFeed
+        lang={file.pageTemplateProps.lang || 'en'}
+        links={file.articleLinks}
+      />
+    ) : null
+
   return (
-    <PageTemplate
-      lang={file.pageTemplateProps.lang}
-      title={file.pageTemplateProps.title}
-      description={file.pageTemplateProps.description}
-      image={file.pageTemplateProps.image}
-      updatedAt={file.lastModified}
-      url={generatePageUrl(file.sourcePath)}
-      includeArrow={!isIndex(file.sourcePath)}
-    >
-      {file.content}
-      {isIndexPage && file.articleLinks && (
-        <ArticlesFeed
-          lang={file.pageTemplateProps.lang}
-          links={file.articleLinks}
-        />
-      )}
+    <PageTemplate {...pageProps}>
+      {content}
+      {articlesFeed || <></>}
     </PageTemplate>
   )
 }
@@ -74,7 +84,10 @@ async function writePage(
 ): Promise<void> {
   const outputDir = dirname(outputPath)
   await mkdir(outputDir, {recursive: true})
-  await Bun.write(outputPath, content)
+
+  // Convert JSX to string for Bun.write
+  const htmlString = content.toString()
+  await Bun.write(outputPath, htmlString)
 }
 
 /**
@@ -128,13 +141,16 @@ async function processAllFiles(files: FileInfo[]): Promise<FileInfo[]> {
 export async function renderPages(
   converterContent: ServiceResponse<FileCollection>
 ): Promise<ServiceResponse<FileCollection>> {
-  if (!converterContent.success) {
+  if (!converterContent.success || !converterContent.data) {
     return converterContent
   }
 
   if (converterContent.data.mode === 'skip') {
     console.log(`Skipping rendering JSX into HTML`)
     return ok({
+      files: [],
+      lastFetch: null,
+      repoSha: null,
       mode: 'skip'
     })
   }

@@ -178,7 +178,7 @@ export async function processAssets(
   const copyResult = await copyAllAssets(assetFiles)
 
   if (!copyResult.success || !copyResult.data) {
-    return copyResult as ServiceResponse<FileCollection>
+    return err(copyResult.error || new Error('Failed to copy assets'))
   }
 
   const processedAssets = copyResult.data

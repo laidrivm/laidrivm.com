@@ -27,23 +27,37 @@ import type {
   TokensList,
   ServiceResponse,
   FileCollection,
-  SupportedLanguage
+  SupportedLanguage,
+  FileInfo
 } from '../types.ts'
 
+// Type guards for token types
+function hasTokens(token: any): token is Token & {tokens: Token[]} {
+  return 'tokens' in token && Array.isArray(token.tokens)
+}
+
+function hasText(token: any): token is Token & {text: string} {
+  return 'text' in token && typeof token.text === 'string'
+}
+
+function hasItems(token: any): token is Token & {items: Token[]} {
+  return 'items' in token && Array.isArray(token.items)
+}
+
 // Handle list rendering
-function renderList(token: Token, key: number): JSX.Element {
-  const items =
-    token.items?.map((item: Token, index: number) =>
-      renderListItem(item, index)
-    ) || []
+function renderList(token: Token, lang: SupportedLanguage): JSX.Element {
+  if (!hasItems(token)) {
+    return <List ordered={false} loose={false} raw={''}></List>
+  }
+
+  const items = token.items.map((item: Token) => renderListItem(item, lang))
 
   return (
     <List
-      key={key}
-      ordered={token.ordered}
-      start={token.start}
-      loose={token.loose}
-      raw={token.raw}
+      ordered={'ordered' in token ? token.ordered : false}
+      start={'start' in token ? token.start : undefined}
+      loose={'loose' in token ? token.loose : false}
+      raw={'raw' in token ? token.raw : ''}
     >
       {items}
     </List>
@@ -51,70 +65,100 @@ function renderList(token: Token, key: number): JSX.Element {
 }
 
 // Handle list item rendering
-function renderListItem(token: Token, key: number): JSX.Element {
+function renderListItem(token: Token, lang: SupportedLanguage): JSX.Element {
   // Check if this list item contains a checkbox
-  const hasCheckbox = token.task
-  const children = token.tokens ? renderTokens(token.tokens) : token.text
+  const hasCheckbox = 'task' in token && token.task
+  const children = hasTokens(token)
+    ? renderTokens(token.tokens as TokensList, lang)
+    : hasText(token)
+      ? token.text
+      : ''
 
   if (hasCheckbox) {
     return (
-      <ListItem key={key} task={token.task} raw={token.raw} loose={token.loose}>
-        <Checkbox checked={token.checked} />
-        {children}
+      <ListItem
+        task={'task' in token ? token.task : false}
+        raw={'raw' in token ? token.raw : ''}
+        loose={'loose' in token ? token.loose : false}
+      >
+        <Checkbox checked={'checked' in token ? token.checked : false} />
+        {<>{children}</>}
       </ListItem>
     )
   }
 
   return (
-    <ListItem key={key} task={token.task} raw={token.raw} loose={token.loose}>
-      {children}
+    <ListItem
+      task={'task' in token ? token.task : false}
+      raw={'raw' in token ? token.raw : ''}
+      loose={'loose' in token ? token.loose : false}
+    >
+      {typeof children === 'string' ? <>{children}</> : children}
     </ListItem>
   )
 }
 
 // Handle table rendering
-function renderTable(token: Token, key: number): JSX.Element {
+function renderTable(token: Token, lang: SupportedLanguage): JSX.Element {
   // Render header row
   const headerCells =
-    token.header?.map((cell: Token, index: number) => (
-      <TableCell
-        key={index}
-        header={true}
-        align={cell.align || token.align?.[index]}
-        raw={cell.raw}
-      >
-        {cell.tokens ? renderTokens(cell.tokens) : cell.text}
-      </TableCell>
-    )) || []
+    'header' in token && Array.isArray(token.header)
+      ? token.header.map((cell: any, index: number) => (
+          <TableCell
+            header={true}
+            align={
+              'align' in token && Array.isArray(token.align)
+                ? token.align[index]
+                : null
+            }
+            raw={'raw' in cell ? cell.raw : ''}
+          >
+            {hasTokens(cell)
+              ? renderTokens(cell.tokens as TokensList, lang)
+              : hasText(cell)
+                ? cell.text
+                : ''}
+          </TableCell>
+        ))
+      : []
 
   const headerRow =
     headerCells.length > 0 ? (
-      <TableRow key="header" header={true}>
-        {headerCells}
-      </TableRow>
-    ) : null
+      <TableRow header={true}>{headerCells}</TableRow>
+    ) : (
+      <></>
+    )
 
   // Render body rows
   const bodyRows =
-    token.rows?.map((row: Token[], rowIndex: number) => (
-      <TableRow key={rowIndex}>
-        {row.map((cell: Token, cellIndex: number) => (
-          <TableCell
-            key={cellIndex}
-            header={false}
-            align={cell.align || token.align?.[cellIndex]}
-            raw={cell.raw}
-          >
-            {cell.tokens ? renderTokens(cell.tokens) : cell.text}
-          </TableCell>
-        ))}
-      </TableRow>
-    )) || []
+    'rows' in token && Array.isArray(token.rows)
+      ? token.rows.map((row: any[]) => (
+          <TableRow>
+            {row.map((cell: any, cellIndex: number) => (
+              <TableCell
+                header={false}
+                align={
+                  'align' in token && Array.isArray(token.align)
+                    ? token.align[cellIndex]
+                    : null
+                }
+                raw={'raw' in cell ? cell.raw : ''}
+              >
+                {hasTokens(cell)
+                  ? renderTokens(cell.tokens as TokensList, lang)
+                  : hasText(cell)
+                    ? cell.text
+                    : ''}
+              </TableCell>
+            ))}
+          </TableRow>
+        ))
+      : []
 
   return (
-    <Table key={key} raw={token.raw}>
+    <Table raw={'raw' in token ? token.raw : ''}>
       {headerRow}
-      {bodyRows}
+      <>{bodyRows}</>
     </Table>
   )
 }
@@ -122,159 +166,211 @@ function renderTable(token: Token, key: number): JSX.Element {
 // Render individual token
 function renderToken(
   token: Token,
-  key: number,
   lang: SupportedLanguage
-): JSX.Element {
+): JSX.Element | string | null {
   switch (token.type) {
     // Block-level tokens
     case 'space':
-      return <Space key={key} raw={token.raw} />
+      return <Space raw={'raw' in token ? token.raw : ''} />
 
     case 'code':
       return (
         <Code
-          key={key}
-          text={token.text || ''}
-          codeLanguage={token.lang}
+          text={hasText(token) ? token.text : ''}
+          codeLanguage={'lang' in token ? token.lang : undefined}
           siteLanguage={lang}
-          escaped={token.escaped}
-          raw={token.raw}
+          escaped={'escaped' in token ? token.escaped : false}
+          raw={'raw' in token ? token.raw : ''}
         />
       )
 
     case 'blockquote':
       return (
-        <Blockquote key={key} raw={token.raw}>
-          {token.tokens ? renderTokens(token.tokens) : token.text}
+        <Blockquote raw={'raw' in token ? token.raw : ''}>
+          {hasTokens(token)
+            ? renderTokens(token.tokens as TokensList, lang)
+            : hasText(token)
+              ? token.text
+              : ''}
         </Blockquote>
       )
 
     case 'html':
       return (
         <Html
-          key={key}
-          text={token.text || ''}
-          raw={token.raw}
-          pre={token.pre}
-          block={token.block}
+          text={hasText(token) ? token.text : ''}
+          raw={'raw' in token ? token.raw : ''}
+          pre={'pre' in token ? token.pre : false}
+          block={'block' in token ? token.block : false}
         />
       )
 
     case 'heading':
       return (
-        <Heading key={key} depth={token.depth} raw={token.raw}>
-          {token.tokens ? renderTokens(token.tokens) : token.text}
+        <Heading
+          depth={'depth' in token ? token.depth : 1}
+          raw={'raw' in token ? token.raw : ''}
+        >
+          {hasTokens(token)
+            ? renderTokens(token.tokens as TokensList, lang)
+            : hasText(token)
+              ? token.text
+              : ''}
         </Heading>
       )
 
     case 'hr':
-      return <Hr key={key} raw={token.raw} />
+      return <Hr />
 
     case 'list':
-      return renderList(token, key)
+      return renderList(token, lang)
 
     case 'list_item':
-      return renderListItem(token, key)
+      return renderListItem(token, lang)
 
     case 'paragraph':
       return (
-        <Paragraph key={key} raw={token.raw}>
-          {token.tokens ? renderTokens(token.tokens) : token.text}
+        <Paragraph raw={'raw' in token ? token.raw : ''}>
+          {hasTokens(token)
+            ? renderTokens(token.tokens as TokensList, lang)
+            : hasText(token)
+              ? token.text
+              : ''}
         </Paragraph>
       )
 
     case 'table':
-      return renderTable(token, key)
+      return renderTable(token, lang)
 
     // Inline tokens
     case 'strong':
       return (
-        <Strong key={key} raw={token.raw}>
-          {token.tokens ? renderTokens(token.tokens) : token.text}
+        <Strong raw={'raw' in token ? token.raw : ''}>
+          {hasTokens(token)
+            ? renderTokens(token.tokens as TokensList, lang)
+            : hasText(token)
+              ? token.text
+              : ''}
         </Strong>
       )
 
     case 'em':
       return (
-        <Em key={key} raw={token.raw}>
-          {token.tokens ? renderTokens(token.tokens) : token.text}
+        <Em raw={'raw' in token ? token.raw : ''}>
+          {hasTokens(token)
+            ? renderTokens(token.tokens as TokensList, lang)
+            : hasText(token)
+              ? token.text
+              : ''}
         </Em>
       )
 
     case 'codespan':
-      return <CodeSpan key={key} text={token.text || ''} raw={token.raw} />
+      return (
+        <CodeSpan
+          text={hasText(token) ? token.text : ''}
+          raw={'raw' in token ? token.raw : ''}
+        />
+      )
 
     case 'br':
-      return <Br key={key} raw={token.raw} />
+      return <Br />
 
     case 'del':
       return (
-        <Del key={key} raw={token.raw}>
-          {token.tokens ? renderTokens(token.tokens) : token.text}
+        <Del raw={'raw' in token ? token.raw : ''}>
+          {hasTokens(token)
+            ? renderTokens(token.tokens as TokensList, lang)
+            : hasText(token)
+              ? token.text
+              : ''}
         </Del>
       )
 
     case 'link':
       return (
-        <Link key={key} href={token.href} title={token.title} raw={token.raw}>
-          {token.tokens ? renderTokens(token.tokens) : token.text}
+        <Link
+          href={'href' in token ? token.href : ''}
+          title={'title' in token ? token.title : undefined}
+          raw={'raw' in token ? token.raw : ''}
+        >
+          {hasTokens(token)
+            ? renderTokens(token.tokens as TokensList, lang)
+            : hasText(token)
+              ? token.text
+              : ''}
         </Link>
       )
 
     case 'image':
       return (
         <Image
-          key={key}
-          href={token.href}
-          title={token.title}
-          text={token.text || ''}
-          raw={token.raw}
+          href={'href' in token ? token.href : ''}
+          title={'title' in token ? token.title : undefined}
+          text={hasText(token) ? token.text : ''}
+          raw={'raw' in token ? token.raw : ''}
         />
       )
 
     case 'text':
       return (
-        <Text key={key} raw={token.raw} escaped={token.escaped}>
-          {token.tokens ? renderTokens(token.tokens) : token.text}
+        <Text
+          raw={'raw' in token ? token.raw : ''}
+          escaped={'escaped' in token ? token.escaped : false}
+        >
+          {hasTokens(token)
+            ? renderTokens(token.tokens as TokensList, lang)
+            : hasText(token)
+              ? token.text
+              : ''}
         </Text>
       )
 
     case 'escape':
-      return token.text
+      return hasText(token) ? token.text : null
 
     default:
       console.warn(`Unknown token type: ${token.type}`)
-      return token.text || null
+      return hasText(token) ? token.text : null
   }
 }
 
 function renderTokens(
   tokens: TokensList,
   lang: SupportedLanguage
-): JSX.Element {
-  return tokens.map((token, index) => renderToken(token, index, lang))
+): JSX.Element[] {
+  return tokens
+    .map(token => {
+      const rendered = renderToken(token, lang)
+      // Filter out null values and wrap strings in fragments
+      if (rendered === null) return null
+      if (typeof rendered === 'string') return <>{rendered}</>
+      return rendered
+    })
+    .filter((el): el is JSX.Element => el !== null)
 }
 
 export async function renderMarkdown(
   markdownContent: ServiceResponse<FileCollection>
 ): Promise<ServiceResponse<FileCollection>> {
-  if (!markdownContent.success) {
+  if (!markdownContent.success || !markdownContent.data) {
     return markdownContent
   }
   if (markdownContent.data.mode === 'skip') {
     console.log(`Skipping rendering markdown`)
-    return ok({
-      mode: 'skip'
-    })
+    return markdownContent
   }
   const files = markdownContent.data.files
-  const processedFiles = []
+  const processedFiles: FileInfo[] = []
   for (const file of files) {
-    if (file.type === 'markdown') {
+    if (
+      file.type === 'markdown' &&
+      file.content &&
+      Array.isArray(file.content)
+    ) {
       console.log(`Rendering markdown tokens from ${file.localPath}`)
-      const htmlContent = (
-        <>{renderTokens(file.content, file.pageTemplateProps.lang)}</>
-      )
+      const lang = file.pageTemplateProps?.lang || 'en'
+      const htmlContent = <>{renderTokens(file.content as TokensList, lang)}</>
       processedFiles.push({
         ...file,
         content: htmlContent,

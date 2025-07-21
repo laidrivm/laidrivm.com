@@ -37,6 +37,7 @@
     "format": "prettier --write 'src/**/*.{css,html,ts,tsx}'",
     "lint": "eslint 'src/**/*.{css,html,ts,tsx}' --fix",
     "test": "bun test --timeout 1000 --verbose --coverage && xss-scan",
+    "typecheck": "tsc --noEmit",
     "server_dev": "bun --env-file=.env.development --watch src/server.ts",
     "dev": "bun format && bun lint && bun server_dev",
     "clean": "bun public-clean-up.ts",
