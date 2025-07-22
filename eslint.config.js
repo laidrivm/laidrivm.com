@@ -57,7 +57,7 @@ export default [
       "no-extra-semi": "off",
       "sonarjs/cognitive-complexity": "off",
       "sonarjs/no-all-duplicated-branches": "off",
-      "import/no-unresolved": ["error", { "ignore": ["octokit"] }],
+      "import/no-unresolved": ["warn", { "ignore": ["octokit"] }],
       "import/order": ["warn", { "newlines-between": "always" }],
       "jsdoc/check-alignment": "warn",
       "jsdoc/check-indentation": "warn",

@@ -1,7 +1,7 @@
 import type {PageTemplateProps, SupportedLanguage} from '../types.ts'
 
-import {Arrow} from './Arrow'
-import {LanguageSwitch} from './LanguageSwitch'
+import {Arrow} from './Arrow.tsx'
+import {LanguageSwitch} from './LanguageSwitch.tsx'
 import {Social} from './Social.tsx'
 
 export function PageTemplate({
