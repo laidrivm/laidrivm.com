@@ -40,11 +40,12 @@
     "clean": "bun public-clean-up.ts",
     "prepare": "husky",
     "build": "NODE_ENV=production bun build.ts",
-    "new_prod": "NODE_ENV=production bun --env-file=.env.production out/server.js",
-    "generate_dev": "bun run --env-file=.env.development src/generate.tsx",
+    "build_docker_local": "docker build --pull -t blog .",
+    "prod": "NODE_ENV=production bun --env-file=.env.production out/server.js",
+    "old_generate_dev": "bun run --env-file=.env.development src/generate.tsx",
     "old_dev": "bun lint && bun format && bun run build && bun generate_dev && bun run server_dev",
     "old_generate": "bun run out/generate.js",
     "old_server": "bun run out/index.js",
-    "prod": "NODE_ENV=production bun run generate && bun run server"
+    "old_prod": "NODE_ENV=production bun run generate && bun run server"
   }
 }
