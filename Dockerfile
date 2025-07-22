@@ -25,6 +25,5 @@ COPY --from=prerelease /usr/src/app/out ./out
 COPY --from=prerelease /usr/src/app/public ./public
 
 # run the app
-USER bun
 EXPOSE 3000/tcp
 ENTRYPOINT [ "bun", "run", "prod" ]

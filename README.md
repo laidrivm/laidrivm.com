@@ -67,6 +67,6 @@ docker run -d \
   -p 3000:3000 \
   -v ./certs/cert.pem:/usr/src/app/certs/cert.pem:ro \
   -v ./certs/key.pem:/usr/src/app/certs/key.pem:ro \
-  -v ./.env:/usr/src/app/.env \
+  -v ./.env:/usr/src/app/.env.production \
   blog
 ```
