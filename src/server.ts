@@ -45,7 +45,9 @@ console.log(`Initial build completed`)
  */
 const redirectHTML = new Elysia().onRequest(context => {
   const path = context.request.url ? new URL(context.request.url).pathname : ''
+  console.log('Request path:', path)
   if (path.includes('.html')) {
+    console.log('Redirecting:', path)
     return context.redirect(path.replace('.html', ''), 302)
   }
 })
@@ -81,15 +83,7 @@ const postRegenerate = new Elysia().post(
       }
     }
 
-    const regenerateResult = await generate('new')
-    if (!regenerateResult.success) {
-      set.status = 500
-      return {
-        success: false,
-        message: `Regeneration failed: ${regenerateResult.error}`
-      }
-    }
-
+    generate('new')
     set.status = 200
     return 'Ok'
   }
@@ -97,6 +91,7 @@ const postRegenerate = new Elysia().post(
 
 const app = new Elysia()
   .use(redirectHTML)
+  .get('/', () => Bun.file(process.env['PUBLIC_DIR'] + '/index.html')) //otherwise it returns NOT_FOUND if NODE_ENV=production
   .use(
     staticPlugin({
       prefix: '/',
