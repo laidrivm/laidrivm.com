@@ -2,7 +2,6 @@ import globals from "globals";
 import pluginJs from "@eslint/js";
 import tsparser from "@typescript-eslint/parser";
 import pluginTs from "@typescript-eslint/eslint-plugin";
-import pluginReact from "eslint-plugin-react";
 import pluginImport from "eslint-plugin-import";
 import pluginJSDoc from "eslint-plugin-jsdoc";
 import pluginSonarJS from "eslint-plugin-sonarjs";
@@ -20,6 +19,7 @@ export default [
           jsx: true,
         },
         project: "./tsconfig.json",
+        tsconfigRootDir: process.cwd(),
       },
       globals: {
         ...globals.browser,
@@ -30,16 +30,19 @@ export default [
     },
     plugins: {
       "@typescript-eslint": pluginTs,
-      react: pluginReact,
       import: pluginImport,
       jsdoc: pluginJSDoc,
       sonarjs: pluginSonarJS,
     },
     settings: {
+      'import/parsers': {
+        '@typescript-eslint/parser': ['.ts', '.tsx']
+      },
       'import/resolver': {
         typescript: {
           alwaysTryTypes: true,
           project: './tsconfig.json',
+          extensions: ['.js', '.jsx', '.ts', '.tsx'],
         },
         node: {
           extensions: ['.js', '.jsx', '.ts', '.tsx']
@@ -54,8 +57,7 @@ export default [
       "no-extra-semi": "off",
       "sonarjs/cognitive-complexity": "off",
       "sonarjs/no-all-duplicated-branches": "off",
-      "react/no-unknown-property": ["error", { "ignore": ["onclick", "onsubmit", "onchange", "readonly", "hreflang", "crossorigin", "datetime"] }],
-      "import/no-unresolved": ["error", { "ignore": ["octokit"] }], // Ignore 'octokit' module because of https://github.com/octokit/octokit.js?tab=readme-ov-file#usage
+      "import/no-unresolved": ["error", { "ignore": ["octokit"] }],
       "import/order": ["warn", { "newlines-between": "always" }],
       "jsdoc/check-alignment": "warn",
       "jsdoc/check-indentation": "warn",
@@ -78,6 +80,7 @@ export default [
           jsx: true,
         },
         project: "./tsconfig.json",
+        tsconfigRootDir: process.cwd(),
       },
       globals: {
         ...globals.browser,
@@ -91,10 +94,14 @@ export default [
       import: pluginImport,
     },
     settings: {
+      'import/parsers': {
+        '@typescript-eslint/parser': ['.ts', '.tsx']
+      },
       'import/resolver': {
         typescript: {
           alwaysTryTypes: true,
           project: './tsconfig.json',
+          extensions: ['.js', '.jsx', '.ts', '.tsx'],
         },
         node: {
           extensions: ['.js', '.jsx', '.ts', '.tsx']
