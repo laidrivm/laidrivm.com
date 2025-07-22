@@ -9,6 +9,7 @@
     "@types/prismjs": "^1.26.5",
     "@types/unidecode": "^1.1.0",
     "eslint": "^9.31.0",
+    "eslint-import-resolver-typescript": "^4.4.4",
     "eslint-plugin-css": "^0.11.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsdoc": "^51.4.1",
