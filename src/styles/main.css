@@ -3,7 +3,7 @@
 
 @font-face {
   font-family: 'SourceCodePro';
-  src: url('../fonts/SourceCodePro-Regular.ttf.woff2') format('woff2');
+  src: url('/fonts/SourceCodePro-Regular.ttf.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-variant-numeric: slashed-zero;
@@ -11,7 +11,7 @@
 
 @font-face {
   font-family: 'SourceSerif4';
-  src: url('../fonts/SourceSerif4-Regular.ttf.woff2') format('woff2');
+  src: url('/fonts/SourceSerif4-Regular.ttf.woff2') format('woff2');
   font-weight: normal;
   font-style: normal;
   font-variant-numeric: diagonal-fractions;
@@ -20,7 +20,7 @@
 
 @font-face {
   font-family: 'SourceSerif4-Semibold';
-  src: url('../fonts/SourceSerif4-Semibold.ttf.woff2') format('woff2');
+  src: url('/fonts/SourceSerif4-Semibold.ttf.woff2') format('woff2');
   font-weight: 600;
   font-style: normal;
   font-variant-numeric: diagonal-fractions;
@@ -29,7 +29,7 @@
 
 @font-face {
   font-family: 'SourceSerif4-Italic';
-  src: url('../fonts/SourceSerif4-It.ttf.woff2') format('woff2');
+  src: url('/fonts/SourceSerif4-It.ttf.woff2') format('woff2');
   font-weight: normal;
   font-style: italic;
   font-variant-numeric: diagonal-fractions;

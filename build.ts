@@ -21,7 +21,8 @@ await Bun.build({
   entrypoints: ['./src/styles/main.css'],
   outdir: './public',
   minify: true,
-  target: 'browser'
+  target: 'browser',
+  external: ['*.woff', '*.woff2', '*.ttf', '*.otf', '*.eot']
 })
 
 const srcScriptsDir = './src/components/scripts'
