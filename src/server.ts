@@ -80,13 +80,13 @@ const postRegenerate = new Elysia().post(
         message: 'Unauthorized: Invalid or missing token'
       }
     }
-    
+
     const regenerateResult = await generate('new')
     if (!regenerateResult.success) {
       set.status = 500
       return {
         success: false,
-        message: `Regeneration failed: ${error.message}`
+        message: `Regeneration failed: ${regenerateResult.error}`
       }
     }
 

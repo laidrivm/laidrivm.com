@@ -117,20 +117,60 @@ async function processHTMLFile(file: FileInfo): Promise<FileInfo> {
 }
 
 /**
+ * Generates a sitemap entry for a rendered page
+ */
+function generateSitemapEntry(file: FileInfo): string {
+  if (file.type !== 'html') return ''
+
+  const url = generatePageUrl(file.sourcePath)
+  const lastmod = file.lastModified.toISOString().replace(/\.\d{3}Z$/, 'Z')
+  let priority = 0.7
+  if (isIndex(file.sourcePath)) {
+    priority += 0.2
+  }
+  if (file.pageTemplateProps.lang === 'en') {
+    priority += 0.1
+  }
+  priority = parseFloat(priority.toFixed(1))
+
+  return `
+  <url>
+    <loc>${url}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <priority>${priority}</priority>
+  </url>`
+}
+
+async function writeSitemap(sitemapEntries: string): Promise<void> {
+  const sitemap = `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9 http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">${sitemapEntries}
+</urlset>`
+
+  const publicDir = process.env['PUBLIC_DIR'] || 'public'
+  const sitemapPath = join(publicDir, 'sitemap.xml')
+
+  await Bun.write(sitemapPath, sitemap)
+}
+
+/**
  * Processes all files in the collection
  */
 async function processAllFiles(files: FileInfo[]): Promise<FileInfo[]> {
   const processedFiles: FileInfo[] = []
 
+  let sitemapEntries = ``
+
   for (const file of files) {
     if (file.type === 'html') {
       const processedFile = await processHTMLFile(file)
       processedFiles.push(processedFile)
+      sitemapEntries += generateSitemapEntry(file)
     } else {
       // Pass through non-HTML files unchanged
       processedFiles.push(file)
     }
   }
+
+  await writeSitemap(sitemapEntries)
 
   return processedFiles
 }
@@ -161,24 +201,4 @@ export async function renderPages(
     ...converterContent.data,
     files: processedFiles
   })
-}
-
-// ===== Additional utility functions =====
-
-/**
- * Generates a sitemap entry for a rendered page
- */
-export function generateSitemapEntry(file: FileInfo): string {
-  if (file.type !== 'html') return ''
-
-  const url = generatePageUrl(file.sourcePath)
-  const lastmod = file.lastModified.toISOString().split('T')[0]
-
-  return `
-  <url>
-    <loc>${url}</loc>
-    <lastmod>${lastmod}</lastmod>
-    <changefreq>weekly</changefreq>
-    <priority>${isIndex(file.sourcePath) ? '1.0' : '0.8'}</priority>
-  </url>`
 }
