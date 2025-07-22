@@ -25,16 +25,6 @@ async function loadTlsCertificates(): Promise<{key: string; cert: string}> {
   }
 }
 
-/**
- * Handle .html extension redirects
- */
-const redirectHTML = new Elysia().onRequest(context => {
-  const path = context.request.url ? new URL(context.request.url).pathname : ''
-  if (path.includes('.html')) {
-    return context.redirect(path.replace('.html', ''), 302)
-  }
-})
-
 console.log('Loading certificates...')
 const {key, cert} = await loadTlsCertificates()
 
@@ -50,6 +40,61 @@ if (!buildResult.success) {
 }
 console.log(`Initial build completed`)
 
+/**
+ * Handle .html extension redirects
+ */
+const redirectHTML = new Elysia().onRequest(context => {
+  const path = context.request.url ? new URL(context.request.url).pathname : ''
+  if (path.includes('.html')) {
+    return context.redirect(path.replace('.html', ''), 302)
+  }
+})
+
+/**
+ * Validates authorization token for regeneration endpoint
+ * @param authHeader - Authorization header from request
+ * @returns Whether the token is valid
+ */
+function validateAuthToken(authHeader: string | undefined): boolean {
+  if (!process.env['REGENERATE_TOKEN']) {
+    return true
+  }
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return false
+  }
+
+  const token = authHeader.split(' ')[1]
+  return token === process.env['REGENERATE_TOKEN']
+}
+
+/**
+ * Regeneration endpoint with authentication
+ */
+const postRegenerate = new Elysia().post(
+  '/api/v1/regenerate',
+  async ({headers, set}) => {
+    if (!validateAuthToken(headers.authorization)) {
+      set.status = 401
+      return {
+        success: false,
+        message: 'Unauthorized: Invalid or missing token'
+      }
+    }
+    
+    const regenerateResult = await generate('new')
+    if (!regenerateResult.success) {
+      set.status = 500
+      return {
+        success: false,
+        message: `Regeneration failed: ${error.message}`
+      }
+    }
+
+    set.status = 200
+    return 'Ok'
+  }
+)
+
 const app = new Elysia()
   .use(redirectHTML)
   .use(
@@ -64,10 +109,7 @@ const app = new Elysia()
   .get('/api/v1/health', () => ({
     status: 'ok'
   }))
-  .post('/api/v1/regenerate', async () => {
-    const regenerateResult = await generate('new')
-    return regenerateResult
-  })
+  .use(postRegenerate)
   .listen({
     port: process.env['PORT'],
     tls: {
