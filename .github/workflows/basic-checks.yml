@@ -19,7 +19,7 @@ jobs:
           bun install
       - name: Format
         run: |
-          bun run format
+          bun format
       - name: Lint
         run: |
-          bun run lint
+          bun lint

@@ -35,6 +35,17 @@ export default [
       jsdoc: pluginJSDoc,
       sonarjs: pluginSonarJS,
     },
+    settings: {
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './tsconfig.json',
+        },
+        node: {
+          extensions: ['.js', '.jsx', '.ts', '.tsx']
+        }
+      }
+    },
     rules: {
       "no-unused-vars": "warn",
       "no-undef": "off",
@@ -79,6 +90,17 @@ export default [
       "@typescript-eslint": pluginTs,
       import: pluginImport,
     },
+    settings: {
+      'import/resolver': {
+        typescript: {
+          alwaysTryTypes: true,
+          project: './tsconfig.json',
+        },
+        node: {
+          extensions: ['.js', '.jsx', '.ts', '.tsx']
+        }
+      }
+    },
     rules: {
       // Relax rules for test files
       "no-unused-vars": "off",
@@ -93,13 +115,6 @@ export default [
     },
   },
   pluginJs.configs.recommended,
-  {
-    settings: {
-      react: {
-        version: "18.2.0",
-      },
-    },
-  },
   {
     ignores: ["example/*", "test/**/*"],
   },
