@@ -91,7 +91,7 @@ const postRegenerate = new Elysia().post(
 
 const app = new Elysia()
   .use(redirectHTML)
-  .get('/', () => Bun.file(process.env['PUBLIC_DIR'] + '/index.html')) //otherwise it returns NOT_FOUND if NODE_ENV=production
+  .get('/', () => Bun.file(process.env['PUBLIC_DIR'] + '/index.html')) //otherwise it returns NOT_FOUND if NODE_ENV=production https://github.com/elysiajs/elysia/issues/1303
   .use(
     staticPlugin({
       prefix: '/',

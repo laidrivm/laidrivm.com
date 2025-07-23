@@ -11,7 +11,7 @@ await Bun.build({
   format: 'esm',
   env: 'disable',
   splitting: false,
-  minify: false,
+  minify: true,
   external: ['node:crypto', 'universal-github-app-jwt'],
   sourcemap: 'linked',
   packages: 'bundle'

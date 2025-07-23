@@ -8,6 +8,8 @@ public/sitemap.xml
 out
 certs
 articles
+bun.lock
+bun.lockb
 
 # Logs
 
