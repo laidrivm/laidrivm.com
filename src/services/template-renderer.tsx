@@ -4,7 +4,14 @@ import {mkdir} from 'node:fs/promises'
 import {PageTemplate} from '../components/PageTemplate.tsx'
 import {ArticlesFeed} from '../components/ArticlesFeed.tsx'
 import {ok, isIndex} from '../utils.ts'
-import type {ServiceResponse, FileCollection, FileInfo} from '../types.ts'
+import type {
+  ServiceResponse,
+  FileCollection,
+  FileInfo,
+  SupportedLanguage
+} from '../types.ts'
+
+import {typographyText} from './typography.ts'
 
 let wasPrintedOnce = false
 
@@ -38,6 +45,31 @@ function determineOutputPath(sourcePath: string): string {
   }
 }
 
+export interface ArticleLink {
+  sourcePath: string
+  slug: string
+  title?: string
+  description?: string
+  image?: string
+  date?: Date
+  lang?: SupportedLanguage
+}
+
+function typographLinks(
+  links: ArticleLink[],
+  lang: SupportedLanguage
+): ArticleLink[] {
+  let result = [] as ArticleLink[]
+  for (const link of links) {
+    result.push({
+      ...link,
+      title: typographyText(link.title, lang),
+      description: typographyText(link.description, lang)
+    })
+  }
+  return result
+}
+
 /**
  * Renders a single page with the PageTemplate
  */
@@ -47,9 +79,10 @@ function renderPage(file: FileInfo): JSX.Element {
   if (!file.pageTemplateProps) {
     throw new Error(`No page template props for ${file.sourcePath}`)
   }
+  const lang = file.pageTemplateProps.lang || 'en'
 
   const pageProps = {
-    lang: file.pageTemplateProps.lang,
+    lang,
     title: file.pageTemplateProps.title,
     description: file.pageTemplateProps.description,
     image: file.pageTemplateProps.image,
@@ -62,8 +95,8 @@ function renderPage(file: FileInfo): JSX.Element {
   const articlesFeed =
     isIndexPage && file.articleLinks ? (
       <ArticlesFeed
-        lang={file.pageTemplateProps.lang || 'en'}
-        links={file.articleLinks}
+        lang={lang}
+        links={typographLinks(file.articleLinks, lang)}
       />
     ) : null
 

@@ -22,6 +22,8 @@ import {Link} from '../components/Link.tsx'
 import {Image} from '../components/Image.tsx'
 import {Text} from '../components/Text.tsx'
 import {ok} from '../utils.ts'
+
+//typo
 import type {
   Token,
   TokensList,
@@ -30,6 +32,8 @@ import type {
   SupportedLanguage,
   FileInfo
 } from '../types.ts'
+
+import {typographyText} from './typography.ts'
 
 // Type guards for token types
 function hasTokens(token: any): token is Token & {tokens: Token[]} {
@@ -168,6 +172,18 @@ function renderToken(
   token: Token,
   lang: SupportedLanguage
 ): JSX.Element | string | null {
+  console.log(token)
+
+  if (
+    hasText(token) &&
+    token.type !== 'code' &&
+    token.type !== 'html' &&
+    token.type !== 'codespan' &&
+    token.type !== 'image'
+  ) {
+    token.text = typographyText(token.text, lang)
+  }
+
   switch (token.type) {
     // Block-level tokens
     case 'space':

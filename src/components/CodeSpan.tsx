@@ -9,7 +9,6 @@ function escapeHtml(text: string): string {
     .replace(/'/g, '&#39;')
 }
 
-
 export function CodeSpan({text}: CodeSpanProps): JSX.Element {
   return <code>{escapeHtml(text)}</code>
 }

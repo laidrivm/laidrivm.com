@@ -55,7 +55,7 @@ body {
     'kern' 1;
 }
 
-.small-caps {
+abbr {
   font-feature-settings: 'smcp' 1;
 }
 
@@ -126,6 +126,12 @@ em {
   font-family: 'SourceSerif4-Italic', sans-serif;
 }
 
+a {
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: none;
+}
+
 a:link {
   text-decoration: underline;
   color: black;
@@ -145,11 +151,6 @@ a:hover {
 }
 
 a:active {
-  text-decoration: none;
-}
-
-h2 a:link,
-h3 a:link {
   text-decoration: none;
 }
 
@@ -378,6 +379,38 @@ a.arrow-container {
   align-items: center;
 }
 
+/* Keep the last two words together when possible */
+.no-orphans {
+  display: inline-block;
+}
+
+/* Enable hyphenation for the first word only */
+.no-orphans .first-word {
+  hyphens: auto;
+}
+
+/* Disable hyphenation for the last word */
+.no-orphans .last-word {
+  hyphens: none;
+}
+
+/* a tiny bit of negative margin to prefer keeping together */
+.no-orphans {
+  margin-left: -0.05em;
+}
+
+a .no-orphans {
+  text-decoration: underline;
+}
+
+.heading-content a .no-orphans {
+  text-decoration: none;
+}
+
+.heading-content a {
+  text-decoration: none;
+}
+
 @media (max-width: 940px) {
   .social {
     margin-top: 2rem;
@@ -434,7 +467,9 @@ a.arrow-container {
 
   .copy-heading {
     font-size: 24px;
-    margin-right: -1em;
+    margin-left: 0;
+    padding-right: 0;
+    margin-right: -2em;
   }
 
   a.arrow-container {
@@ -479,9 +514,4 @@ a.arrow-container {
     width: 24px;
     height: 24px;
   }
-}
-
-.no-hyphens {
-  hyphens: none;
-  white-space: nowrap;
 }
