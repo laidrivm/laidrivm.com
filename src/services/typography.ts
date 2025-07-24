@@ -15,7 +15,7 @@ import {
 import {
   prepositions as englishPrepositions,
   dashesAdvanced as englishAdvancedDashes,
-  numberOrdinals as englishNumberOrdials,
+  numberOrdinals as englishNumberOrdials
   //numberSeparators as englishNumberSeparators
 } from 'richtypo/rules/en'
 import {
@@ -24,7 +24,7 @@ import {
   numberSigns as russianNumberSigns,
   sectionSigns as russianSectionSigns,
   initials as russianInitials,
-  particles as russuianParticles,
+  particles as russuianParticles
   //numberSeparators as russianNumberSeparators
 } from 'richtypo/rules/ru'
 
@@ -66,7 +66,7 @@ const englishRules = [
   englishQuotes,
   englishPrepositions,
   englishAdvancedDashes,
-  englishNumberOrdials,
+  englishNumberOrdials
   //englishNumberSeparators
 ]
 const russianRules = [
@@ -77,7 +77,7 @@ const russianRules = [
   russianNumberSigns,
   russianSectionSigns,
   russianInitials,
-  russuianParticles,
+  russuianParticles
   //russianNumberSeparators
 ]
 

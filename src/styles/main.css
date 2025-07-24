@@ -403,6 +403,10 @@ a .no-orphans {
   text-decoration: underline;
 }
 
+a:active .no-orphans {
+  text-decoration: none;
+}
+
 .heading-content a .no-orphans {
   text-decoration: none;
 }

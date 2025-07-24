@@ -1,8 +1,12 @@
 import {renderTokens} from '../services/markdown-renderer.tsx'
 import type {ImageProps} from '../types.ts'
 
-
-export function Image({href, text, lang, caption = []}: ImageProps): JSX.Element {
+export function Image({
+  href,
+  text,
+  lang,
+  caption = []
+}: ImageProps): JSX.Element {
   return (
     <div className="image-container">
       <div className="image-zoom-wrapper">

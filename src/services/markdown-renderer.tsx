@@ -35,7 +35,6 @@ import type {
 
 import {typographyText} from './typography.ts'
 
-
 let madeLeadParagraph = true
 
 // Type guards for token types
@@ -170,7 +169,6 @@ function renderTable(token: Token, lang: SupportedLanguage): JSX.Element {
   )
 }
 
-
 function isImageWithCaption(tokens: Token[]): boolean {
   if (tokens.length < 2) return false
   // Check if first token is an image
@@ -195,7 +193,11 @@ function extractCaptionTokens(tokens: Token[]): Token[] {
   for (let i = 1; i < tokens.length; i++) {
     const token = tokens[i]
     // Skip leading whitespace
-    if (!foundNonWhitespace && token.type === 'text' && token.text?.trim() === '') {
+    if (
+      !foundNonWhitespace &&
+      token.type === 'text' &&
+      token.text?.trim() === ''
+    ) {
       continue
     }
     foundNonWhitespace = true
@@ -294,8 +296,8 @@ function renderToken(
             title={'title' in imageToken ? imageToken.title : undefined}
             text={hasText(imageToken) ? imageToken.text : ''}
             raw={'raw' in imageToken ? imageToken.raw : ''}
-            caption = {captionTokens}
-            lang = {lang}
+            caption={captionTokens}
+            lang={lang}
           />
         )
       }
