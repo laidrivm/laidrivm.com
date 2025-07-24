@@ -35,6 +35,9 @@ import type {
 
 import {typographyText} from './typography.ts'
 
+
+let madeLeadParagraph = true
+
 // Type guards for token types
 function hasTokens(token: any): token is Token & {tokens: Token[]} {
   return 'tokens' in token && Array.isArray(token.tokens)
@@ -167,6 +170,40 @@ function renderTable(token: Token, lang: SupportedLanguage): JSX.Element {
   )
 }
 
+
+function isImageWithCaption(tokens: Token[]): boolean {
+  if (tokens.length < 2) return false
+  // Check if first token is an image
+  if (tokens[0].type !== 'image') return false
+  // Check if there's text or em following the image
+  // Skip any whitespace-only text tokens
+  for (let i = 1; i < tokens.length; i++) {
+    const token = tokens[i]
+    if (token.type === 'text' && token.text?.trim() === '') continue
+    if (token.type === 'em' || (token.type === 'text' && token.text?.trim())) {
+      return true
+    }
+    break
+  }
+  return false
+}
+
+function extractCaptionTokens(tokens: Token[]): Token[] {
+  const captionTokens: Token[] = []
+  let foundNonWhitespace = false
+  // Start from index 1 (after the image)
+  for (let i = 1; i < tokens.length; i++) {
+    const token = tokens[i]
+    // Skip leading whitespace
+    if (!foundNonWhitespace && token.type === 'text' && token.text?.trim() === '') {
+      continue
+    }
+    foundNonWhitespace = true
+    captionTokens.push(token)
+  }
+  return captionTokens
+}
+
 // Render individual token
 function renderToken(
   token: Token,
@@ -222,6 +259,9 @@ function renderToken(
       )
 
     case 'heading':
+      if ('depth' in token && token.depth === 1) {
+        madeLeadParagraph = false
+      }
       return (
         <Heading
           depth={'depth' in token ? token.depth : 1}
@@ -245,15 +285,51 @@ function renderToken(
       return renderListItem(token, lang)
 
     case 'paragraph':
-      return (
-        <Paragraph raw={'raw' in token ? token.raw : ''}>
-          {hasTokens(token)
-            ? renderTokens(token.tokens as TokensList, lang)
-            : hasText(token)
-              ? token.text
-              : ''}
-        </Paragraph>
-      )
+      if (hasTokens(token) && isImageWithCaption(token.tokens)) {
+        const imageToken = token.tokens[0]
+        const captionTokens = extractCaptionTokens(token.tokens)
+        return (
+          <Image
+            href={'href' in imageToken ? imageToken.href : ''}
+            title={'title' in imageToken ? imageToken.title : undefined}
+            text={hasText(imageToken) ? imageToken.text : ''}
+            raw={'raw' in imageToken ? imageToken.raw : ''}
+            caption = {captionTokens}
+            lang = {lang}
+          />
+        )
+      }
+      if (hasTokens(token)) {
+        if (!madeLeadParagraph) {
+          madeLeadParagraph = true
+          return (
+            <Paragraph raw={'raw' in token ? token.raw : ''} lead={true}>
+              {renderTokens(token.tokens as TokensList, lang)}
+            </Paragraph>
+          )
+        }
+        return (
+          <Paragraph raw={'raw' in token ? token.raw : ''}>
+            {renderTokens(token.tokens as TokensList, lang)}
+          </Paragraph>
+        )
+      }
+      if (hasText(token)) {
+        if (!madeLeadParagraph) {
+          madeLeadParagraph = true
+          return (
+            <Paragraph raw={'raw' in token ? token.raw : ''} lead={true}>
+              {token.text}
+            </Paragraph>
+          )
+        }
+        return (
+          <Paragraph raw={'raw' in token ? token.raw : ''}>
+            {token.text}
+          </Paragraph>
+        )
+      }
+      return null
 
     case 'table':
       return renderTable(token, lang)
@@ -351,7 +427,7 @@ function renderToken(
   }
 }
 
-function renderTokens(
+export function renderTokens(
   tokens: TokensList,
   lang: SupportedLanguage
 ): JSX.Element[] {

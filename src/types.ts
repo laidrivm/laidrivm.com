@@ -60,6 +60,7 @@ export interface HeadingProps {
 export interface ParagraphProps {
   raw: string
   children: JSX.Element | JSX.Element[] | string
+  lead: boolean
 }
 
 export interface ListProps {
@@ -109,9 +110,10 @@ export interface LinkProps {
 export interface ImageProps {
   href: string
   title?: string
-  caption?: string
+  caption: Token[]
   text: string
   raw: string
+  lang: SupportedLanguage
 }
 
 export interface StrongProps {
@@ -130,7 +132,7 @@ export interface DelProps {
 }
 
 export interface HrProps {
-  raw: string
+  raw?: string
 }
 
 export interface BrProps {

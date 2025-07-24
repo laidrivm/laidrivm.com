@@ -10,14 +10,23 @@ import {
   numberUnits,
   shortWords,
   hyphenatedWords,
-  //numberOrdinalsFactory,
-  //numberSeparatorsFactory,
-  //numberSeparatorsFactory,
   quotesFactory
 } from 'richtypo/rules/common'
-
-//import englishRules from 'richtypo/rules/en'
-//import russianRules from 'richtypo/rules/ru'
+import {
+  prepositions as englishPrepositions,
+  dashesAdvanced as englishAdvancedDashes,
+  numberOrdinals as englishNumberOrdials,
+  //numberSeparators as englishNumberSeparators
+} from 'richtypo/rules/en'
+import {
+  dashesAdvanced as russianAdvancedDashes,
+  etcs as russianEtcs,
+  numberSigns as russianNumberSigns,
+  sectionSigns as russianSectionSigns,
+  initials as russianInitials,
+  particles as russuianParticles,
+  //numberSeparators as russianNumberSeparators
+} from 'richtypo/rules/ru'
 
 import type {SupportedLanguage} from '../types.ts'
 
@@ -31,6 +40,11 @@ export function orphans(text: string): string {
 }
 
 const englishQuotes = quotesFactory({
+  openingQuote: '“',
+  closingQuote: '”'
+})
+
+const russianQuotes = quotesFactory({
   openingQuote: '«',
   closingQuote: '»'
 })
@@ -47,8 +61,25 @@ const commonRules = [
   abbrs
 ]
 
-const englishRules = [...commonRules, englishQuotes]
-const russianRules = [...commonRules]
+const englishRules = [
+  ...commonRules,
+  englishQuotes,
+  englishPrepositions,
+  englishAdvancedDashes,
+  englishNumberOrdials,
+  //englishNumberSeparators
+]
+const russianRules = [
+  ...commonRules,
+  russianQuotes,
+  russianAdvancedDashes,
+  russianEtcs,
+  russianNumberSigns,
+  russianSectionSigns,
+  russianInitials,
+  russuianParticles,
+  //russianNumberSeparators
+]
 
 export function typographyText(text: string, lang: SupportedLanguage): string {
   let processedText = text
