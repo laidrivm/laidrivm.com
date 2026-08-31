@@ -6,7 +6,7 @@ import path from 'path'
  * List of files to preserve during cleanup in the root directory
  */
 const PRESERVED_FILES = [
-  'cv-vladimir-lazarev-engineering-director.pdf',
+  'cv-vladimir-lazarev-head-of-engineering.pdf',
   'mellon-for-incubators.pdf',
   'mellon-prototype.pdf',
   'og_image-min.jpg',
